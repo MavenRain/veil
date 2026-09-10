@@ -1,0 +1,6 @@
+-- The level of a ciphertext type is a Nat literal, so a variable level
+-- is refused (veil D-10).
+axiom Pk : Type
+axiom pk : Pk
+def seal : (n : Nat) -> (t : Nat) -> fhc n Nat :=
+  fun (n : Nat) (t : Nat) => enc pk t

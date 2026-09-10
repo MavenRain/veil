@@ -1,0 +1,437 @@
+(** The circuit predicate, veil D-8.  A definition is a circuit when its
+    body computes a finite, statically bounded multiplicative depth over
+    the five [Prim] primitives, finite [SColl] structure and
+    non-recursive function application; [depth] answers that bound or
+    refuses with the milestone head word of D-7.  [cost] is the one flat
+    cost table the packs read (SPEC section 2, "Circuit fragment").
+
+    Soundness matters more than precision here: [lib/circuit.ml] is a
+    kernel file (D-4), so a wrong answer that UNDER-counts depth admits a
+    program that is not really a bounded circuit.  Every choice below
+    that had to pick a convention (documented in CONTRACT-wave0.md) picks
+    the side that never reports less depth than the term can actually
+    reach, never the side that is easiest to compute.
+
+    The walk below is a small evaluator over integers instead of terms:
+    [value] holds either a known depth ([VD]) or an unapplied function
+    ([VClo], a leg plus the environment captured where it was written).
+    Applying a [VClo] pushes the argument's own depth onto that captured
+    environment and re-enters the body, which is what "the depth of the
+    body at the arguments" (D-8) means without literally substituting
+    terms.  A name already being resolved when [Term.Global] reaches it
+    again is a cycle, refused as [mu]: a plain self-referential
+    definition is exactly as unbounded as a general [mu] elimination,
+    and the closed [string -> Term.t option] lookup carries no other way
+    to see that a definition is [def rec].
+
+    [depth]/[Error] payloads are the bare head word only (`mu`, `auto`,
+    `opaque callee`, `SPar`, ...); callers that surface a refusal as a
+    checker error wrap it with [word] to get the full D-7 sentence. *)
+
+let word (head : string) : string = "circuit fragment arrives at V5: " ^ head
+
+(** A definition-time cost.  [Prim.of_name] closes the whole table: every
+    M0 primitive costs 1 and nothing else is a primitive. *)
+let cost (name : string) : int option =
+  Prim.of_name name |> Option.map (fun (_ : Prim.t) -> 1)
+
+type value =
+  | VD of int  (** a term whose multiplicative depth is known *)
+  | VClo of Term.leg * value list * string list
+      (** an unapplied function: its one leg, the environment captured
+          where it was written, and the globals that were open (being
+          unfolded) at that same point.  The third field is what keeps
+          [depth] total: a closure written inside the body of a global
+          can be applied much later, at a call site whose own [seen]
+          list no longer names that global, so the cycle check must
+          travel with the closure. *)
+
+(** Depth read off a value.  A closure used as plain data (an
+    unapplied function stored in a record field, say) carries no
+    circuit cost of its own until it is called, so it reads 0. *)
+let vd_of (v : value) : int = match v with VD n -> n | VClo (_, _, _) -> 0
+
+(** The globals open at a closure's birth, joined with the globals open
+    at its call site.  Order does not matter, only membership: a name in
+    either list is a name whose body is still being unfolded, so meeting
+    it again is a cycle. *)
+let union_seen (a : string list) (b : string list) : string list =
+  List.fold_left
+    (fun (acc : string list) (name : string) ->
+      if List.mem name acc then acc else name :: acc)
+    b a
+
+(** Total de Bruijn lookup, written out rather than through the standard
+    library, because the house rules ban every name that reads like a
+    partial index: an index past the environment cannot arise in a
+    closed, checked term, and 0 is a harmless default. *)
+let rec nth_value (env : value list) (i : int) : value =
+  match env with
+  | [] -> VD 0
+  | v :: rest -> if i <= 0 then v else nth_value rest (i - 1)
+
+(** The type formers carry no computation of their own; only the five
+    milestone shapes stop the walk, exactly as an occurrence of them
+    anywhere else does (D-8). *)
+let eval_type_shape (s : Term.t Shape.t) : (value, string) result =
+  match s with
+  | Shape.SPi (_, _, _) -> Ok (VD 0)
+  | Shape.SColl _ -> Ok (VD 0)
+  | Shape.SMu (_, _) -> Ok (VD 0)
+  | Shape.SPar (_, _) -> Error "SPar"
+  | Shape.SNu (_, _) -> Error "SNu"
+  | Shape.SZk (_, _, _) -> Error "SZk"
+  | Shape.SFhc _ -> Error "SFhc"
+  | Shape.SMpc (_, _) -> Error "SMpc"
+
+(** A literal peano-shaped [SMu] value: 0 at a leaf constructor (one
+    whose arguments do not mention the family at all), 1 plus the
+    deepest recursive argument otherwise.  [None] when a constructor
+    argument mentions the family without itself being a literal chain
+    (an opaque recursive value), so the caller falls back to refusal
+    (R-3: the circuit fragment drops the Zero-quantity multiplier-1
+    fallback, so a non-literal bound is always [unbounded iteration]). *)
+let rec literal_mu_bound (t : Term.t) : int option =
+  match t with
+  | Term.Var _ -> None
+  | Term.Univ _ -> None
+  | Term.Lan (_, _) -> None
+  | Term.Ran (_, _) -> None
+  | Term.In (s, a, args) -> literal_mu_bound_in s a args
+  | Term.Elim _ -> None
+  | Term.Sec (_, _) -> None
+  | Term.Out (_, _, _) -> None
+  | Term.Let (_, _, _, _) -> None
+  | Term.Ann (tm, _ty) -> literal_mu_bound tm
+  | Term.Global _ -> None
+  | Term.Lit _ -> None
+  | Term.Auto -> None
+
+and literal_mu_bound_in (s : Term.t Shape.t) (a : Term.addr) (args : Term.t list) :
+    int option =
+  match s with
+  | Shape.SMu (fam, _) -> literal_mu_bound_ctor fam a args
+  | Shape.SPi (_, _, _) -> None
+  | Shape.SColl _ -> None
+  | Shape.SPar (_, _) -> None
+  | Shape.SNu (_, _) -> None
+  | Shape.SZk (_, _, _) -> None
+  | Shape.SFhc _ -> None
+  | Shape.SMpc (_, _) -> None
+
+and literal_mu_bound_ctor (fam : string) (a : Term.addr) (args : Term.t list) :
+    int option =
+  let _ = a in
+  if List.exists (Term.exists_name ~include_families:true [ fam ]) args then
+    match List.filter_map literal_mu_bound args with
+    | [] -> None
+    | (_ :: _) as deeper -> Some (1 + List.fold_left max 0 deeper)
+  else Some 0
+
+(** [app_spine] peels a chain of [SPi] applications down to its ultimate
+    head and the full, in-order argument list, purely structurally (no
+    evaluation): the pattern [Out (SPi, APt (_, b), Out (SPi, APt (_, a),
+    Global "natAdd")))] answers [(Global "natAdd", [a; b])], so a
+    saturated primitive call is recognised regardless of how many
+    [SPi] layers it took to write it.  Every [Term.t] and [Shape.t]
+    constructor is enumerated explicitly (no catch-all): anything that
+    is not an [Out] built on [SPi] is already its own spine head with no
+    arguments. *)
+let rec app_spine (t : Term.t) : Term.t * Term.t list =
+  match t with
+  | Term.Var _ -> (t, [])
+  | Term.Univ _ -> (t, [])
+  | Term.Lan (_, _) -> (t, [])
+  | Term.Ran (_, _) -> (t, [])
+  | Term.In (_, _, _) -> (t, [])
+  | Term.Elim _ -> (t, [])
+  | Term.Sec (_, _) -> (t, [])
+  | Term.Out (s, a, head) -> app_spine_out s a head t
+  | Term.Let (_, _, _, _) -> (t, [])
+  | Term.Ann (_, _) -> (t, [])
+  | Term.Global _ -> (t, [])
+  | Term.Lit _ -> (t, [])
+  | Term.Auto -> (t, [])
+
+and app_spine_out (s : Term.t Shape.t) (a : Term.addr) (head : Term.t) (whole : Term.t) :
+    Term.t * Term.t list =
+  match s with
+  | Shape.SPi (_, _, _) ->
+      let inner_head, inner_args = app_spine head in
+      let this_arg =
+        Term.as_apt a |> Option.fold ~none:[] ~some:(fun (_, arg) -> [ arg ])
+      in
+      (inner_head, inner_args @ this_arg)
+  | Shape.SColl _ -> (whole, [])
+  | Shape.SMu (_, _) -> (whole, [])
+  | Shape.SPar (_, _) -> (whole, [])
+  | Shape.SNu (_, _) -> (whole, [])
+  | Shape.SZk (_, _, _) -> (whole, [])
+  | Shape.SFhc _ -> (whole, [])
+  | Shape.SMpc (_, _) -> (whole, [])
+
+let rec eval (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (t : Term.t) : (value, string) result =
+  match t with
+  | Term.Var i -> Ok (nth_value env i)
+  | Term.Univ _ -> Ok (VD 0)
+  | Term.Lan (s, _d) -> eval_type_shape s
+  | Term.Ran (s, _d) -> eval_type_shape s
+  | Term.In (s, a, args) -> eval_in glookup seen env s a args
+  | Term.Elim e -> eval_elim glookup seen env e
+  | Term.Sec (s, legs) -> eval_sec glookup seen env s legs
+  | Term.Out (s, _a, head) as whole -> eval_out glookup seen env s head whole
+  | Term.Let (_name, _ty, def, body) ->
+      Result.bind (eval glookup seen env def) (fun (d : value) ->
+          eval glookup seen (d :: env) body)
+  | Term.Ann (tm, _ty) -> eval glookup seen env tm
+  | Term.Global name -> eval_global glookup seen env name
+  | Term.Lit _ -> Ok (VD 0)
+  | Term.Auto -> Error "auto"
+
+(** A record field or a sum's payload: the finite argument list of an
+    admitted [In]/[Sec], folded by the largest depth any one of them
+    reaches (D-8 "records and sums: max over legs"). *)
+and max_args (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (args : Term.t list) : (value, string) result =
+  List.fold_left
+    (fun (acc : (int, string) result) (arg : Term.t) ->
+      Result.bind acc (fun (best : int) ->
+          Result.map (fun (v : value) -> max best (vd_of v)) (eval glookup seen env arg)))
+    (Ok 0) args
+  |> Result.map (fun (n : int) -> VD n)
+
+and fold_max_legs (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (legs : Term.leg list) : (value, string) result =
+  List.fold_left
+    (fun (acc : (int, string) result) (leg : Term.leg) ->
+      Result.bind acc (fun (best : int) ->
+          let env' =
+            List.fold_left
+              (fun (e : value list) (_ : Quantity.t * string) -> VD 0 :: e)
+              env leg.Term.l_binders
+          in
+          Result.map (fun (v : value) -> max best (vd_of v))
+            (eval glookup seen env' leg.Term.l_body)))
+    (Ok 0) legs
+  |> Result.map (fun (n : int) -> VD n)
+
+(** The address of an [In]/[Elim] branch: [APt] carries a term (the
+    point argument or the deconstructed payload) whose own depth counts;
+    every other address carries none. *)
+and addr_depth (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (a : Term.addr) : (int, string) result =
+  Term.as_apt a
+  |> Option.fold ~none:(Ok 0) ~some:(fun ((_q, arg) : Quantity.t * Term.t) ->
+         Result.map vd_of (eval glookup seen env arg))
+
+and eval_in (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (s : Term.t Shape.t) (a : Term.addr) (args : Term.t list) :
+    (value, string) result =
+  match s with
+  | Shape.SPi (_, _, _) ->
+      Result.bind (addr_depth glookup seen env a) (fun (ad : int) ->
+          Result.map
+            (fun (v : value) -> VD (max ad (vd_of v)))
+            (max_args glookup seen env args))
+  | Shape.SColl _ -> max_args glookup seen env args
+  | Shape.SMu (fam, _) ->
+      if List.exists (Term.exists_name ~include_families:true [ fam ]) args then
+        Error "mu"
+      else max_args glookup seen env args
+  | Shape.SPar (_, _) -> Error "SPar"
+  | Shape.SNu (_, _) -> Error "SNu"
+  | Shape.SZk (_, _, _) -> Error "SZk"
+  | Shape.SFhc _ -> Error "SFhc"
+  | Shape.SMpc (_, _) -> Error "SMpc"
+
+and eval_sec (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (s : Term.t Shape.t) (legs : Term.leg list) :
+    (value, string) result =
+  match s with
+  | Shape.SPi (_, _, _) -> (
+      match legs with
+      | [ leg ] -> Ok (VClo (leg, env, seen))
+      | [] -> Error "auto"
+      | _ :: _ :: _ -> Error "auto")
+  | Shape.SColl _ -> fold_max_legs glookup seen env legs
+  | Shape.SMu (_, _) -> Error "mu"
+  | Shape.SPar (_, _) -> Error "SPar"
+  | Shape.SNu (_, _) -> Error "SNu"
+  | Shape.SZk (_, _, _) -> Error "SZk"
+  | Shape.SFhc _ -> Error "SFhc"
+  | Shape.SMpc (_, _) -> Error "SMpc"
+
+(** [Out (SPi, ..)] is application, read off the whole spine so a
+    saturated primitive call costs [cost name] once, not once per
+    curried layer; [Out (SColl, ..)] is a projection, read at the
+    record's own depth since the address carries no term of its own to
+    isolate one field's cost. *)
+and eval_out (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (s : Term.t Shape.t) (head : Term.t) (whole : Term.t) :
+    (value, string) result =
+  match s with
+  | Shape.SPi (_, _, _) -> eval_app glookup seen env whole
+  | Shape.SColl _ ->
+      Result.map (fun (hv : value) -> VD (vd_of hv)) (eval glookup seen env head)
+  | Shape.SMu (_, _) -> Error "mu"
+  | Shape.SNu (_, _) -> Error "SNu"
+  | Shape.SPar (_, _) -> Error "SPar"
+  | Shape.SZk (_, _, _) -> Error "SZk"
+  | Shape.SFhc _ -> Error "SFhc"
+  | Shape.SMpc (_, _) -> Error "SMpc"
+
+and eval_app (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (whole : Term.t) : (value, string) result =
+  let head, args = app_spine whole in
+  match head with
+  | Term.Global name ->
+      (Option.fold (cost name)
+         ~none:(fun () -> eval_app_generic glookup seen env head args)
+         ~some:(fun (c : int) -> fun () -> eval_app_prim glookup seen env c args))
+        ()
+  | Term.Var _ -> eval_app_generic glookup seen env head args
+  | Term.Univ _ -> eval_app_generic glookup seen env head args
+  | Term.Lan (_, _) -> eval_app_generic glookup seen env head args
+  | Term.Ran (_, _) -> eval_app_generic glookup seen env head args
+  | Term.In (_, _, _) -> eval_app_generic glookup seen env head args
+  | Term.Elim _ -> eval_app_generic glookup seen env head args
+  | Term.Sec (_, _) -> eval_app_generic glookup seen env head args
+  | Term.Out (_, _, _) -> eval_app_generic glookup seen env head args
+  | Term.Let (_, _, _, _) -> eval_app_generic glookup seen env head args
+  | Term.Ann (_, _) -> eval_app_generic glookup seen env head args
+  | Term.Lit _ -> eval_app_generic glookup seen env head args
+  | Term.Auto -> eval_app_generic glookup seen env head args
+
+(** The five M0 primitives, cost 1 plus the deepest argument (D-8). *)
+and eval_app_prim (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (c : int) (args : Term.t list) : (value, string) result =
+  Result.map (fun (m : value) -> VD (c + vd_of m)) (max_args glookup seen env args)
+
+(** Any other application: evaluate the head to a function value, then
+    consume the arguments one at a time. *)
+and eval_app_generic (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (head : Term.t) (args : Term.t list) : (value, string) result =
+  Result.bind (eval glookup seen env head) (fun (hv : value) ->
+      apply_all glookup seen env hv args)
+
+(** [VClo] consumes one argument by pushing its depth onto the
+    environment captured where the function was written, then re-enters
+    the body: this is D-8's "depth of the body at the arguments" without
+    literally substituting terms.  A [VD] cannot be called: a function
+    value that arrived through a bound variable rather than a literal
+    [fun] or a resolved global is a callee the circuit fragment cannot
+    see through statically, refused with its own head word (R-2:
+    [opaque callee], not [auto]). *)
+and apply_all (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (fv : value) (args : Term.t list) : (value, string) result =
+  match args with
+  | [] -> Ok fv
+  | arg :: rest -> (
+      match fv with
+      | VD _ -> Error "opaque callee"
+      | VClo (leg, captured_env, captured_seen) ->
+          Result.bind (eval glookup seen env arg) (fun (av : value) ->
+              Result.bind
+                (eval glookup
+                   (union_seen captured_seen seen)
+                   (av :: captured_env) leg.Term.l_body)
+                (fun (rv : value) -> apply_all glookup seen env rv rest)))
+
+(** A bare occurrence of a global name.  A primitive answers its flat
+    cost directly (an unapplied primitive reference costs the same as a
+    saturated call: v1 does not track partial application, see
+    CONTRACT-wave0.md); anything else is looked up, added to [seen] so a
+    second visit before this one returns is a cycle, and re-entered with
+    an empty environment, since a global's own definition is closed. *)
+and eval_global (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (name : string) : (value, string) result =
+  let _ = env in
+  (Option.fold (cost name)
+     ~none:(fun () -> eval_global_user glookup seen name)
+     ~some:(fun (c : int) -> fun () -> Ok (VD c)))
+    ()
+
+and eval_global_user (glookup : string -> Term.t option) (seen : string list)
+    (name : string) : (value, string) result =
+  if List.mem name seen then Error "mu"
+  else
+    (glookup name
+    |> Option.fold
+         ~none:(fun () -> Error ("unknown global " ^ name))
+         ~some:(fun (body : Term.t) -> fun () -> eval glookup (name :: seen) [] body))
+      ()
+
+(** "case", the pair projection of D-M0-3 and a finite [SColl] case
+    alike: [1 + max over branches] (D-8), folded against the
+    scrutinee's own depth so a costly scrutinee is never hidden under a
+    cheap branch. *)
+and eval_elim (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (e : Term.elim) : (value, string) result =
+  match e.Term.e_shape with
+  | Shape.SPi (_, _, _) -> eval_elim_case glookup seen env e
+  | Shape.SColl _ -> eval_elim_case glookup seen env e
+  | Shape.SMu (fam, _) -> eval_elim_mu glookup seen env fam e
+  | Shape.SNu (_, _) -> Error "SNu"
+  | Shape.SPar (_, _) -> Error "SPar"
+  | Shape.SZk (_, _, _) -> Error "SZk"
+  | Shape.SFhc _ -> Error "SFhc"
+  | Shape.SMpc (_, _) -> Error "SMpc"
+
+and eval_elim_case (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (e : Term.elim) : (value, string) result =
+  Result.bind (eval glookup seen env e.Term.e_scrut) (fun (sv : value) ->
+      Result.map
+        (fun (bmax : int) -> VD (max (vd_of sv) (1 + bmax)))
+        (fold_max_branches glookup seen env e.Term.e_branches))
+
+and fold_max_branches (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (branches : (Term.addr * Term.leg) list) :
+    (int, string) result =
+  List.fold_left
+    (fun (acc : (int, string) result) ((a, leg) : Term.addr * Term.leg) ->
+      Result.bind acc (fun (best : int) ->
+          Result.bind (addr_depth glookup seen env a) (fun (ad : int) ->
+              let env' =
+                List.fold_left
+                  (fun (e : value list) (_ : Quantity.t * string) -> VD ad :: e)
+                  env leg.Term.l_binders
+              in
+              Result.map (fun (v : value) -> max best (vd_of v))
+                (eval glookup seen env' leg.Term.l_body))))
+    (Ok 0) branches
+
+(** Bounded iteration (D-8, narrowed by R-3): the only admitted bound is
+    a literal peano-shaped [SMu] value ([literal_mu_bound]); the
+    multiplier count is structural, not read off any runtime value.  Any
+    other [Elim] at [SMu] (a non-literal scrutinee, including the
+    Zero-quantity case the original brief wording suggested) refuses
+    [unbounded iteration]: v1 has no way to read a variable's actual
+    numeric bound off the closed term alone, and admitting it at
+    multiplier 1 would undercount (see CONTRACT-wave0.md and
+    RULINGS-0b.md R-3). *)
+and eval_elim_mu (glookup : string -> Term.t option) (seen : string list)
+    (env : value list) (fam : string) (e : Term.elim) : (value, string) result =
+  let _ = fam in
+  Result.bind (fold_max_branches glookup seen env e.Term.e_branches) (fun (bmax : int) ->
+      literal_mu_bound e.Term.e_scrut
+      |> Option.fold
+           ~none:(Error "unbounded iteration")
+           ~some:(fun (n : int) -> Ok (VD (n * bmax))))
+
+(** An unapplied function definition has no caller to supply its
+    parameter, so [depth] reports the depth of its body with every one
+    of its own parameters read as a plain, depth-0 value: the function's
+    own contribution, matching how [cost] reports a primitive's charge
+    independent of what it is later applied to (see CONTRACT-wave0.md). *)
+let rec unwrap_closures (glookup : string -> Term.t option) (v : value) :
+    (int, string) result =
+  match v with
+  | VD n -> Ok n
+  | VClo (leg, captured_env, captured_seen) ->
+      Result.bind
+        (eval glookup captured_seen (VD 0 :: captured_env) leg.Term.l_body)
+        (unwrap_closures glookup)
+
+let depth (glookup : string -> Term.t option) (t : Term.t) : (int, string) result =
+  Result.bind (eval glookup [] [] t) (unwrap_closures glookup)

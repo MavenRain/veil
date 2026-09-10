@@ -1,0 +1,60 @@
+-- mpc-pack: the veil D-12 multi party picture of ASK section 7, in the
+-- syntax the surface has.  "Party" is the two constructor enumeration,
+-- "alice" and "bob" are its constructors, "allParties" is the two flag
+-- record of "Sub Party" and the predicate is the 2 of 2 rule over it.
+-- "jointSum" joins one input of each party under natAdd.  "reveal"
+-- opens the joint share with the authorization proof at the erased
+-- mark.
+--
+-- "Party" lives at Prop, because a two leg sum of empty records lives
+-- at universe 0 (RULINGS-3.md R-W3-13).
+--
+-- The predicate stands as an inline lambda in the share type, not as a
+-- named definition.  A named definition at the default quantity gets a
+-- Many binder, which the formation rule refuses;  a named definition at
+-- the Zero binder refuses because the body reads the erased binder at
+-- runtime mode (the R-W1-8 trap).  The definition "both" below stays
+-- for the type of the authorization proof, where the Many binder is
+-- correct.
+--
+-- The two secrets are axioms, because the kernel does not constrain the
+-- private input of a party.
+--
+-- The joint function is ascribed, because a section stands in an
+-- inferred position and has no type of its own (R-W2-6).
+--
+-- The program checks and erases.  Its erased form calls the reactor
+-- ops.  The run program under test/host/ is the wave 4 witness.
+
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def isTrue : (b : Bool) -> Prop :=
+  fun (b : Bool) =>
+    case b as z return Prop with
+    | 0 (x : prod ()) => sum ()
+    | 1 (y : prod ()) => prod ()
+
+def Party : Prop := sum (prod (), prod ())
+def alice : Party := inj 0 of 2 ()
+def bob : Party := inj 1 of 2 ()
+def allParties : prod (Nat, Nat) := tuple (1, 1)
+
+def both : (0 q : prod (Nat, Nat)) -> Prop :=
+  fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)
+
+axiom secretA : Nat
+axiom secretB : Nat
+
+def jointSum : (1 a : Nat) -> (1 b : Nat) -> mpc[Party, both] Nat :=
+  fun (1 a : Nat) (1 b : Nat) =>
+    mpc allParties (natAdd : (x : Nat) -> (y : Nat) -> Nat)
+      ((input alice a) : mpc[Party, both] Nat)
+      ((input bob b) : mpc[Party, both] Nat)
+
+def joint : mpc[Party, both] Nat := jointSum secretA secretB
+
+def reveal : (0 h : both allParties) -> (1 c : mpc[Party, both] Nat) -> Nat :=
+  fun (0 h : both allParties) (1 c : mpc[Party, both] Nat) =>
+    open allParties h c
+
+def opened : Nat := reveal (tuple ()) joint

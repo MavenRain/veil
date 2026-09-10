@@ -1,0 +1,19 @@
+natLit: depth 0
+identity: depth 0
+total: depth 1
+nested: depth 2
+Unit: depth 0
+Bool: depth 0
+toNat: depth 1
+cmpFlag: depth 1
+pairVal: depth 0
+pairSum: depth 2
+addOne: depth 1
+five: depth 1
+spineThree: refused: mu
+spineDirect: depth 0
+spineWidth: refused: unbounded iteration
+spineCount: refused: mu
+useAxiom: refused: unknown global axNat
+opaqueApply: refused: opaque callee
+main: depth 5

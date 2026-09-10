@@ -42,7 +42,16 @@ let kind_starts_atom (k : Token.kind) : bool =
   match k with
   | Token.Ident _ | Token.Nat _ | Token.Bytes _ | Token.LParen | Token.Unit | Token.KProp | Token.KType
   | Token.KAuto | Token.KTuple | Token.KSum | Token.KProd | Token.KNatAdd
-  | Token.KNatSub | Token.KNatMul | Token.KNatEq | Token.KNatLt | Token.KNu ->
+  | Token.KNatSub | Token.KNatMul | Token.KNatEq | Token.KNatLt | Token.KNu
+  (* V1 wave 1, D-9:  'prove' and 'verify' head an application atom;
+     'zk' heads a whole type and so starts no atom. *)
+  (* V1 wave 2, D-10:  the four words of the fhc sugar all head an
+     application atom, the type former among them. *)
+  (* V1 wave 3, D-12:  the four words of the mpc sugar head an
+     application atom.  The type form is 'mpc' with the bracket group
+     after it, so one word covers the type and the joint section. *)
+  | Token.KProve | Token.KVerify | Token.KFhc | Token.KEnc | Token.KEval | Token.KDec
+  | Token.KMpc | Token.KInput | Token.KShare | Token.KOpen ->
       true
   (* M1 Stage G, correction C7:  'mu' opens a declaration and 'and' joins
      two of them, so neither starts an atom.  Were 'mu' to start one, the
@@ -53,7 +62,10 @@ let kind_starts_atom (k : Token.kind) : bool =
   (* M1 Stage I, SI-D8:  'rec' stands inside a declaration header and
      never inside a term, so it starts no atom either. *)
   | Token.KReturn | Token.KWith | Token.KAbsurd | Token.KLet | Token.KIn | Token.KMu
-  | Token.KAnd | Token.KRec | Token.KMatch | Token.KMutual | Token.KEnd | Token.Eof ->
+  | Token.KAnd | Token.KRec | Token.KMatch | Token.KMutual | Token.KEnd | Token.KZk
+  (* V1 wave 3, D-12:  a bracket stands inside the share type only. *)
+  | Token.LBracket | Token.RBracket
+  | Token.Eof ->
       false
 
 let starts_atom (ts : Token.t list) : bool =
@@ -96,13 +108,50 @@ let numeric_key (form : elimination) (loc : Token.loc) : (unit, Error.t) result 
   | LegacyCase -> Ok ()
   | FiberedMatch -> parse_err loc "a match branch keys a constructor, not a leg number"
 
+(** V1 wave 3, D-12:  the written quantity of the authorization proof of
+    "open".  An absent mark is not the runtime mark here.  The pack
+    demands the erased mark, so an absent mark stands for the demanded
+    quantity and a written mark is carried as it is written.  That is the
+    W2-F5 trap:  the surface never hardcodes the quantity the kernel
+    wants, so the negative that writes the proof at "1" is spellable. *)
+let proof_mark (ts : Token.t list) : Quantity.t option * Token.t list =
+  match ts with
+  | { Token.kind = Token.Nat n; loc = _ } :: rest when Bignum.equal n Bignum.zero ->
+      (Some Quantity.Zero, rest)
+  | { Token.kind = Token.Nat n; loc = _ } :: rest when Bignum.equal n Bignum.one ->
+      (Some Quantity.One, rest)
+  | ({ Token.kind = _; loc = _ } :: _ | []) as same -> (None, same)
+
 let rec parse_term (ts : Token.t list) : (Syntax.t * Token.t list, Error.t) result =
   match ts with
   | { Token.kind = Token.KFun; loc = _ } :: rest -> parse_fun rest
   | { Token.kind = Token.KLet; loc = _ } :: rest -> parse_let rest
   | { Token.kind = Token.KCase; loc = _ } :: rest -> parse_case LegacyCase rest
   | { Token.kind = Token.KMatch; loc = _ } :: rest -> parse_case FiberedMatch rest
+  (* V1 wave 1, D-9:  "zk (q w : W) * R" reads the star production that
+     follows the word and re-heads it as the zk type. *)
+  | { Token.kind = Token.KZk; loc } :: rest ->
+      let* body, rest2 = parse_arrow rest in
+      zk_of_star loc body rest2
   | ({ Token.kind = _; loc = _ } :: _ | []) -> parse_arrow ts
+
+and zk_of_star (loc : Token.loc) (body : Syntax.t) (rest : Token.t list) :
+    (Syntax.t * Token.t list, Error.t) result =
+  let bad = parse_err loc "expected '(q w : W) * R' after 'zk'" in
+  match body with
+  | Syntax.SStar (b, cod) -> Ok (Syntax.SZkTy (b, cod), rest)
+  | Syntax.SVar _ | Syntax.SNat _ | Syntax.SProp | Syntax.SType _ | Syntax.SPrim _
+  | Syntax.SUnit | Syntax.SAuto | Syntax.SPair (_, _) | Syntax.STuple _ | Syntax.SSum _
+  | Syntax.SProd _ | Syntax.SProj (_, _) | Syntax.SInj (_, _, _) | Syntax.SAbsurd _
+  | Syntax.SApp (_, _) | Syntax.SFun (_, _) | Syntax.SArrow (_, _)
+  | Syntax.SZkTy (_, _) | Syntax.SProve (_, _, _) | Syntax.SVerify (_, _)
+  | Syntax.SFhcTy (_, _) | Syntax.SEnc (_, _) | Syntax.SEval (_, _)
+  | Syntax.SDec (_, _)
+  | Syntax.SMpcTy (_, _, _) | Syntax.SShare _ | Syntax.SInput (_, _)
+  | Syntax.SJoin (_, _, _) | Syntax.SOpen (_, _, _, _)
+  | Syntax.SLet (_, _, _, _) | Syntax.SAnn (_, _) | Syntax.SCase (_, _, _)
+  | Syntax.SMatch (_, _, _) ->
+      bad
 
 (** "fun binder+ => body".  One binder at least;  the body reaches as
     far right as it can. *)
@@ -350,6 +399,16 @@ and parse_atom (ts : Token.t list) : (Syntax.t * Token.t list, Error.t) result =
   let* a, rest = parse_atom_head ts in
   parse_postfix a rest
 
+(** V1 wave 3, D-12:  zero or more atoms, oldest first.  The joint
+    section reads its shares with this row, so it takes one share or
+    more (R-W3-2). *)
+and parse_atoms (ts : Token.t list) (acc : Syntax.t list) :
+    (Syntax.t list * Token.t list, Error.t) result =
+  if starts_atom ts then
+    let* a, rest = parse_atom ts in
+    parse_atoms rest (a :: acc)
+  else Ok (List.rev acc, ts)
+
 and parse_postfix (a : Syntax.t) (ts : Token.t list) :
     (Syntax.t * Token.t list, Error.t) result =
   match ts with
@@ -377,6 +436,72 @@ and parse_atom_head (ts : Token.t list) : (Syntax.t * Token.t list, Error.t) res
       in
       Ok (term, rest)
   | { Token.kind = Token.KProp; loc = _ } :: rest -> Ok (Syntax.SProp, rest)
+  (* V1 wave 1, D-9:  "prove x w r" and "verify x p" read a fixed count
+     of atoms, so no partial application of the sugar can be written. *)
+  | { Token.kind = Token.KProve; loc = _ } :: rest ->
+      let* x, rest1 = parse_atom rest in
+      let* w, rest2 = parse_atom rest1 in
+      let* r, rest3 = parse_atom rest2 in
+      Ok (Syntax.SProve (x, w, r), rest3)
+  | { Token.kind = Token.KVerify; loc = _ } :: rest ->
+      let* x, rest1 = parse_atom rest in
+      let* p, rest2 = parse_atom rest1 in
+      Ok (Syntax.SVerify (x, p), rest2)
+  (* V1 wave 2, D-10:  each word of the fhc sugar reads two atoms. *)
+  | { Token.kind = Token.KFhc; loc = _ } :: rest ->
+      let* l, rest1 = parse_atom rest in
+      let* ty, rest2 = parse_atom rest1 in
+      Ok (Syntax.SFhcTy (l, ty), rest2)
+  | { Token.kind = Token.KEnc; loc = _ } :: rest ->
+      let* pk, rest1 = parse_atom rest in
+      let* t, rest2 = parse_atom rest1 in
+      Ok (Syntax.SEnc (pk, t), rest2)
+  | { Token.kind = Token.KEval; loc = _ } :: rest ->
+      let* f, rest1 = parse_atom rest in
+      let* c, rest2 = parse_atom rest1 in
+      Ok (Syntax.SEval (f, c), rest2)
+  | { Token.kind = Token.KDec; loc = _ } :: rest ->
+      let* sk, rest1 = parse_atom rest in
+      let* c, rest2 = parse_atom rest1 in
+      Ok (Syntax.SDec (sk, c), rest2)
+  (* V1 wave 3, D-12:  "mpc[P, A] T" is the type and "mpc ps f c1 .. cn"
+     the joint section.  The bracket after the word picks the type row,
+     so the word needs no second spelling. *)
+  | { Token.kind = Token.KMpc; loc = _ } :: { Token.kind = Token.LBracket; loc = _ } :: rest
+    -> (
+      let* p, rest1 = parse_term rest in
+      match rest1 with
+      | { Token.kind = Token.Comma; loc = _ } :: rest2 -> (
+          let* a, rest3 = parse_term rest2 in
+          match rest3 with
+          | { Token.kind = Token.RBracket; loc = _ } :: rest4 ->
+              let* ty, rest5 = parse_atom rest4 in
+              Ok (Syntax.SMpcTy (p, a, ty), rest5)
+          | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "']'" rest3)
+      | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "','" rest1)
+  | { Token.kind = Token.KMpc; loc = _ } :: rest ->
+      let* ps, rest1 = parse_atom rest in
+      let* f, rest2 = parse_atom rest1 in
+      let* c, rest3 = parse_atom rest2 in
+      let* cs, rest4 = parse_atoms rest3 [] in
+      Ok (Syntax.SJoin (ps, f, c :: cs), rest4)
+  | { Token.kind = Token.KShare; loc = _ } :: rest ->
+      let* x, rest1 = parse_atom rest in
+      Ok (Syntax.SShare x, rest1)
+  | { Token.kind = Token.KInput; loc = _ } :: rest ->
+      let* p, rest1 = parse_atom rest in
+      let* x, rest2 = parse_atom rest1 in
+      Ok (Syntax.SInput (p, x), rest2)
+  (* The mark between the party set and the proof is the quantity of the
+     proof, and an absent mark is the erased one (D-12, W2-F5). *)
+  | { Token.kind = Token.KOpen; loc = _ } :: rest ->
+      let* qs, rest1 = parse_atom rest in
+      let q, rest_q = proof_mark rest1 in
+      let* h, rest2 = parse_atom rest_q in
+      let* c, rest3 = parse_atom rest2 in
+      Ok (Syntax.SOpen (q, qs, h, c), rest3)
+  | { Token.kind = Token.KZk; loc } :: _rest ->
+      parse_err loc "a zk type is not an atom"
   | { Token.kind = Token.KType; loc = _ } :: { Token.kind = Token.Nat n; loc } :: rest ->
       let* n = bounded_nat loc n in
       Ok (Syntax.SType n, rest)
@@ -473,6 +598,30 @@ and parse_decl (ts : Token.t list) : (Syntax.decl * Token.t list, Error.t) resul
     ->
       let* ms, rest2 = parse_rec_group rest [] in
       Ok (Syntax.DRec ms, rest2)
+  (* R-W2-5: "def NAME (binder)+ : cod := body" desugars, before any
+     elaboration, to the arrow-header spelling "def NAME : (binder)+ ->
+     cod := fun (binder)+ => body".  The binder group is exactly the
+     one "fun" accepts (parse_binder / parse_binders), so a def with no
+     parameter list falls through to the row below unchanged. *)
+  | { Token.kind = Token.KDef; loc = _ }
+    :: { Token.kind = Token.Ident name; loc = _ }
+    :: ({ Token.kind = Token.LParen; loc = _ } :: _ as prest) -> (
+      let* first, rest = parse_binder prest in
+      let* binders, rest2 = parse_binders rest [ first ] in
+      match rest2 with
+      | { Token.kind = Token.Colon; loc = _ } :: rest3 -> (
+          let* cod, rest4 = parse_term rest3 in
+          match rest4 with
+          | { Token.kind = Token.ColonEq; loc = _ } :: rest5 ->
+              let* body, rest6 = parse_term rest5 in
+              let ty =
+                List.fold_right
+                  (fun (b : Syntax.binder) (acc : Syntax.t) -> Syntax.SArrow (b, acc))
+                  binders cod
+              in
+              Ok (Syntax.DDef (name, ty, Syntax.SFun (binders, body)), rest6)
+          | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "':='" rest4)
+      | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "':'" rest2)
   | { Token.kind = Token.KDef; loc = _ }
     :: { Token.kind = Token.Ident name; loc = _ }
     :: { Token.kind = Token.Colon; loc = _ }

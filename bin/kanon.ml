@@ -22,8 +22,8 @@
 
 let usage () : unit =
   prerr_endline
-    "usage: kanon check [--print|--erased] FILE | axioms FILE | emit FILE -o \
-     OUT.wasm --export NAME | run FILE --export NAME [--host \
+    "usage: kanon check [--print|--erased] FILE | axioms FILE | circuit FILE \
+     | emit FILE -o OUT.wasm --export NAME | run FILE --export NAME [--host \
      node|wasmtime|kernel|both] | build FILE... -o OUT.wasm --export NAME... | spec-count"
 
 let read_file (path : string) : string =
@@ -74,9 +74,11 @@ let run_erased (path : string) : unit =
          exit 1)
 
 (** R-Q3: the postulates of the file, one name per line, in declaration
-    order.  A file with no postulate prints nothing. *)
+    order.  veil D-13: a program that holds a veil shape adds the belief
+    that shape rests on, after the postulate lines.  A file with no
+    postulate and no veil shape prints nothing. *)
 let run_axioms (path : string) : unit =
-  List.iter print_endline (Kanon_surface.Elab.axiom_names (checked path))
+  List.iter print_endline (Kanon_surface.Elab.disclosure_names (checked path))
 
 (** "emit FILE -o OUT.wasm --export NAME" (3.4).  The file is checked and
     erased first, so the emitter never reads a declaration the kernel did
@@ -318,6 +320,54 @@ let dispatch_axioms (args : string list) : unit =
       usage ();
       exit 64
 
+(** The lookup [Circuit.depth] wants: a global name resolves to its
+    definition body only when it names an ordinary [Def] (an axiom or a
+    primitive has no body to walk, D-8's "an axiom or an unknown global
+    is refused with `unknown global NAME`" reads a [None] here exactly
+    the same as a name absent from [globals] altogether). *)
+let global_lookup (globals : Kanon_kernel.Global.t) :
+    string -> Kanon_kernel.Term.t option =
+ fun (name : string) ->
+  Option.bind
+    (Kanon_kernel.Global.find name globals)
+    (function
+      | Kanon_kernel.Global.Def (d : Kanon_kernel.Global.def_entry) -> Some d.def
+      | Kanon_kernel.Global.Axiom _ -> None
+      | Kanon_kernel.Global.Prim _ -> None)
+
+(** "circuit FILE" (D-8): one line per top-level definition, `NAME: depth
+    D` or `NAME: refused: HEAD` with the bare D-7 head word (R-1, no
+    sentence prefix in the driver's own line), exit 0 when every
+    definition is admitted and 1 when any one is refused. *)
+let run_circuit (path : string) : unit =
+  let globals, rows = checked_in path in
+  let lookup = global_lookup globals in
+  let refused =
+    List.fold_left
+      (fun (any_bad : bool) ((name, entry) : string * Kanon_kernel.Global.entry) ->
+        match entry with
+        | Kanon_kernel.Global.Def (d : Kanon_kernel.Global.def_entry) ->
+            Kanon_kernel.Circuit.depth lookup d.def
+            |> Result.fold
+                 ~ok:(fun (n : int) ->
+                   print_endline (name ^ ": depth " ^ string_of_int n);
+                   any_bad)
+                 ~error:(fun (h : string) ->
+                   print_endline (name ^ ": refused: " ^ h);
+                   true)
+        | Kanon_kernel.Global.Axiom _ -> any_bad
+        | Kanon_kernel.Global.Prim _ -> any_bad)
+      false rows
+  in
+  if refused then exit 1 else ()
+
+let dispatch_circuit (args : string list) : unit =
+  match args with
+  | path :: _rest -> run_circuit path
+  | [] ->
+      usage ();
+      exit 64
+
 (* A string match cannot be exhaustive without a last arm, so the last arm
    binds the unknown command instead of writing a wildcard. *)
 let dispatch (cmd : string) (args : string list) : unit =
@@ -325,6 +375,7 @@ let dispatch (cmd : string) (args : string list) : unit =
   | "spec-count" -> print_string (Kanon_kernel.Spec_count.print ())
   | "check" -> dispatch_check args
   | "axioms" -> dispatch_axioms args
+  | "circuit" -> dispatch_circuit args
   | "emit" -> dispatch_emit args
   | "build" -> dispatch_build args
   | "run" -> dispatch_run args

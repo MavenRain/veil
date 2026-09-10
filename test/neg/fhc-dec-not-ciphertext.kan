@@ -1,0 +1,6 @@
+-- "dec" needs a ciphertext as its argument.  The elaborator refuses a
+-- plain Nat before the kernel sees the elimination.
+axiom Sk : Type
+axiom sk : Sk
+def bad : (1 k : Sk) -> (n : Nat) -> Nat :=
+  fun (1 k : Sk) (n : Nat) => dec k n

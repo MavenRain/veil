@@ -1,4 +1,4 @@
-# kanon M0 specification
+# kanon M0 specification (veil)
 
 Date: 2026-09-05.  Status: M0 Stage A.  This file pins the closed grammar
 and the R0 counts.  The gate legs R0-COUNT and R0-AUDIT read it.
@@ -30,6 +30,9 @@ then a loud edit to an exhaustive match, not a new constructor.
 | `SPar of 'a * 'a` | M2 | rules.ml |
 | `SMu of string * 'a list` | M1 | admitted |
 | `SNu of string * 'a list` | M2 | rules.ml |
+| `SZk of Quantity.t * string * 'a` | V1 | admitted |
+| `SFhc of 'a` | V2 | admitted |
+| `SMpc of 'a * 'a` | V3 | admitted |
 
 The type parameter is the kernel term.  lib/term.ml therefore spells no
 shape name (SA-D5).
@@ -124,6 +127,9 @@ column gives the name the row writes, either a `tid` or a `fid`.
 | `Ann` | the term under it, erased | none |
 | `Global` | `KGlobal name` | none |
 | `Lit` | `KLit` | none |
+| `In` at `Lan SZk` (`prove y w r`) | `KApp (KGlobal zkProve, [the witness])`, because the proof is a host blob; the slot holds the flag `0` and the witness, and the erased blob type is `struct pair<>` | none |
+| `Sec` and `Out` at `Ran SFhc` (`enc`, `eval`, `dec`) | `KApp (KGlobal fhcEnc, [the level, the plaintext])`, `KApp (KGlobal fhcEval, [the out level, f, the slot])` and `KApp (KGlobal fhcDec, [the slot])`; the slot holds the level and the plaintext, and only `dec` answers a Nat | none |
+| `Sec` and `Out` at `Ran SMpc` (`input`, `mpc`, `open`) | `KApp (KGlobal mpcInput, [the plaintext])`, `KApp (KGlobal mpcShare, [the subset, f, the share slots])` and `KApp (KGlobal mpcOpen, [the slot])`; the slot holds the party flag, which is the constant `0` in v1, and the plaintext, and only `open` answers a Nat | none |
 | `Auto`, `Sec` and `Out` at `SMu`, every form at `SPar` and at `SNu` | `Error (Not_yet ..)` with the milestone word | none |
 
 A function type takes the repr `func fn<n>`, where n counts the runtime
@@ -167,6 +173,73 @@ index counts the runtime fields alone.  A struct with no runtime field is
 environment maps each kernel binder to a runtime index or to erased, and
 a use of an erased binder is `KErased`.
 
+### 2.4 The circuit fragment, lib/circuit.ml
+
+A definition is a circuit when its body computes a multiplicative depth
+that is finite and known before the program runs. `Circuit.depth` walks
+the closed term and answers `Ok d` or refuses with one head word.
+`lib/circuit.ml` is a kernel file, so every rule below takes the side
+that never reports less depth than the body can reach.
+
+Admitted forms, with the depth each one gets:
+
+| form | depth |
+| --- | --- |
+| `Univ`, `Lan`, `Ran`, `Lit`, a bound variable | 0 |
+| a primitive name, applied or bare | `cost name` |
+| a saturated primitive call | `cost name` plus the largest argument depth |
+| `In` at `SColl`, and `In` at `SPi` | the largest depth in the address and the arguments |
+| `Out` at `SColl`, a projection | the depth of the record |
+| `Sec` at `SPi` with one leg | a closure; the depth of the body with each parameter read as 0 |
+| `Out` at `SPi`, an application | the depth of the callee body with the argument depths in place |
+| `Elim` at `SPi` or `SColl`, a case | the larger of the scrutinee depth and 1 plus the largest branch |
+| `Elim` at `SMu` on a literal peano value | the literal bound times the largest branch |
+| `Let` | the depth of the body with the bound value in place |
+| `Ann` | the depth of the term inside |
+| `Global` naming a definition | the depth of that definition body |
+
+The cost table is flat and closed. Each of the five M0 primitives
+`natAdd`, `natSub`, `natMul`, `natEq` and `natLt` costs 1, and
+`Circuit.cost` answers `None` for every other name. A bare primitive
+name costs the same as a saturated call, because v1 does not track
+partial application.
+
+D-7 gives eleven head words: `mu`, `auto`, `host op`, `SPar`, `SNu`,
+`SZk`, `SFhc`, `SMpc`, `unbounded iteration`, `unknown global NAME` and
+`opaque callee`. A shape that arrives at a later milestone refuses with
+its own name. A global that is met a second time while its first
+unfolding is still open refuses `mu`. A global with no body refuses
+`unknown global NAME`. An application whose callee is a plain value,
+not a closure, refuses `opaque callee`.
+
+`Circuit.depth` returns the bare head word as its `Error` payload.
+`Circuit.word` adds the full sentence, `circuit fragment arrives at V5:
+HEAD`. A rule pack that turns a refusal into `Error.Not_yet` calls
+`Circuit.word`. The driver prints the bare head and strips no prefix.
+
+An `Elim` at `SMu` is admitted only when the scrutinee is a literal
+peano value written at the match site. A scrutinee that reaches the
+match through a variable or through a global name refuses `unbounded
+iteration`. The public bound of D-8, which reads the count off a
+Zero-quantity argument, arrives at V5, when the introduction site can
+resolve that argument to a literal.
+
+`kanon circuit FILE` prints one line for each definition in the file,
+in source order: `NAME: depth D` when the definition is a circuit, and
+`NAME: refused: HEAD` when it is not. The verb exits 1 when the file
+holds at least one refused definition, and 0 when every definition is a
+circuit. `test/circuit-spine.kan` holds one definition for each
+admitted form and for each reachable head, and the CIRCUIT gate leg
+diffs the output against `test/golden/circuit-spine.circuit`.
+
+Seven head words cannot be reached by a file that passes `kanon check`
+at this pin: `SPar`, `SNu`, `SZk`, `SFhc`, `SMpc`, `host op` and
+`auto`. The five shapes are refused as whole shapes by `lib/rules.ml`
+before `circuit` runs, and the surface language has no syntax that
+builds a checked term of any of them; `Term.t` has no host operation at
+all; and `lib/check.ml` refuses `Term.Auto` outright, so a file that
+uses an instance fails the check before the circuit walk starts.
+
 ## R0 counts
 
 `kanon spec-count` prints this block.  dev/r0-count.sh diffs the two.  A
@@ -175,12 +248,12 @@ count that grows fails the R0-COUNT gate leg.
 ```
 formers 2: Lan Ran
 schema constructors 4: In Elim Sec Out
-shapes declared 5: SPi SColl SPar SMu SNu
-shapes admitted 3: SPi SColl SMu
-named rules declared 3: proof-irrelevance subsingleton-large-elimination literal-fast-path
+shapes declared 8: SPi SColl SPar SMu SNu SZk SFhc SMpc
+shapes admitted 6: SPi SColl SMu SZk SFhc SMpc
+named rules declared 6: proof-irrelevance subsingleton-large-elimination literal-fast-path zk-fhc zk-mpc fhc-mpc
 named rules present 3: proof-irrelevance subsingleton-large-elimination literal-fast-path
 eta rows 3: Ran-SPi Lan-SPi Ran-SColl
-no eta 3: Lan-SColl Ran-SMu Lan-SMu
+no eta 9: Lan-SColl Ran-SMu Lan-SMu Ran-SZk Lan-SZk Ran-SFhc Lan-SFhc Ran-SMpc Lan-SMpc
 ```
 
 Every number in the block is the length of the list printed after it.
@@ -199,16 +272,32 @@ ends.  The table below is derived from that test, not declared.
 | Lan-SPi | Lan at SPi | `p` to `In (APt p.1) [p.2]` | yes |
 | Ran-SColl | Ran at SColl n | `t` to `Sec [Out (ALeg 0) t, .., Out (ALeg n-1) t]` | yes |
 | Lan-SColl | Lan at SColl n | none | no |
+| Ran-SZk | Ran at SZk | none | no |
+| Lan-SZk | Lan at SZk | none | no |
+| Ran-SFhc | Ran at SFhc | none | no |
+| Lan-SFhc | Lan at SFhc | none | no |
+| Ran-SMpc | Ran at SMpc | none | no |
+| Lan-SMpc | Lan at SMpc | none | no |
 
 Lan at SColl n has n introduction addresses, one per leg, so the
-criterion fails and the row is absent.  Ran at SColl 0 holds, and it
+criterion fails and the row is absent.  Ran at SZk is refused, so it has
+no expansion to write.  Lan at SZk has one introduction address, but a
+proof does not project its witness, because the witness is erased, so
+the expansion cannot be written and the row is absent.  Lan at SFhc is
+refused, so it has no expansion to write.  Ran at SFhc has one
+introduction address, the ciphertext section, but the shape has no beta,
+so the elimination of an introduction does not give the parts back and
+the expansion cannot be written.  Lan at SMpc is refused, so it has no
+expansion to write.  Ran at SMpc has more than one introduction address,
+because a share section, an input section and a joint section all
+introduce the same share type, so the criterion fails.  Ran at SColl 0 holds, and it
 gives Unit its eta.  conv.ml applies each row by expansion.
 
 ### 4.1 The rule pack, lib/rules.ml
 
 `rules : 'a Shape.t -> (rule_pack, Error.t) result` is the one dispatch
-point.  It gives a pack to the two admitted shapes.  It gives
-`Error (Not_yet ..)` with the milestone word to the other three.  The
+point.  It gives a pack to the four admitted shapes.  It gives
+`Error (Not_yet ..)` with the milestone word to the other four.  The
 pack has these fields, as built.
 
 | field | what it decides |
@@ -233,6 +322,106 @@ pack has these fields, as built.
 A rule reads the checker through an `ops` record, so rules.ml does not
 depend on check.ml and no ref cell exists in lib/ (SB-D12).
 
+### 4.2 The zk pack, veil D-9
+
+The zk shape `SZk (q, w, W)` carries the quantity of the witness, the
+name of the witness and its type.  The left former is the proof type and
+the surface writes it `zk (q w : W) * R`.
+
+| rule | what the pack decides |
+| --- | --- |
+| formation | `Lan (SZk (q, w, W)) R` stands at the universe of `W` joined with the universe of `R`, which is the join the point rules compute, so the proof type never sits at `Prop` |
+| In | `prove x w r` is `In (SZk ..) (APt (q, w)) [r]`.  It checks against an expected left former, and the witness stands at the quantity the type declares |
+| Elim | `verify x p` is an `Elim` at the left former with the leg address `ALeg 0`.  The one branch binds the witness and the relation |
+| beta | `verify x (prove x w r)` converts to the relation at that witness, so a proof of the relation is a proof of the statement |
+| no eta | neither former gets an eta row.  See section 4 |
+
+The refusal words of the pack.  The right former answers `Ran SZk
+arrives at V5`, because a co-proof has no meaning in v1.  Erasure of a
+zk type or of a proof answers `host blobs arrive at V4`, because a proof
+is a host value and the erased form carries no host value.  The circuit
+predicate answers `circuit fragment arrives at V5: HEAD` when the
+relation reads a head the fragment cannot compile, for example a
+postulate or a recursive family.
+
+### 4.3 The fhc pack, veil D-10 and D-11
+
+The homomorphic shape `SFhc l` carries the level of the ciphertext.  The
+right former is the ciphertext type and the surface writes it
+`fhc l T`.  The level is a `Nat` literal and `T` is a fragment type, that
+is a type the circuit reader of section 2.4 can compile.
+
+| rule | what the pack decides |
+| --- | --- |
+| formation | `Ran (SFhc l) T` stands at the universe of `T`, so a ciphertext type sits where its plaintext type sits |
+| Sec, enc | `enc pk t` is `Sec (SFhc 0) [pk; t]`, a fresh ciphertext.  A fresh ciphertext starts at level 0 |
+| Sec, eval | `eval f c` is `Sec (SFhc l) [f; c]`, the same section with a function as its first item.  The level of the result is the level of `c` plus the depth of `f`, which is the depth the circuit fragment of `f` reports |
+| Out | `dec sk c` is `Out (SFhc l) (APt (One, sk)) c`.  The key is consumed once and the answer is the plaintext type |
+| no beta | `dec sk (enc pk t)` does not convert to `t`.  A ciphertext is a host value, so the pack gives the shape no beta rule (D-10).  The evaluator answers `an elimination met a value it cannot eliminate` at such a term |
+| no eta | neither former gets an eta row.  See section 4 |
+
+The refusal words of the pack.  The left former answers `Lan SFhc
+arrives at V5`, because a co-ciphertext has no meaning in v1.  Erasure of
+a ciphertext type, of a key or of a ciphertext answers `host blobs
+arrive at V4`, because each one is a host value and the erased form
+carries no host value.  The circuit predicate answers `circuit fragment
+arrives at V5: HEAD` when the function under `eval` reads a head the
+fragment cannot compile, for example a postulate.  The check-time words
+are `the level of a ciphertext type is a Nat literal`, `a ciphertext
+carries a fragment type`, `a ciphertext needs a right former as its
+expected type`, `a ciphertext section takes two arguments`, `the
+argument of eval or dec is not a ciphertext`, `eval takes a function
+from the plaintext type to the result type`, `the key of dec is consumed
+once`, `enc starts at level 0` and `the level of the result is the level
+of the argument plus the depth of the function`.  D-13 discloses the
+framework axiom `fhc-correctness` at every program that holds the shape.
+
+Three departures from the plan stand in v1.  `eval f c` takes ONE
+ciphertext; the `eval f c1 .. cn` form arrives at V5.  A level is a `Nat`
+literal, not a term.  A dependent function under `eval` is refused,
+because the result type of the section is the plaintext type of the
+answer and it cannot depend on the plaintext.
+
+### 4.4 The mpc pack, veil D-12
+
+The multi party shape `SMpc (P, A)` carries the party set `P` and the
+authorization predicate `A`.  The right former is the share type and the
+surface writes it `mpc[P, A] T`.  `P` is a finite enumeration, that is a
+`Lan (SColl n)` whose every leg reduces to the empty record.  `Sub P` is
+the record `Ran (SColl n)` of `n` membership flags, one `Nat` for each
+party, `1` for present and `0` for absent.  `A` is the predicate over
+`Sub P`, the type `(0 q : Sub P) -> Prop`, and the binder stands at
+`Quantity.Zero`.
+
+| rule | what the pack decides |
+| --- | --- |
+| formation | `Ran (SMpc (P, A)) T` stands at the universe of `T`, so a share type sits where its payload type sits.  The party set and the predicate never lift it |
+| Sec, share | `share x` is `Sec (SMpc (P, A)) [x]`, the one leg section.  The payload stands at the payload type |
+| Sec, input | `input p x` is `Sec (SMpc (P, A)) [p; x]`, the two leg section.  The party stands at `P` and the payload at the payload type |
+| Sec, mpc | `mpc ps f c1 .. cn` is `Sec (SMpc (P, A)) [ps; f; c1; ..; cn]`, the joint section.  `ps` stands at `Sub P`, `f` is a function of the `n` share payload types and the pack reads the depth of its circuit fragment |
+| Out | `open Q h c` is `Out (SMpc (P, A)) (APt (Zero, In (SPi (Zero, q, Sub P)) (APt (Zero, Q)) [h])) c`.  The address carries the party subset `Q` with the authorization proof `h` at the erased mark, and the answer is the payload type |
+
+The share type has no beta and no eta.  A joint section does not give
+its parts back, because the parts stand at the parties and not at the
+kernel, so `beta` answers none and both eta rows of section 4 are
+absent.  The left former answers `Session arrives at V5`.
+
+The check-time words are `the party set of an mpc type is a finite
+enumeration`, `a share needs a right former as its expected type`, `an
+mpc section leg binds nothing`, `an mpc section takes one argument or
+more`, `mpc takes a function from the share types to the result type`,
+`the result of mpc is the type that remains after the last share`, `open
+takes the party set address with the authorization proof`, `the
+authorization proof of open is erased`, `open carries one authorization
+proof` and `the argument of open is not a share`.  D-13 discloses the
+framework axiom `mpc-simulatability` at every program that holds the
+shape.
+
+One departure from the plan stands in v1 (R-W3-8).  The joint function
+is not dependent:  the pack peels one domain for each share and the
+result after the last share must be the payload type, so a domain that
+reads an earlier share arrives at V5.
+
 ## 5 The named rules ledger
 
 These are the conversion rules that are not schema rules.  Three are
@@ -243,6 +432,9 @@ declared;  two are present at M0 and the third arrives at M1 Stage H.
 | proof-irrelevance | present at M0 | conv.ml, step one: two terms at a type in `Univ zero` are equal |
 | subsingleton-large-elimination | present | conv.ml, step one, through the `subsingleton` field of the rule pack.  The three-part criterion is tot's, at kan-lang-tot-pin/lib/check.ml:219 and :223 |
 | literal-fast-path | present at M0 | conv.ml, step three: `Lit` compares by value and the five prims reduce on literal arguments |
+| zk-fhc | declared | V5: an SZk value and an SFhc value never convert; declared now so R0 counts the boundary, discharged when fragment composition lands |
+| zk-mpc | declared | V5: an SZk value and an SMpc value never convert; same boundary, declared now |
+| fhc-mpc | declared | V5: an SFhc value and an SMpc value never convert; same boundary, declared now |
 
 The criterion, M1 Stage H, lib/rules.ml `mu_zero_eliminable`, ported
 part for part from kan-lang-tot-pin/lib/check.ml:223.  Part one: the
@@ -330,6 +522,18 @@ column to confirm that no surface form is a former.
 | `match t as x in F i1 .. im return M with \| c y1 .. yn => b` | `Elim` at `Lan (SMu (F, ..))`, constructor keys `ACtor c` | sugar, not former.  SL-D3; Stage H constructor `case` remains accepted |
 | `tuple (t1, .., tn)` | `Sec (SColl n) [.. => t1; ..]` | sugar, not former |
 | `sum (A1, .., An)` | `Lan (SColl n) (Sec (SColl n) [.. => A1; ..])` | sugar, not former.  SB-D1 |
+| `zk (q w : W) * R` | `Lan (SZk (q, w, W)) R` | sugar, not former.  veil D-9 |
+| `prove x w r` | `In (SZk (q, w, W)) (APt (q, w)) [r]` | sugar, not former.  veil D-9 |
+| `verify x p` | `Elim` at `Lan (SZk ..)`, leg `ALeg 0`, with the statement motive | sugar, not former.  veil D-9 |
+| `fhc l T` | `Ran (SFhc l) T` | sugar, not former.  veil D-10 |
+| `enc pk t` | `Sec (SFhc 0) [pk; t]` | sugar, not former.  veil D-10 |
+| `eval f c` | `Sec (SFhc l) [f; c]`, with `l` the level of `c` plus the depth of `f` | sugar, not former.  veil D-11 |
+| `dec sk c` | `Out (SFhc l) (APt (One, sk)) c` | sugar, not former.  veil D-11 |
+| `mpc[P, A] T` | `Ran (SMpc (P, A)) T` | sugar, not former.  veil D-12 |
+| `share x` | `Sec (SMpc (P, A)) [x]` | sugar, not former.  veil D-12 |
+| `input p x` | `Sec (SMpc (P, A)) [p; x]` | sugar, not former.  veil D-12 |
+| `mpc ps f c1 .. cn` | `Sec (SMpc (P, A)) [ps; f; c1; ..; cn]` | sugar, not former.  veil D-12 |
+| `open Q h c` | `Out (SMpc (P, A)) (APt (q, In (SPi (Zero, q, Sub P)) (APt (Zero, Q)) [h])) c`, with `q` the written mark of the proof and `Zero` when no mark is written | sugar, not former.  veil D-12 |
 | `prod (A1, .., An)` | `Ran (SColl n) (Sec (SColl n) [.. => A1; ..])` | sugar, not former.  SB-D1 |
 | `t.k` | `Out (SColl n) (ALeg k) t` | sugar, not former |
 | `()` | `Sec (SColl 0) []` | sugar, not former |
@@ -514,6 +718,7 @@ an out-of-i31 export traps, with driver exit 4 on every execution host.
 
 ```
 decl    ::= 'def' name ':' term ':=' term
+          | 'def' name binder+ ':' term ':=' term
           | 'axiom' name ':' term
           | 'def' 'rec' rec-member ('and' rec-member)*
           | mu-decl ('and' mu-member)*
@@ -538,6 +743,18 @@ term    ::= 'fun' binder+ '=>' term
           | '()'  |  'absurd' term
           | 'Prop'  |  'Type' nat?  |  nat
           | 'natAdd' | 'natSub' | 'natMul' | 'natEq' | 'natLt'
+          | 'zk' binder '*' term                    (* veil D-9 *)
+          | 'prove' term term term                  (* veil D-9 *)
+          | 'verify' term term                      (* veil D-9 *)
+          | 'fhc' term term                         (* veil D-10 *)
+          | 'enc' term term                         (* veil D-10 *)
+          | 'eval' term term                        (* veil D-11 *)
+          | 'dec' term term                         (* veil D-11 *)
+          | 'mpc' '[' term ',' term ']' term        (* veil D-12 *)
+          | 'share' term                           (* veil D-12 *)
+          | 'input' term term                      (* veil D-12 *)
+          | 'mpc' term term term+                  (* veil D-12 *)
+          | 'open' term ('0' | '1')? term term     (* veil D-12 *)
           | 'let' name ':' term ':=' term 'in' term
           | 'auto'                                 (* SA-D3 *)
           | 'nu'                                  (* reserved, arrives at M2 *)
@@ -555,8 +772,18 @@ The binder mark is one of three:  `0` is `Quantity.Zero`, `1` is
 printer writes `0 `, `1 ` and the empty text back, so a marked binder
 round trips.
 
+A `def` may take one or more binders before its `:`.  The parser
+rewrites `def NAME binder+ : TYPE := BODY` to the arrow-header form
+`def NAME : binder+ -> TYPE := fun binder+ => BODY` before elaboration
+sees it (R-W2-5).  A `def` with no binder keeps its plain form.
+
 `sum`, `prod`, `mu`, `mutual`, `match`, `end` and `nu` are reserved
-words.  `mu` opens a declaration; its parameter binders precede the
+words, and so are the veil words `zk`, `prove`, `verify`, `fhc`, `enc`,
+`eval`, `dec`, `mpc`, `share`, `input` and `open`.  The one word `mpc`
+heads the share type and the joint section;  the bracket after it picks
+the type row.  The optional mark in `open` is the written quantity of
+the authorization proof, and an absent mark stands for
+`Quantity.Zero`.  `mu` opens a declaration; its parameter binders precede the
 colon, and its index telescope is the arrow chain after it.  Constructor
 binders before the colon abbreviate the same arrow chain in the
 constructor type.  `mutual` requires two or more `mu` declarations and

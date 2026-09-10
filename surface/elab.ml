@@ -69,6 +69,16 @@ let univ_of_int (n : int) : (Term.t, Error.t) result =
 let point_of (s : Value.t Shape.t) : (Quantity.t * string * Value.t) option =
   Rules.as_vpi s
 
+(** V1 wave 1, D-9:  the zk former alone.  [point_of] answers for a zk
+    shape too, because the zk payload is the point payload, so the zk
+    sugar needs a view that no other shape satisfies. *)
+let zk_point (s : Value.t Shape.t) : (Quantity.t * string * Value.t) option =
+  match s with
+  | Shape.SZk (q, w, ty) -> Some (q, w, ty)
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SMu (_, _) | Shape.SNu (_, _)
+  | Shape.SPar (_, _) | Shape.SFhc _ | Shape.SMpc (_, _) ->
+      None
+
 let leg_expectations (c : Check.ctx) (expected : Value.t option) (n : int)
     ~(left : bool) : (Value.t option list, Error.t) result =
   let none_list : Value.t option list = List.init n (fun (_k : int) -> None) in
@@ -105,6 +115,11 @@ let app_split (s : Syntax.t) : (Syntax.t * Syntax.t) option =
   | Syntax.SUnit | Syntax.SAuto | Syntax.SPair (_, _) | Syntax.STuple _ | Syntax.SSum _
   | Syntax.SProd _ | Syntax.SProj (_, _) | Syntax.SInj (_, _, _) | Syntax.SAbsurd _
   | Syntax.SFun (_, _) | Syntax.SArrow (_, _) | Syntax.SStar (_, _)
+  | Syntax.SZkTy (_, _) | Syntax.SProve (_, _, _) | Syntax.SVerify (_, _)
+  | Syntax.SFhcTy (_, _) | Syntax.SEnc (_, _) | Syntax.SEval (_, _)
+  | Syntax.SDec (_, _)
+  | Syntax.SMpcTy (_, _, _) | Syntax.SShare _ | Syntax.SInput (_, _)
+  | Syntax.SJoin (_, _, _) | Syntax.SOpen (_, _, _, _)
   | Syntax.SLet (_, _, _, _) | Syntax.SAnn (_, _) | Syntax.SCase (_, _, _)
   | Syntax.SMatch (_, _, _) ->
       None
@@ -116,6 +131,11 @@ let arrow_split (s : Syntax.t) : (Syntax.binder * Syntax.t) option =
   | Syntax.SUnit | Syntax.SAuto | Syntax.SPair (_, _) | Syntax.STuple _ | Syntax.SSum _
   | Syntax.SProd _ | Syntax.SProj (_, _) | Syntax.SInj (_, _, _) | Syntax.SAbsurd _
   | Syntax.SFun (_, _) | Syntax.SApp (_, _) | Syntax.SStar (_, _)
+  | Syntax.SZkTy (_, _) | Syntax.SProve (_, _, _) | Syntax.SVerify (_, _)
+  | Syntax.SFhcTy (_, _) | Syntax.SEnc (_, _) | Syntax.SEval (_, _)
+  | Syntax.SDec (_, _)
+  | Syntax.SMpcTy (_, _, _) | Syntax.SShare _ | Syntax.SInput (_, _)
+  | Syntax.SJoin (_, _, _) | Syntax.SOpen (_, _, _, _)
   | Syntax.SLet (_, _, _, _) | Syntax.SAnn (_, _) | Syntax.SCase (_, _, _)
   | Syntax.SMatch (_, _, _) ->
       None
@@ -127,8 +147,21 @@ let var_name (s : Syntax.t) : string option =
   | Syntax.SAuto | Syntax.SPair (_, _) | Syntax.STuple _ | Syntax.SSum _
   | Syntax.SProd _ | Syntax.SProj (_, _) | Syntax.SInj (_, _, _) | Syntax.SAbsurd _
   | Syntax.SFun (_, _) | Syntax.SApp (_, _) | Syntax.SArrow (_, _) | Syntax.SStar (_, _)
+  | Syntax.SZkTy (_, _) | Syntax.SProve (_, _, _) | Syntax.SVerify (_, _)
+  | Syntax.SFhcTy (_, _) | Syntax.SEnc (_, _) | Syntax.SEval (_, _)
+  | Syntax.SDec (_, _)
+  | Syntax.SMpcTy (_, _, _) | Syntax.SShare _ | Syntax.SInput (_, _)
+  | Syntax.SJoin (_, _, _) | Syntax.SOpen (_, _, _, _)
   | Syntax.SLet (_, _, _, _) | Syntax.SAnn (_, _) | Syntax.SCase (_, _, _)
   | Syntax.SMatch (_, _, _) ->
+      None
+
+(** V1 wave 2, D-10:  the level a ciphertext former carries. *)
+let fhc_level (vs : Value.t Shape.t) : Value.t option =
+  match vs with
+  | Shape.SFhc l -> Some l
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+  | Shape.SNu (_, _) | Shape.SZk (_, _, _) | Shape.SMpc (_, _) ->
       None
 
 (** The head of an application spine and its arguments, in the order
@@ -230,6 +263,18 @@ let rec elab (c : Check.ctx) ~(expected : Value.t option) (s : Syntax.t) :
   | Syntax.SFun (bs, body) -> elab_fun c ~expected bs body
   | Syntax.SArrow (b, cod) -> elab_group c b cod ~left:false
   | Syntax.SStar (b, cod) -> elab_group c b cod ~left:true
+  | Syntax.SZkTy (b, cod) -> elab_zk_ty c b cod
+  | Syntax.SProve (x, w, r) -> elab_prove c ~expected x w r
+  | Syntax.SVerify (x, p) -> elab_verify c x p
+  | Syntax.SFhcTy (l, ty) -> elab_fhc_ty c l ty
+  | Syntax.SEnc (pk, t) -> elab_enc c ~expected pk t
+  | Syntax.SEval (f, ct) -> elab_eval c ~expected f ct
+  | Syntax.SDec (sk, ct) -> elab_dec c sk ct
+  | Syntax.SMpcTy (p, a, ty) -> elab_mpc_ty c p a ty
+  | Syntax.SShare x -> elab_share c ~expected x
+  | Syntax.SInput (p, x) -> elab_input c ~expected p x
+  | Syntax.SJoin (ps, f, cs) -> elab_join c ~expected ps f cs
+  | Syntax.SOpen (q, qs, h, ct) -> elab_open c q qs h ct
   | Syntax.SLet (x, ty, def, body) ->
       let* ty' = elab c ~expected:None ty in
       let* tyv = eval_in c ty' in
@@ -284,6 +329,253 @@ and elab_pair (c : Check.ctx) ~(expected : Value.t option) (a : Syntax.t)
   let* fibre = elab c ~expected:(Some cod_v) b in
   let* dom_t = Eval.quote (globals_of c) (size_of c) dom_v in
   Ok (Term.In (Shape.SPi (q, x, dom_t), Term.APt (q, point), [ fibre ]))
+
+(** V1 wave 2, D-10:  "fhc l T", the type sugar of [Ran (SFhc l) T]. *)
+and elab_fhc_ty (c : Check.ctx) (l : Syntax.t) (ty : Syntax.t) : (Term.t, Error.t) result =
+  let* l' = elab c ~expected:None l in
+  let* ty' = elab c ~expected:None ty in
+  Ok (Term.Ran (Shape.SFhc l', ty'))
+
+(** The level and the plaintext type of the ciphertext type a section is
+    checked against.  The expected type pins both. *)
+and fhc_expect (c : Check.ctx) (expected : Value.t option) (word : string) :
+    (Value.t * Value.t, Error.t) result =
+  let* ty = expected |> Option.to_result ~none:(no_expect word) in
+  let* wv = whnf_in c ty in
+  let* vs, dclo, _u =
+    Value.as_ran wv
+    |> Option.to_result
+         ~none:(Error.Mismatch (word ^ " needs a ciphertext type as its expected type"))
+  in
+  let* lv =
+    fhc_level vs
+    |> Option.to_result ~none:(Error.Mismatch (word ^ " needs a ciphertext former"))
+  in
+  let* ty_v = Rules.open_closure (Eval.ev (globals_of c)) dclo [] in
+  Ok (lv, ty_v)
+
+(** V1 wave 2, D-10 and D-11:  "enc pk t", the ciphertext section.  The
+    key carries no kernel type and the payload stands at the plaintext
+    type the expected type gives. *)
+and elab_enc (c : Check.ctx) ~(expected : Value.t option) (pk : Syntax.t) (t : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* lv, ty_v = fhc_expect c expected "enc" in
+  let* pk' = elab c ~expected:None pk in
+  let* t' = elab c ~expected:(Some ty_v) t in
+  let* l_t = Eval.quote (globals_of c) (size_of c) lv in
+  Ok (Term.Sec (Shape.SFhc l_t, List.map Rules.leg_of [ pk'; t' ]))
+
+(** V1 wave 2, D-10:  "eval f c", the homomorphic section.  The kernel
+    reads the depth of [f] and the level of [c], so both stand in an
+    inferred position and an unannotated function refuses. *)
+and elab_eval (c : Check.ctx) ~(expected : Value.t option) (f : Syntax.t)
+    (cipher : Syntax.t) : (Term.t, Error.t) result =
+  let* lv, _ty_v = fhc_expect c expected "eval" in
+  let* f' = elab c ~expected:None f in
+  let* cipher' = elab c ~expected:None cipher in
+  let* l_t = Eval.quote (globals_of c) (size_of c) lv in
+  Ok (Term.Sec (Shape.SFhc l_t, List.map Rules.leg_of [ f'; cipher' ]))
+
+(** V1 wave 2, D-10 and D-11:  "dec sk c", the projection.  The key is
+    the address argument at quantity One and the level comes off the type
+    of the ciphertext, so no expected type is needed. *)
+and elab_dec (c : Check.ctx) (sk : Syntax.t) (cipher : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* sk' = elab c ~expected:None sk in
+  let* cipher' = elab c ~expected:None cipher in
+  let* c_ty = type_of c cipher' in
+  let* wv = whnf_in c c_ty in
+  let* vs, _dclo, _u =
+    Value.as_ran wv
+    |> Option.to_result
+         ~none:(Error.Mismatch "dec needs a ciphertext as its argument")
+  in
+  let* lv =
+    fhc_level vs |> Option.to_result ~none:(Error.Mismatch "dec needs a ciphertext former")
+  in
+  let* l_t = Eval.quote (globals_of c) (size_of c) lv in
+  Ok (Term.Out (Shape.SFhc l_t, Term.APt (Quantity.One, sk'), cipher'))
+
+(** V1 wave 3, D-12:  "mpc[P, A] T", the type sugar of
+    [Ran (SMpc (P, A)) T].  The party set and the predicate are terms of
+    the shape, so both elaborate in an inferred position. *)
+and elab_mpc_ty (c : Check.ctx) (p : Syntax.t) (a : Syntax.t) (ty : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* p' = elab c ~expected:None p in
+  let* a' = elab c ~expected:None a in
+  let* ty' = elab c ~expected:None ty in
+  Ok (Term.Ran (Shape.SMpc (p', a'), ty'))
+
+(** The party set, the predicate and the payload type of the share type a
+    section is checked against.  A section in an inferred position has no
+    type of its own (R-W2-6), so the expected type pins all three. *)
+and mpc_expect (c : Check.ctx) (expected : Value.t option) (word : string) :
+    (Term.t * Term.t * Value.t * Value.t, Error.t) result =
+  let* ty = expected |> Option.to_result ~none:(no_expect word) in
+  let* wv = whnf_in c ty in
+  let* vs, dclo, _u =
+    Value.as_ran wv
+    |> Option.to_result
+         ~none:(Error.Mismatch (word ^ " needs a share type as its expected type"))
+  in
+  let* pv, av =
+    Rules.as_vmpc vs
+    |> Option.to_result ~none:(Error.Mismatch (word ^ " needs a share former"))
+  in
+  let* p_t = Eval.quote (globals_of c) (size_of c) pv in
+  let* a_t = Eval.quote (globals_of c) (size_of c) av in
+  let* out_v = Rules.open_closure (Eval.ev (globals_of c)) dclo [] in
+  Ok (p_t, a_t, pv, out_v)
+
+(** V1 wave 3, D-12:  "share x", the one leg section.  The pack reads the
+    arity of the leg list, so the sugar writes one leg and no more. *)
+and elab_share (c : Check.ctx) ~(expected : Value.t option) (x : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* p_t, a_t, _pv, out_v = mpc_expect c expected "share" in
+  let* x' = elab c ~expected:(Some out_v) x in
+  Ok (Term.Sec (Shape.SMpc (p_t, a_t), List.map Rules.leg_of [ x' ]))
+
+(** V1 wave 3, D-12:  "input p x", the two leg section.  The party stands
+    at the party set of the expected type and the payload at its payload
+    type. *)
+and elab_input (c : Check.ctx) ~(expected : Value.t option) (p : Syntax.t) (x : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* p_t, a_t, pv, out_v = mpc_expect c expected "input" in
+  let* p' = elab c ~expected:(Some pv) p in
+  let* x' = elab c ~expected:(Some out_v) x in
+  Ok (Term.Sec (Shape.SMpc (p_t, a_t), List.map Rules.leg_of [ p'; x' ]))
+
+(** V1 wave 3, D-12:  "mpc ps f c1 .. cn", the joint section.  The party
+    subset stands at [Sub P], which the pack computes and the surface
+    never spells;  the function stands in an inferred position, because
+    the pack reads its circuit depth and peels one domain per share. *)
+and elab_join (c : Check.ctx) ~(expected : Value.t option) (ps : Syntax.t) (f : Syntax.t)
+    (cs : Syntax.t list) : (Term.t, Error.t) result =
+  let* p_t, a_t, pv, _out_v = mpc_expect c expected "mpc" in
+  let* n = Rules.mpc_parties Check.ops c pv in
+  let* sub_v = eval_in c (Rules.mpc_sub_ty n) in
+  let* ps' = elab c ~expected:(Some sub_v) ps in
+  let* f' = elab c ~expected:None f in
+  let* cs' = Rules.all_ok (List.map (elab c ~expected:None) cs) in
+  Ok (Term.Sec (Shape.SMpc (p_t, a_t), List.map Rules.leg_of (ps' :: f' :: cs')))
+
+(** V1 wave 3, D-12:  "open Q h c", the projection.  The address is the
+    proof at its WRITTEN quantity over the point that carries the party
+    subset, and the share pins the party set and the predicate, so no
+    expected type is needed.  An absent mark stands for the erased mark
+    the pack demands;  a written mark is carried as it is written, so no
+    quantity is hardcoded here (W2-F5). *)
+and elab_open (c : Check.ctx) (q : Quantity.t option) (qs : Syntax.t) (h : Syntax.t)
+    (share : Syntax.t) : (Term.t, Error.t) result =
+  let* share' = elab c ~expected:None share in
+  let* s_ty = type_of c share' in
+  let* wv = whnf_in c s_ty in
+  let* vs, _dclo, _u =
+    Value.as_ran wv
+    |> Option.to_result ~none:(Error.Mismatch "open needs a share as its argument")
+  in
+  let* pv, av =
+    Rules.as_vmpc vs |> Option.to_result ~none:(Error.Mismatch "open needs a share former")
+  in
+  let* n = Rules.mpc_parties Check.ops c pv in
+  let sub_t = Rules.mpc_sub_ty n in
+  let* sub_v = eval_in c sub_t in
+  let* qs' = elab c ~expected:(Some sub_v) qs in
+  let* h' = elab c ~expected:None h in
+  let* p_t = Eval.quote (globals_of c) (size_of c) pv in
+  let* a_t = Eval.quote (globals_of c) (size_of c) av in
+  Ok
+    (Term.Out
+       ( Shape.SMpc (p_t, a_t),
+         Term.APt
+           ( Option.value q ~default:Quantity.Zero,
+             Term.In
+               ( Shape.SPi (Quantity.Zero, Rules.mpc_set_name, sub_t),
+                 Term.APt (Quantity.Zero, qs'),
+                 [ h' ] ) ),
+         share' ))
+
+(** V1 wave 1, D-9:  "zk (q w : W) * R", the type sugar.  The shape
+    carries the witness mark, the witness name and the witness type, and
+    the diagram is the relation. *)
+and elab_zk_ty (c : Check.ctx) (b : Syntax.binder) (cod : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* q, x, ty, c' = elab_binder c b in
+  let* cod' = elab c' ~expected:None cod in
+  Ok (Term.Lan (Shape.SZk (q, x, ty), cod'))
+
+(** "prove x w r":  the intro.  The statement [x] is checked and kept as
+    the runtime instance of the blob (R-W4-8);  the witness [w] is the
+    address argument and the relation proof [r] is the first of the two
+    legs, the instance the second.  The address mark is the type's
+    mark, as the pair row writes it. *)
+and elab_prove (c : Check.ctx) ~(expected : Value.t option) (x : Syntax.t)
+    (w : Syntax.t) (r : Syntax.t) : (Term.t, Error.t) result =
+  let* ty = expected |> Option.to_result ~none:(no_expect "a proof") in
+  let* wv = whnf_in c ty in
+  let* vs, dclo, _u =
+    Value.as_lan wv
+    |> Option.to_result
+         ~none:(Error.Mismatch "a proof needs a zk type as its expected type")
+  in
+  let* q, name, dom_v =
+    zk_point vs |> Option.to_result ~none:(Error.Mismatch "a proof needs a zk former")
+  in
+  let* x' = elab c ~expected:None x in
+  let* _xt = type_of c x' in
+  let* wit = elab c ~expected:(Some dom_v) w in
+  let* wit_v = eval_in c wit in
+  let* cod_v = Rules.open_closure (Eval.ev (globals_of c)) dclo [ wit_v ] in
+  let* rt = elab c ~expected:(Some cod_v) r in
+  let* dom_t = Eval.quote (globals_of c) (size_of c) dom_v in
+  Ok (Term.In (Shape.SZk (q, name, dom_t), Term.APt (q, wit), [ rt; x' ]))
+
+(** "verify x p":  the elim.  The proof is consumed once and the one
+    branch binds the witness and the relation leg, so the answer is the
+    relation itself, read back under the two branch binders.  The whole
+    elimination stands at Prop, so the erased witness the branch binds
+    can be read inside it. *)
+and elab_verify (c : Check.ctx) (x : Syntax.t) (p : Syntax.t) :
+    (Term.t, Error.t) result =
+  let* x' = elab c ~expected:None x in
+  let* _xt = type_of c x' in
+  let* p' = elab c ~expected:None p in
+  let* pt = type_of c p' in
+  let* wv = whnf_in c pt in
+  let* vs, dclo, _u =
+    Value.as_lan wv
+    |> Option.to_result
+         ~none:(Error.Mismatch "verify needs a zk type as the type of its proof")
+  in
+  let* q, name, dom_v =
+    zk_point vs |> Option.to_result ~none:(Error.Mismatch "verify needs a zk former")
+  in
+  let* dom_t = Eval.quote (globals_of c) (size_of c) dom_v in
+  let* cod_v = Rules.open_closure (Eval.ev (globals_of c)) dclo [ Value.var (size_of c) ] in
+  let* rel = Eval.quote (globals_of c) (size_of c + 2) cod_v in
+  Ok
+    (Term.Elim
+       {
+         Term.e_shape = Shape.SZk (q, name, dom_t);
+         e_scrut = p';
+         e_scrut_q = Quantity.One;
+         e_motive =
+           Some
+             {
+               Term.m_ind = None;
+               m_idx = [];
+               m_self = "p";
+               m_body = Term.Univ Level.zero;
+             };
+         e_branches =
+           [
+             ( Term.ALeg 0,
+               {
+                 Term.l_binders = [ (q, name); (Quantity.Zero, "r") ];
+                 l_body = rel;
+               } );
+           ];
+       })
 
 (** The first answer of a list of candidates.  Two views on one value
     are exclusive here, so the list holds at most one [Some];  the
@@ -903,7 +1195,8 @@ and mu_result (name : string) (t : Term.t) : (Term.t list * Term.t list, Error.t
         Result.map (fun params -> (params, ix)) (Rules.mu_params_of d)
       else wrong
   | Term.Lan
-      ((Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _)), _)
+      ((Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _)
+       | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _)), _)
   | Term.Var _ | Term.Global _ | Term.Univ _ | Term.Ran (_, _) | Term.In (_, _, _)
   | Term.Sec (_, _) | Term.Out (_, _, _) | Term.Elim _ | Term.Let (_, _, _, _)
   | Term.Ann (_, _) | Term.Lit _ | Term.Auto ->
@@ -1164,6 +1457,82 @@ let axiom_names (rows : (string * Global.entry) list) : string list =
     (fun ((name : string), (e : Global.entry)) ->
       Global.axiom_of e |> Option.map (fun (_a : Global.axiom_entry) -> name))
     rows
+
+(** veil D-13, the shape disclosure.  A program that holds a veil shape
+    rests on a belief the kernel does not check, so the disclosure names
+    that belief beside the postulates.  Only [SZk] discloses in wave 1;
+    the wave that admits [SFhc] answers [fhc-correctness] here and the
+    wave that admits [SMpc] answers [mpc-simulatability].  The match
+    spells every arm, so a ninth shape is a compile error. *)
+let disclosure_of_shape (s : 'a Shape.t) : string option =
+  match s with
+  | Shape.SZk (_, _, _) -> Some "zk-soundness"
+  | Shape.SFhc _ -> Some "fhc-correctness"
+  | Shape.SMpc (_, _) -> Some "mpc-simulatability"
+  | Shape.SPi (_, _, _)
+  | Shape.SColl _
+  | Shape.SPar (_, _)
+  | Shape.SMu (_, _)
+  | Shape.SNu (_, _) ->
+      None
+
+(** The walk over one checked term.  [Shape.payload] carries the
+    recursion into a former, so this file names one shape and no more. *)
+let rec shape_disclosures (s : Term.t Shape.t) : string list =
+  Option.to_list (disclosure_of_shape s)
+  @ List.concat_map term_disclosures (Shape.payload s)
+
+and term_disclosures (t : Term.t) : string list =
+  match t with
+  | Term.Var _ | Term.Univ _ | Term.Global _ | Term.Lit _ | Term.Auto -> []
+  | Term.Lan (s, cod) | Term.Ran (s, cod) -> shape_disclosures s @ term_disclosures cod
+  | Term.In (s, a, args) ->
+      shape_disclosures s @ addr_disclosures a @ List.concat_map term_disclosures args
+  | Term.Elim e -> elim_disclosures e
+  | Term.Sec (s, legs) -> shape_disclosures s @ List.concat_map leg_disclosures legs
+  | Term.Out (s, a, head) ->
+      shape_disclosures s @ addr_disclosures a @ term_disclosures head
+  | Term.Let (_, ty, v, body) ->
+      term_disclosures ty @ term_disclosures v @ term_disclosures body
+  | Term.Ann (tm, ty) -> term_disclosures tm @ term_disclosures ty
+
+and addr_disclosures (a : Term.addr) : string list =
+  match a with
+  | Term.APt (_, arg) -> term_disclosures arg
+  | Term.ALeg _ -> []
+  | Term.ACtor _ -> []
+
+and leg_disclosures (l : Term.leg) : string list = term_disclosures l.Term.l_body
+
+and elim_disclosures (e : Term.elim) : string list =
+  shape_disclosures e.Term.e_shape
+  @ term_disclosures e.Term.e_scrut
+  @ Option.fold ~none:[]
+      ~some:(fun (m : Term.motive) -> term_disclosures m.Term.m_body)
+      e.Term.e_motive
+  @ List.concat_map
+      (fun ((a : Term.addr), (l : Term.leg)) -> addr_disclosures a @ leg_disclosures l)
+      e.Term.e_branches
+
+let entry_disclosures (e : Global.entry) : string list =
+  match e with
+  | Global.Def d -> term_disclosures d.Global.ty @ term_disclosures d.Global.def
+  | Global.Axiom a -> term_disclosures a.Global.ax_ty
+  | Global.Prim p -> term_disclosures p.Global.p_ty
+
+(** The lines [kanon axioms] writes:  the postulates of the file in
+    declaration order (R-Q3), then one line for each belief a veil shape
+    of the program adds, in first-use order and never twice (D-13). *)
+let disclosure_names (rows : (string * Global.entry) list) : string list =
+  let seen (acc : string list) (n : string) : string list =
+    if List.mem n acc then acc else n :: acc
+  in
+  axiom_names rows
+  @ List.rev
+      (List.fold_left seen []
+         (List.concat_map
+            (fun ((_name : string), (e : Global.entry)) -> entry_disclosures e)
+            rows))
 
 (** The whole surface pass over a file:  parse, elaborate and check,
     and answer the globals the file was checked in beside its entry

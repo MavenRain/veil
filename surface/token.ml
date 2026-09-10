@@ -68,6 +68,30 @@ type kind =
   | KMutual
   | KEnd
   | KNu
+  | KZk
+  | KProve
+  | KVerify
+      (** V1 wave 1, D-9:  the three words of the zk sugar.  [KZk] heads
+          the type, [KProve] the intro and [KVerify] the elim. *)
+  | KFhc
+  | KEnc
+  | KEval
+  | KDec
+      (** V1 wave 2, D-10:  the four words of the fhc sugar.  [KFhc]
+          heads the ciphertext type, [KEnc] and [KEval] head the two
+          sections and [KDec] heads the projection. *)
+  | KMpc
+  | KInput
+  | KShare
+  | KOpen
+      (** V1 wave 3, D-12:  the four words of the mpc sugar.  [KMpc]
+          heads the share type and the joint section, [KShare] and
+          [KInput] head the two input sections and [KOpen] heads the
+          projection. *)
+  | LBracket
+  | RBracket
+      (** V1 wave 3, D-12:  the brackets of "mpc[P, A] T".  No other
+          production reads them. *)
   | KAnd
       (** M1 Stage G, correction C7:  the one word the minimal mu
           production adds, which joins the members of a mutual group. *)
@@ -132,6 +156,19 @@ let describe (k : kind) : string =
   | KNu -> "'nu'"
   | KAnd -> "'and'"
   | KRec -> "'rec'"
+  | KZk -> "'zk'"
+  | KProve -> "'prove'"
+  | KVerify -> "'verify'"
+  | KFhc -> "'fhc'"
+  | KEnc -> "'enc'"
+  | KEval -> "'eval'"
+  | KDec -> "'dec'"
+  | KMpc -> "'mpc'"
+  | KInput -> "'input'"
+  | KShare -> "'share'"
+  | KOpen -> "'open'"
+  | LBracket -> "'['"
+  | RBracket -> "']'"
   | KNatAdd -> "'natAdd'"
   | KNatSub -> "'natSub'"
   | KNatMul -> "'natMul'"

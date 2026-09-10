@@ -1,5 +1,13 @@
 # kanon
 
+veil is kanon plus three host shapes for private computation: `SZk`
+(zero-knowledge proof), `SFhc` (fully homomorphic ciphertext) and `SMpc`
+(multi-party computation).  Each shape lands in its own wave (V1, V2,
+V3).  Wave 0 declares all three and raises the trusted kernel bound for
+the new circuit-fragment predicate.  Wave 1 admits `SZk` and wave 2
+admits `SFhc`, which raises the bound to 5250 lines.  `SMpc` is refused
+today.
+
 Kanon's type grammar uses left and right Kan extensions along shapes.
 The [foundation audit](dev/FOUNDATION-AUDIT.md) records the remaining
 obligation to derive the implemented inductive rules from their universal
@@ -182,6 +190,10 @@ performs its requested OS operations.
 Run a compiled reactor with `node runtime/run.mjs MODULE.wasm [ARG ...]`.
 [REACTOR.md](REACTOR.md) gives the complete build command, export ABI,
 operation table and CLI behavior.
+
+The reactor twin of the zero-knowledge, homomorphic and multi party
+operations has no security: it keeps each blob as a plain slot and exists
+only to test the export ABI and the three postulates (D-15).
 
 ## The spines
 

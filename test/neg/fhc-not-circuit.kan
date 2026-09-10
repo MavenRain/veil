@@ -1,0 +1,6 @@
+-- The function under "eval" is a circuit fragment.  An axiom has no
+-- fragment, so the circuit reader answers with the milestone that
+-- brings it (veil D-8).
+axiom g : (y : Nat) -> Nat
+def bad : (c : fhc 2 Nat) -> fhc 3 Nat :=
+  fun (c : fhc 2 Nat) => eval g c

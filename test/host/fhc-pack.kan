@@ -1,0 +1,26 @@
+-- fhc-pack, the run program of test/shapes/fhc-pack.kan (R-W4-17).  The
+-- check-level pack stays where it is;  this file is the same picture
+-- with a nullary "main" the reactor can export.
+--
+-- The emitter compiles every declaration, so the four key axioms of the
+-- pack become literal definitions: the key types are Nat and both keys
+-- are 0.  "enc" starts at level 0, so this program seals at level 0 and
+-- the depth 1 fragment of "addEnc" reads it and answers level 1.  The
+-- check-level pack keeps the levels 2 and 3 of D-10.
+--
+-- "main" is "reveal sk (addEnc (seal t))" with the literal plaintext 7,
+-- so the answer is "f t", that is "natAdd 7 1".
+--
+-- The twin has no security.  It exists to test the ABI (D-15).
+
+def Pk : Type 0 := Nat
+def Sk : Type 0 := Nat
+def pk : Pk := 0
+def sk : Sk := 0
+def seal : (t : Nat) -> fhc 0 Nat := fun (t : Nat) => enc pk t
+def addEnc : (c : fhc 0 Nat) -> fhc 1 Nat :=
+  fun (c : fhc 0 Nat) => eval ((fun (x : Nat) => natAdd x 1) : (y : Nat) -> Nat) c
+def reveal : (1 k : Sk) -> (c : fhc 1 Nat) -> Nat :=
+  fun (1 k : Sk) (c : fhc 1 Nat) => dec k c
+
+def main : Nat := reveal sk (addEnc (seal 7))

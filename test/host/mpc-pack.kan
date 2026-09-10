@@ -1,0 +1,48 @@
+-- mpc-pack, the run program of test/shapes/mpc-pack.kan (R-W4-17).  The
+-- check-level pack stays where it is;  this file is the same picture
+-- with a nullary "main" the reactor can export.
+--
+-- The emitter compiles every declaration, so the two secret axioms of
+-- the pack become the literal definitions 1 and 1.  "main" is "opened",
+-- the joint sum of the two secrets through the ops 15, 16 and 17.
+--
+-- The party flag of a blob is the constant 0 in v1, because a universe 0
+-- value does not survive erasure (R-W4-7 branch one).  The answer of
+-- "main" does not depend on it.
+--
+-- The twin has no security.  It exists to test the ABI (D-15).
+
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def isTrue : (b : Bool) -> Prop :=
+  fun (b : Bool) =>
+    case b as z return Prop with
+    | 0 (x : prod ()) => sum ()
+    | 1 (y : prod ()) => prod ()
+
+def Party : Prop := sum (prod (), prod ())
+def alice : Party := inj 0 of 2 ()
+def bob : Party := inj 1 of 2 ()
+def allParties : prod (Nat, Nat) := tuple (1, 1)
+
+def both : (q : prod (Nat, Nat)) -> Prop :=
+  fun (q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)
+
+def secretA : Nat := 1
+def secretB : Nat := 1
+
+def jointSum : (1 a : Nat) -> (1 b : Nat) -> mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat :=
+  fun (1 a : Nat) (1 b : Nat) =>
+    mpc allParties (natAdd : (x : Nat) -> (y : Nat) -> Nat)
+      ((input alice a) : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat)
+      ((input bob b) : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat)
+
+def joint : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat := jointSum secretA secretB
+
+def reveal : (0 h : both allParties) -> (1 c : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat) -> Nat :=
+  fun (0 h : both allParties) (1 c : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat) =>
+    open allParties h c
+
+def opened : Nat := reveal (tuple ()) joint
+
+def main : Nat := opened

@@ -38,9 +38,14 @@ let rec shape (names : string list) (s : Term.t Shape.t) : string =
       Printf.sprintf "SMu %s [%s]" n (String.concat "; " (List.map (term names) ts))
   | Shape.SNu (n, ts) ->
       Printf.sprintf "SNu %s [%s]" n (String.concat "; " (List.map (term names) ts))
+  | Shape.SZk (q, w, ty) ->
+      Printf.sprintf "SZk (%s %s : %s)" (Quantity.to_string q) w (term names ty)
+  | Shape.SFhc l -> Printf.sprintf "SFhc %s" (term names l)
+  | Shape.SMpc (p, a) -> Printf.sprintf "SMpc (%s, %s)" (term names p) (term names a)
 
-(* the diagram of a point shape is scoped under that shape's binder;  the
-   other four shapes bind nothing (plan section 4, diagram conventions). *)
+(* the diagram of a point shape is scoped under that shape's binder;  SZk
+   binds its witness the same way;  the other shapes bind nothing (plan
+   section 4, diagram conventions; veil D-6). *)
 and under (s : Term.t Shape.t) (names : string list) : string list =
   match s with
   | Shape.SPi (_, x, _) -> x :: names
@@ -48,6 +53,9 @@ and under (s : Term.t Shape.t) (names : string list) : string list =
   | Shape.SPar (_, _) -> names
   | Shape.SMu (_, _) -> names
   | Shape.SNu (_, _) -> names
+  | Shape.SZk (_, w, _) -> w :: names
+  | Shape.SFhc _ -> names
+  | Shape.SMpc (_, _) -> names
 
 and term (names : string list) (tm : Term.t) : string =
   match tm with

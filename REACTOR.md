@@ -122,6 +122,46 @@ the left list's length.
 | 7 | payload is content | Write stderr |
 | 8 | path | Resolve an existing path through realpath |
 | 9 | base, path | Resolve a path relative to a base |
+| 10 | witness | Write a proof slot; return its index |
+| 11 | slot, instance, relation | Return 1 when the relation holds, else 0 |
+| 12 | level, plaintext | Write a ciphertext slot; return its index |
+| 13 | level, f, slot | Write the evaluated slot at the level; return its index |
+| 14 | slot | Return the plaintext of a ciphertext slot |
+| 15 | plaintext | Write a share slot; return its index |
+| 16 | subset, f, slot... | Write the joint slot; return its index |
+| 17 | slot | Return the plaintext of a share slot |
+
+Operations 10 to 17 are the veil host operations. A blob is a slot that holds
+a flag and a plaintext. The flag holds the instance for the zk operations, the
+level for the fhc operations, and the party flag for the mpc operations. The
+party flag is the constant 0 in version one. Operation 10 `zk-prove` writes a
+slot that holds the instance and the witness and answers its index. Operation
+11 `zk-verify` reads a proof slot
+and an instance and answers 1 when the witness satisfies the relation, else 0.
+Operation 12 `fhc-enc` writes a slot that holds the level and the plaintext and
+answers its index. Operation 13 `fhc-eval` reads a slot, applies `f`, writes a
+new slot at the given level, and answers its index. Operation 14 `fhc-dec`
+reads a slot and answers the plaintext. Operation 15 `mpc-input` writes a slot
+that holds the party flag and the plaintext and answers its index. Operation 16
+`mpc-share` reads the subset and the argument slots, applies `f` to their
+plaintexts in order, writes a new slot, and answers its index; this operation
+is the joint computation over shares, not the surface word `share`. Operation
+17 `mpc-open` reads a slot and answers the plaintext.
+
+`runtime/reactor.kan` defines the eight operations as the ordinary Kanon
+functions `zkProve`, `zkVerify`, `fhcEnc`, `fhcEval`, `fhcDec`, `mpcInput`,
+`mpcShare` and `mpcOpen`, which the erased veil programs call. That twin holds
+a slot as an ordinary `Slot` value and applies `f` as a Kanon function value,
+so operations 13 and 16 apply `f` in WebAssembly. The relation of `zkVerify`
+answers the two leg sum that the primitives answer, and leg 1 is true, so the
+verdict is 1 for leg 1 and 0 for leg 0. `runtime/reactor.mjs` holds
+the host side of the same slot layout in a slot store, and a slot index is a
+decimal byte string like every other numeric argument. A function value cannot
+cross the request boundary, which carries byte strings only, and the runtime
+adds no export for one, so the host twin names `f` and the relation with a code
+into a fixed table: 0 is the sum, 1 is the product, 2 is the square of the sum,
+and 3 is the successor of the sum. Neither twin has security. They exist to
+test the ABI and the three postulates.
 
 OS numeric arguments use decimal byte strings and must fit a JavaScript safe
 integer. Timeouts additionally fit `0..2147483647`. A timeout of 0 sets no

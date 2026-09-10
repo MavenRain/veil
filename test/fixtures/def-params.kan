@@ -1,0 +1,3 @@
+def sq (x : Nat) : Nat := natMul x x
+def sqz (0 t : Type 0) (x : Nat) : Nat := x
+def app (f : (n : Nat) -> Nat) (x : Nat) : Nat := f x

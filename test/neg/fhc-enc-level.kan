@@ -1,0 +1,5 @@
+-- "enc" starts at level 0.  A fresh ciphertext at level 1 is refused
+-- (veil D-10).
+axiom Pk : Type
+axiom pk : Pk
+def seal : (t : Nat) -> fhc 1 Nat := fun (t : Nat) => enc pk t

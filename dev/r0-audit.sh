@@ -6,7 +6,9 @@
 # R0 is the shape row that M0 carries.  The five shape names of
 # lib/shape.ml stay inside the four files that own them:  shape.ml
 # declares them, rules.ml holds the rule pack, pp.ml prints them and
-# erase.ml reads them.  Under wasm/ only emit.ml names a shape.  A hit
+# erase.ml reads them.  circuit.ml also spells shape names because it
+# pattern-matches on Term.t to refuse SPar/SNu/SZk/SFhc/SMpc, so it joins
+# the allowlist too.  Under wasm/ only emit.ml names a shape.  A hit
 # anywhere else is a shape that leaked into the checker, the evaluator,
 # conversion or the encoder, which R0 forbids at M0.
 #
@@ -26,7 +28,7 @@ chpwd_functions=()
 unfunction chpwd 2>/dev/null
 
 root=${1:-${0:A:h}/..}
-pattern='SColl|SMu|SNu|SPar|SPi'
+pattern='SColl|SMu|SNu|SPar|SPi|SZk|SFhc|SMpc'
 
 if [[ ! -d $root/lib || ! -d $root/wasm ]]; then
   print -r -- "r0-audit: cannot read $root/lib and $root/wasm"
@@ -36,6 +38,7 @@ fi
 
 lib_hits=$(rg -n \
   --glob '!shape.ml' --glob '!rules.ml' --glob '!pp.ml' --glob '!erase.ml' \
+  --glob '!circuit.ml' \
   -e $pattern $root/lib)
 
 wasm_hits=$(rg -n --glob '!emit.ml' -e $pattern $root/wasm)

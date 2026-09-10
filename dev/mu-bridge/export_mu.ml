@@ -104,6 +104,9 @@ and shape (s : Term.t Shape.t) : (string, string) result =
       Ok ("(.SMu " ^ name ^ " " ^ indices ^ ")")
   | Shape.SPar (_, _) -> Error "SPar has no raw mirror"
   | Shape.SNu (_, _) -> Error "SNu has no raw mirror"
+  | Shape.SZk (_, _, _) -> Error "SZk has no raw mirror"
+  | Shape.SFhc _ -> Error "SFhc has no raw mirror"
+  | Shape.SMpc (_, _) -> Error "SMpc has no raw mirror"
 
 and address (a : Term.addr) : (string, string) result =
   match a with

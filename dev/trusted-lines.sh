@@ -28,7 +28,7 @@ unfunction chpwd 2>/dev/null
 
 root=${1:-${0:A:h}/..}
 
-kernel_bound=4000
+kernel_bound=5250
 encoder_bound=600
 
 kernel_files=(
@@ -50,6 +50,9 @@ kernel_files=(
   $root/lib/order.ml
   # Stage K SK-D1: the arbitrary precision host boundary is believed.
   $root/lib/bignum.ml
+  # veil wave 0 part (b) i, D-8: the circuit predicate is a kernel file
+  # (a wrong answer that under-counts depth admits an unbounded program).
+  $root/lib/circuit.ml
 )
 encoder_file=$root/wasm/gc_encode.ml
 

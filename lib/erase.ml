@@ -270,10 +270,18 @@ and ran_repr (ec : ectx) (s : Value.t Shape.t) (d : Value.closure) :
 
 and lan_repr (ec : ectx) (s : Value.t Shape.t) (d : Value.closure) :
     (Eterm.repr, Error.t) result =
-  lazy_fold (Rules.as_vmu s)
-    ~none:(fun (() : unit) -> lan_point_repr ec s d)
-    ~some:(fun (((n : string), (_ix : Value.t list)) : string * Value.t list) ->
-      Ok (Eterm.RUnion (mu_tid n)))
+  (* W4-F13: op 10 answers a slot, so a zk left former erases to the
+     host blob handle, exactly as an fhc type does.  The other seven
+     shapes keep the mu-then-point path (exhaustive match, no
+     catch-all). *)
+  match s with
+  | Shape.SZk (_, _, _) -> Ok any_repr
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+  | Shape.SNu (_, _) | Shape.SFhc _ | Shape.SMpc (_, _) ->
+      lazy_fold (Rules.as_vmu s)
+        ~none:(fun (() : unit) -> lan_point_repr ec s d)
+        ~some:(fun (((n : string), (_ix : Value.t list)) : string * Value.t list) ->
+          Ok (Eterm.RUnion (mu_tid n)))
 
 (** Every left former that is not a mu family (SC-D5). *)
 and lan_point_repr (ec : ectx) (s : Value.t Shape.t) (d : Value.closure) :
@@ -561,6 +569,13 @@ let refused (s : Term.t Shape.t) : (Eterm.ktm * acc, Error.t) result =
   let* (_pack : Check.ctx Rules.rule_pack) = Rules.rules s in
   Error (Error.Not_yet "an erasure at a shape past M0")
 
+(** veil D-15 and R-W4-4:  a host form lowers to a call of the reactor op
+    that writes or reads the blob slot.  The op name is the one rules.ml
+    holds, so the kernel spells no op number.  The op answers the slot
+    index, so the call stands where the blob stands. *)
+let host_call_of (name : string) (args : Eterm.ktm list) : Eterm.ktm =
+  Eterm.KApp (Eterm.KGlobal name, args)
+
 (** M1 Stage J, brief 3.1 and A6.  The interim word of Stage G is gone:
     an introduction at a mu family and an elimination of a mu family have
     rows of their own below ([mu_intro] and [mu_elim],
@@ -581,6 +596,9 @@ let as_app (t : Term.t) : (Quantity.t * Term.t * Term.t * Term.t) option =
   | Term.Out (Shape.SPar (_, _), _, _) -> None
   | Term.Out (Shape.SMu (_, _), _, _) -> None
   | Term.Out (Shape.SNu (_, _), _, _) -> None
+  | Term.Out (Shape.SZk (_, _, _), _, _) -> None
+  | Term.Out (Shape.SFhc _, _, _) -> None
+  | Term.Out (Shape.SMpc (_, _), _, _) -> None
   | Term.Var _ -> None
   | Term.Univ _ -> None
   | Term.Lan (_, _) -> None
@@ -684,6 +702,9 @@ and as_lam (t : Term.t) : Term.leg option =
   | Term.Sec (Shape.SPar (_, _), _) -> None
   | Term.Sec (Shape.SMu (_, _), _) -> None
   | Term.Sec (Shape.SNu (_, _), _) -> None
+  | Term.Sec (Shape.SZk (_, _, _), _) -> None
+  | Term.Sec (Shape.SFhc _, _) -> None
+  | Term.Sec (Shape.SMpc (_, _), _) -> None
   | Term.Var _ -> None
   | Term.Univ _ -> None
   | Term.Lan (_, _) -> None
@@ -705,6 +726,91 @@ and sec_arm (ec : ectx) (ac : acc) ~(ty : Value.t) (s : Term.t Shape.t)
   | Shape.SPar (_, _) -> refused s
   | Shape.SMu (_, _) -> Error (Error.Not_yet Rules.mu_ran_word)
   | Shape.SNu (_, _) -> refused s
+  (* A section at a zk shape is the right former, which wave 5 owns. *)
+  | Shape.SZk (_, _, _) -> Error (Error.Not_yet Rules.zk_ran_word)
+  | Shape.SFhc l -> fhc_sec ec ac l legs
+  | Shape.SMpc (_, _) -> mpc_sec ec ac legs
+
+(** One plaintext argument of a reactor op.  A position that erasure
+    drops carries no plaintext, so the op never sees it (R-W4-7). *)
+and host_arg (ec : ectx) (ac : acc) (t : Term.t) :
+    (Eterm.ktm option * acc, Error.t) result =
+  let* ty = Check.infer ec.c Quantity.Many t in
+  let* rt = runtime_ty ec ty in
+  if rt then
+    let* x, ac1 = term ec ac ~tail:false ~expected:(Some ty) t in
+    Ok (Some x, ac1)
+  else Ok (None, ac)
+
+(** The plaintext arguments of one reactor op, in written order. *)
+and host_args (ec : ectx) (ac : acc) (ts : Term.t list) :
+    (Eterm.ktm list * acc, Error.t) result =
+  List.fold_left
+    (fun (r : (Eterm.ktm list * acc, Error.t) result) (t : Term.t) ->
+      let* xs, a = r in
+      let* x, a' = host_arg ec a t in
+      Ok (xs @ Option.to_list x, a'))
+    (Ok ([], ac)) ts
+
+(** The call of one reactor op over the positions that survive erasure. *)
+and host_call (ec : ectx) (ac : acc) (name : string) (ts : Term.t list) :
+    (Eterm.ktm * acc, Error.t) result =
+  let* args, ac1 = host_args ec ac ts in
+  Ok (host_call_of name args, ac1)
+
+(** veil D-15:  [enc pk t] writes a slot that holds the level and the
+    plaintext, and [eval f c] reads a slot, applies [f] in Wasm and
+    writes a slot at the level of the expected type.  The section is
+    [eval] when its first argument is a function, exactly as the checker
+    reads it (rules.ml [fhc_intro_sec]).  The key carries no plaintext,
+    so the op does not take it (W4-F3). *)
+and fhc_sec (ec : ectx) (ac : acc) (l : Term.t) (legs : Term.leg list) :
+    (Eterm.ktm * acc, Error.t) result =
+  let miss = Error.Mismatch Rules.fhc_args_msg in
+  let* head_leg, tail_leg = Rules.two_of legs |> Option.to_result ~none:miss in
+  let* first = Rules.fhc_arg head_leg |> Option.to_result ~none:miss in
+  let* second = Rules.fhc_arg tail_leg |> Option.to_result ~none:miss in
+  let* fty = Check.infer ec.c Quantity.Many first in
+  let* is_eval = function_result ec fty in
+  if is_eval then host_call ec ac Rules.fhc_eval_name [ l; first; second ]
+  else host_call ec ac Rules.fhc_enc_name [ l; second ]
+
+(** veil D-15:  [share x] and [input p x] write a slot that holds the
+    party flag and the plaintext, and [mpc ps f c1 .. cn] reads the
+    slots, applies [f] in Wasm and writes a slot.  The arity picks the
+    rule, as the checker reads it (rules.ml [mpc_intro_sec]). *)
+and mpc_sec (ec : ectx) (ac : acc) (legs : Term.leg list) :
+    (Eterm.ktm * acc, Error.t) result =
+  let* args =
+    Rules.all_ok
+      (List.map
+         (fun (lg : Term.leg) ->
+           Rules.fhc_arg lg
+           |> Option.to_result ~none:(Error.Mismatch Rules.mpc_leg_msg))
+         legs)
+  in
+  match args with
+  | [] -> Error (Error.Mismatch Rules.mpc_arity_msg)
+  | [ x ] -> host_call ec ac Rules.mpc_input_name [ x ]
+  | [ p; x ] -> host_call ec ac Rules.mpc_input_name [ p; x ]
+  | ps :: f :: c :: cs -> host_call ec ac Rules.mpc_share_name (ps :: f :: c :: cs)
+
+(** veil D-15, R-W4-8:  [prove x w r] writes a slot that holds the
+    instance and the witness.  The relation leg is a proposition and
+    erases;  the surface keeps the public instance at elaboration
+    (elab.ml [elab_prove]) as the second leg, so the op takes both
+    (W4-F13).  The wave 4 form with no instance leg still checks, so
+    it keeps the witness alone. *)
+and zk_in (ec : ectx) (ac : acc) (a : Term.addr) (legs : Term.t list) :
+    (Eterm.ktm * acc, Error.t) result =
+  let* _q, point =
+    Term.as_apt a |> Option.to_result ~none:(Error.Wrong_leg Rules.zk_point_msg)
+  in
+  match legs with
+  | [ _rt; inst ] -> host_call ec ac Rules.zk_prove_name [ inst; point ]
+  | [ _rt ] -> host_call ec ac Rules.zk_prove_name [ point ]
+  | [] | _ :: _ :: _ :: _ ->
+      Error (Error.Mismatch "a proof carries one relation leg")
 
 (** A tuple keeps its runtime legs alone, and a tuple with no runtime leg
     is erased whole (SC-D11). *)
@@ -868,6 +974,10 @@ and in_arm (ec : ectx) (ac : acc) ~(ty : Value.t) (s : Term.t Shape.t)
   | Shape.SNu (_, _) -> refused s
   | Shape.SPi (_, _, _) -> in_typed ec ac ~ty a args
   | Shape.SColl _ -> in_typed ec ac ~ty a args
+  | Shape.SZk (_, _, _) -> zk_in ec ac a args
+  (* The left formers of the two host shapes arrive at V5 (R-W4-1). *)
+  | Shape.SFhc _ -> Error (Error.Not_yet Rules.fhc_lan_word)
+  | Shape.SMpc (_, _) -> Error (Error.Not_yet Rules.mpc_lan_word)
 
 and in_typed (ec : ectx) (ac : acc) ~(ty : Value.t) (a : Term.addr)
     (args : Term.t list) : (Eterm.ktm * acc, Error.t) result =
@@ -1142,6 +1252,14 @@ and out_arm (ec : ectx) (ac : acc) ~(tail : bool) ~(ty : Value.t)
   | Shape.SPar (_, _) -> refused s
   | Shape.SMu (_, _) -> Error (Error.Not_yet Rules.mu_ran_word)
   | Shape.SNu (_, _) -> refused s
+  (* The right former of the zk shape arrives at V5 (R-W4-1). *)
+  | Shape.SZk (_, _, _) -> Error (Error.Not_yet Rules.zk_ran_word)
+  (* veil D-15:  [dec sk c] and [open Q h c] read the slot and answer the
+     plaintext.  The key stands at quantity One and the subset and the
+     authorization proof stand at quantity Zero, and none of the three
+     carries plaintext, so each op takes the slot alone. *)
+  | Shape.SFhc _ -> host_call ec ac Rules.fhc_dec_name [ head ]
+  | Shape.SMpc (_, _) -> host_call ec ac Rules.mpc_open_name [ head ]
 
 (** An empty erased application preserves its head when source
     parameters remain, including parameters that themselves erase.
@@ -1227,6 +1345,14 @@ and elim_arm (ec : ectx) (ac : acc) ~(tail : bool) ~(ty : Value.t) (e : Term.eli
   | Shape.SNu (_, _) -> refused e.Term.e_shape
   | Shape.SPi (_, _, _) -> elim_typed ec ac ~tail ~ty e
   | Shape.SColl _ -> elim_typed ec ac ~tail ~ty e
+  (* A zk value is eliminated at one point address with one leg, exactly
+     as a pair is (rules.ml [zk_pack]), and both of its components erase:
+     the witness stands at the mark the type writes and the relation leg
+     is a proposition. *)
+  | Shape.SZk (_, _, _) -> elim_typed ec ac ~tail ~ty e
+  (* The left formers of the two host shapes arrive at V5 (R-W4-1). *)
+  | Shape.SFhc _ -> Error (Error.Not_yet Rules.fhc_lan_word)
+  | Shape.SMpc (_, _) -> Error (Error.Not_yet Rules.mpc_lan_word)
 
 (** The motive is a type and is dropped at every elimination (SC-D10). *)
 and elim_typed (ec : ectx) (ac : acc) ~(tail : bool) ~(ty : Value.t) (e : Term.elim) :

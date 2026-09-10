@@ -103,6 +103,19 @@ let rec ops : ctx Rules.ops =
        family record through (SG-D2).  This file holds no other family
        lookup on a checking path. *)
     o_family = (fun (c : ctx) (n : string) -> Global.find_family n c.globals);
+    (* veil D-9:  the circuit predicate of D-8 read on a checking path.
+       A global name resolves to its body only when it names an ordinary
+       definition, so an axiom and a primitive read as an unknown global,
+       and the D-7 sentence is built here. *)
+    o_circuit =
+      (fun (c : ctx) (t : Term.t) ->
+        Circuit.depth
+          (fun (n : string) ->
+            Option.map
+              (fun (d : Global.def_entry) -> d.Global.def)
+              (Option.bind (Global.find n c.globals) Global.def_of))
+          t
+        |> Result.map_error Circuit.word);
   }
 
 and pp_value (c : ctx) (v : Value.t) : string =
@@ -296,6 +309,26 @@ type decl = {
 let missing_body (n : string) : Error.t =
   Error.Cannot_infer ("the definition " ^ n ^ " has no body")
 
+(** R-W5-6 (R-W1-8 with the R-W3-10 generalization):  a declared type
+    that whnfs to a universe, or a [Pi] chain whose last codomain whnfs
+    to a universe, marks its body as a type-valued definition, checked
+    at erased mode.  Only the function shape continues the chain; every
+    other shape stops it. *)
+let rec type_valued (globals : Global.t) (size : int) (v : Value.t) :
+    (bool, Error.t) result =
+  let* w = Eval.whnf globals v in
+  Value.as_univ w
+  |> Option.fold ~some:(fun (_l : Level.t) -> Ok true)
+       ~none:
+         (Value.as_ran w
+          |> Option.fold ~none:(Ok false)
+               ~some:(fun ((s : Value.t Shape.t), (clo : Value.closure), (_u : Level.t option)) ->
+                 if Shape.is_pi s then
+                   let arg = Value.var size in
+                   let* cod = Eval.eval globals (arg :: clo.Value.env) clo.Value.body in
+                   type_valued globals (size + 1) cod
+                 else Ok false))
+
 (** Check one declaration against the environment built so far.  The name
     is added by the caller and only after this returns, so a self
     reference in the body is [Error (Unbound name)]. *)
@@ -310,7 +343,9 @@ let check_decl (globals : Global.t) (budget : Budget.t) (d : decl) :
       let* body =
         d.d_body |> Option.to_result ~none:(missing_body d.d_name)
       in
-      let* () = check c Quantity.Many body tyv in
+      let* erased = type_valued globals 0 tyv in
+      let mode = if erased then Quantity.Zero else Quantity.Many in
+      let* () = check c mode body tyv in
       (* SB-D24:  M0 has no recursion, so unfolding ends and every
          definition is reducible with no guarded argument. *)
       Ok

@@ -1,0 +1,7 @@
+axiom Pk : Type 1
+axiom Sk : Type 1
+axiom pk : Pk
+axiom sk : Sk
+def seal : (Ran SPi w t Nat (Ran SFhc 0 Nat)) := (Sec SPi w t Nat [t => (Sec SFhc 0 [ => pk;  => t])])
+def addEnc : (Ran SPi w c (Ran SFhc 2 Nat) (Ran SFhc 3 Nat)) := (Sec SPi w c (Ran SFhc 2 Nat) [c => (Sec SFhc 3 [ => (Sec SPi w x Nat [x => (Out SPi w b Nat (APt w 1) (Out SPi w a Nat (APt w x) natAdd))]);  => c])])
+def reveal : (Ran SPi 1 k Sk (Ran SPi w c (Ran SFhc 3 Nat) Nat)) := (Sec SPi 1 k Sk [k => (Sec SPi w c (Ran SFhc 3 Nat) [c => (Out SFhc 3 (APt 1 k) c)])])

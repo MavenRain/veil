@@ -23,6 +23,25 @@ let smu_word : string = "SMu arrives at M1"
 let snu_word : string = "SNu arrives at M2"
 let auto_word : string = "instances arrive at M2"
 
+(** veil D-7: the milestone word of a form no wave has admitted yet.
+    [host_blobs_word] is the erasure and emission word until wave 4, kept
+    apart from the checker words above because a pack can admit a shape
+    at the checker before erasure knows how to lower it. *)
+let host_blobs_word : string = "host blobs arrive at V4"
+
+(** veil D-15 and R-W4-4: the reactor op each host form calls.  Erasure
+    lowers a host form to a call of the name below, and both reactor
+    twins bind that name to its op number, so the op numbers live in one
+    place and the kernel spells none of them. *)
+let zk_prove_name : string = "zkProve" (* op 10 *)
+let zk_verify_name : string = "zkVerify" (* op 11 *)
+let fhc_enc_name : string = "fhcEnc" (* op 12 *)
+let fhc_eval_name : string = "fhcEval" (* op 13 *)
+let fhc_dec_name : string = "fhcDec" (* op 14 *)
+let mpc_input_name : string = "mpcInput" (* op 15 *)
+let mpc_share_name : string = "mpcShare" (* op 16 *)
+let mpc_open_name : string = "mpcOpen" (* op 17 *)
+
 (** What a rule may ask of the evaluator.  [Eval] builds one of these
     from its own [eval] and hands it to [beta], so the pack reduces a
     redex without depending on eval.ml. *)
@@ -62,6 +81,12 @@ type 'c ops = {
           family record through (SG-D2).  A second reader would put a
           family lookup in check.ml and the R0-AUDIT leg forbids it
           (dev/r0-audit.sh:6-11). *)
+  o_circuit : 'c -> Term.t -> (int, string) result;
+      (** veil D-9:  the circuit predicate of D-8, read through the
+          checker so no rule holds the global environment.  [Ok d] is a
+          fragment of multiplicative depth [d];  the error string is the
+          whole D-7 sentence, which check.ml builds with [Circuit.word]
+          so this file names no other module. *)
 }
 
 (** The derived eta table of SPEC.md section 4:  a former gets a row
@@ -221,20 +246,51 @@ let shape_eq (eq : Value.t -> Value.t -> (bool, Error.t) result) (a : Value.t Sh
   | Shape.SMu (n1, ix1), Shape.SMu (n2, ix2) ->
       if String.equal n1 n2 then payload_eq eq ix1 ix2 else Ok false
   | Shape.SNu (_, _), Shape.SNu (_, _) -> Error (Error.Not_yet snu_word)
-  | Shape.SPi (_, _, _), (Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _))
-    ->
+  (* veil D-9:  the refusal this line carried is replaced by the
+     structural row the pack needs. *)
+  | Shape.SZk (q1, _, d1), Shape.SZk (q2, _, d2) ->
+      if Quantity.equal q1 q2 then eq d1 d2 else Ok false
+  (* veil wave 2, D-10:  two ciphertext types are equal when the levels
+     convert;  the plaintext types are the diagrams and the caller
+     compares those. *)
+  | Shape.SFhc l1, Shape.SFhc l2 -> eq l1 l2
+  (* veil wave 3, D-12:  two mpc types are equal when the party set and
+     the authorization predicate convert;  the payload types are the
+     diagrams and the caller compares those. *)
+  | Shape.SMpc (p1, a1), Shape.SMpc (p2, a2) ->
+      let* pe = eq p1 p2 in
+      if pe then eq a1 a2 else Ok false
+  | ( Shape.SPi (_, _, _),
+      ( Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _)
+      | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
       Ok false
-  | Shape.SColl _, (Shape.SPi (_, _, _) | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _))
-    ->
+  | ( Shape.SColl _,
+      ( Shape.SPi (_, _, _) | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _)
+      | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
       Ok false
-  | Shape.SPar (_, _), (Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SMu (_, _) | Shape.SNu (_, _))
-    ->
+  | ( Shape.SPar (_, _),
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SMu (_, _) | Shape.SNu (_, _)
+      | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
       Ok false
-  | Shape.SMu (_, _), (Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _))
-    ->
+  | ( Shape.SMu (_, _),
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _)
+      | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
       Ok false
-  | Shape.SNu (_, _), (Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _))
-    ->
+  | ( Shape.SNu (_, _),
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+      | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
+      Ok false
+  | ( Shape.SZk (_, _, _),
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+      | Shape.SNu (_, _) | Shape.SFhc _ | Shape.SMpc (_, _) ) ) ->
+      Ok false
+  | ( Shape.SFhc _,
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+      | Shape.SNu (_, _) | Shape.SZk (_, _, _) | Shape.SMpc (_, _) ) ) ->
+      Ok false
+  | ( Shape.SMpc (_, _),
+      ( Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+      | Shape.SNu (_, _) | Shape.SZk (_, _, _) | Shape.SFhc _ ) ) ->
       Ok false
 
 (** Evaluate the payload a shape carries, so eval.ml turns a term shape
@@ -250,6 +306,12 @@ let map_shape (f : 'a -> ('b, Error.t) result) (s : 'a Shape.t) :
   | Shape.SMu (n, ix) ->
       Result.map (fun (vs : 'b list) -> Shape.SMu (n, vs)) (all_ok (List.map f ix))
   | Shape.SNu (_, _) -> Error (Error.Not_yet snu_word)
+  | Shape.SZk (q, w, ty) -> Result.map (fun v -> Shape.SZk (q, w, v)) (f ty)
+  | Shape.SFhc l -> Result.map (fun v -> Shape.SFhc v) (f l)
+  | Shape.SMpc (p, a) ->
+      let* p' = f p in
+      let* a' = f a in
+      Ok (Shape.SMpc (p', a'))
 
 (** Term builders.  prim.ml and the driver need a closed type at the two
     admitted shapes and cannot spell one, so they ask here. *)
@@ -286,15 +348,24 @@ let bool_value (b : bool) : Value.t =
 (** Views on a shape, so a rule reads its own payload without a partial
     projection. *)
 
+(** The point view.  veil D-9:  the zk shape carries the same payload as
+    the point shape, a quantity, a name and a domain, and its pack reads
+    that payload through this view.  The dispatch keys on the shape, so a
+    zk shape reaches a point rule only when the zk pack calls it. *)
 let as_vpi (s : 'a Shape.t) : (Quantity.t * string * 'a) option =
   match s with
   | Shape.SPi (q, x, dom) -> Some (q, x, dom)
-  | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _) -> None
+  | Shape.SZk (q, w, ty) -> Some (q, w, ty)
+  | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _)
+  | Shape.SFhc _ | Shape.SMpc (_, _) ->
+      None
 
 let as_vcoll (s : 'a Shape.t) : int option =
   match s with
   | Shape.SColl n -> Some n
-  | Shape.SPi (_, _, _) | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _) -> None
+  | Shape.SPi (_, _, _) | Shape.SPar (_, _) | Shape.SMu (_, _) | Shape.SNu (_, _)
+  | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ->
+      None
 
 let as_tsec (t : Term.t) : (Term.t Shape.t * Term.leg list) option =
   match t with
@@ -967,7 +1038,9 @@ let mu_large_word : string =
 let as_vmu (s : 'a Shape.t) : (string * 'a list) option =
   match s with
   | Shape.SMu (n, ix) -> Some (n, ix)
-  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _) -> None
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SNu (_, _)
+  | Shape.SZk (_, _, _) | Shape.SFhc _ | Shape.SMpc (_, _) ->
+      None
 
 (** Brief 3.4:  tot's three-part criterion, ported part for part from
     kan-lang-tot-pin/lib/check.ml:223 [zero_eliminable] and never
@@ -1418,8 +1491,543 @@ let mu_pack (() : unit) : 'c rule_pack =
     subsingleton = mu_subsingleton;
   }
 
-(** The dispatch of plan section 5.  Three shapes have a pack;  the
-    other two carry their milestone word, so a term that reaches the
+(* ---------------------------------------------------------------- *)
+(* The pack of the zero-knowledge shape, veil D-9.                    *)
+(* ---------------------------------------------------------------- *)
+
+(** veil D-7:  the polarity the zk pack does not implement.  A section
+    or a projection at a zk type carries this word. *)
+let zk_ran_word : string = "Ran SZk arrives at V5"
+
+let zk_prop_msg : string = "a zk type hides the witness of a proposition"
+let zk_point_msg : string = "a proof takes the point address"
+
+(** veil D-9 formation.  The witness type is a type, the relation is a
+    proposition, and the relation is a circuit with the witness read as a
+    depth-0 variable.  The zk type lives at the universe of the witness
+    type joined with the universe of the relation, never at the
+    proposition universe (RULINGS-1.md R-W1-2), so a proof is a runtime
+    value and erasure reaches the zk arm. *)
+let zk_form_lan (ops : 'c ops) (ctx : 'c) (s : Term.t Shape.t) (diagram : Term.t)
+    ~expected:(_expected : Level.t option) : (Level.t, Error.t) result =
+  let* q, w, dom = as_vpi s |> Option.to_result ~none:(Error.Mismatch wrong_pack) in
+  let* l_dom = ops.o_infer_univ ctx dom in
+  let* dom_v = ops.o_eval ctx dom in
+  let ctx' = ops.o_bind w q dom_v ctx in
+  let* l_cod = ops.o_infer_univ ctx' diagram in
+  let* () =
+    if Level.equal l_cod Level.zero then Ok () else Error (Error.Mismatch zk_prop_msg)
+  in
+  ops.o_circuit ctx' diagram
+  |> Result.fold
+       ~ok:(fun (_d : int) -> Ok (spi_lan_lvl [ l_dom; l_cod ]))
+       ~error:(fun (word : string) -> Error (Error.Not_yet word))
+
+(** veil D-9 introduction.  The point of the diagram is the witness and
+    [prove] consumes it once, whatever quantity the type marks on it, so
+    the point is checked at the mode itself and never at the mark.  The
+    one leg is the proof of the relation read at that witness. *)
+let zk_intro_in (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (_s : Term.t Shape.t)
+    (addr : Term.addr) (args : Term.t list) ~(expected : Value.t) :
+    (Quantity.usage, Error.t) result =
+  let* _w, (vs, dclo, _u) =
+    former_view ops ctx Value.as_lan "a proof needs a left former as its expected type"
+      expected
+  in
+  let* _q, _x, dom_v =
+    as_vpi vs |> Option.to_result ~none:(Error.Mismatch wrong_pack)
+  in
+  let* _aq, point =
+    Term.as_apt addr
+    |> Option.to_result ~none:(Error.Wrong_leg zk_point_msg)
+  in
+  let* fibre, inst_uses =
+    match args with
+    | [ fibre ] -> Ok (fibre, Quantity.empty)
+    | [ fibre; inst ] ->
+        let* _inst_ty, inst_uses = ops.o_infer ctx mode inst in
+        Ok (fibre, inst_uses)
+    | [] -> Error (Error.Mismatch "a proof carries one relation leg")
+    | _ :: _ :: _ :: _ -> Error (Error.Mismatch "a proof carries one relation leg")
+  in
+  let* point_uses = ops.o_check ctx (Quantity.mul mode Quantity.One) point dom_v in
+  let* point_v = ops.o_eval ctx point in
+  let* cod = open_closure (ops.o_ev ctx) dclo [ point_v ] in
+  let* fibre_uses = ops.o_check ctx mode fibre cod in
+  Ok (Quantity.sequence point_uses (Quantity.sequence fibre_uses inst_uses))
+
+(** The pack.  Elimination, beta and diagram conversion are the point
+    rules read through the point view:  a zk value is introduced at one
+    point address with one leg, exactly as a pair is, and [verify] is the
+    one branch that reads it.  The refusals sit at the fields of the
+    right former, which wave 5 owns. *)
+(** R-W4-8:  [spi_beta]'s [BElim] arm reads the fibre off a singleton
+    args list, which the plain point shape always carries;  a zk value
+    now carries the fibre alone (the wave 4 form) or the fibre and the
+    instance (R-W5-12).  The instance never reaches the branch body, so
+    the beta step reduces at the fibre in both forms.  [BOut] never
+    meets a zk value (the zk former has no right side), so it delegates
+    to [spi_beta] unchanged. *)
+let zk_beta (ev : evaluator) (r : beta_redex) : (Value.t option, Error.t) result =
+  match r with
+  | BOut (_, _, _) -> spi_beta ev r
+  | BElim (_s, branches, env, v) ->
+      let@ _vs, addr, args = Value.as_in v in
+      let@ _q, arg = Value.as_pt addr in
+      let@ fibre =
+        match args with
+        | [ fibre ] -> Some fibre
+        | [ fibre; _inst ] -> Some fibre
+        | [] | _ :: _ :: _ :: _ -> None
+      in
+      let@ _key, leg = one_of branches in
+      Result.map Option.some (ev.ev_eval (fibre :: arg :: env) leg.Term.l_body)
+
+let zk_pack (() : unit) : 'c rule_pack =
+  {
+    form_lan = zk_form_lan;
+    form_ran = (fun _ops _ctx _s _d ~expected:_ -> Error (Error.Not_yet zk_ran_word));
+    intro_in = zk_intro_in;
+    elim_elim = spi_elim_elim;
+    intro_sec =
+      (fun _ops _ctx _mode _s _legs ~expected:_ -> Error (Error.Not_yet zk_ran_word));
+    elim_out = (fun _ops _ctx _mode _s _addr _head -> Error (Error.Not_yet zk_ran_word));
+    beta = zk_beta;
+    (* D-9:  one introduction address, and no expansion a verifier can
+       write, so neither former gets an eta row. *)
+    eta = { eta_ran = false; eta_lan = false };
+    diagram_arity = spi_diagram_arity;
+    (* [Ok None] falls conversion back to a structural compare (SB-D25). *)
+    spine_ty = (fun _ops _ctx _s _d _addr -> Ok None);
+    expand_ran = None;
+    expand_lan = None;
+    conv_diagram = spi_conv_diagram;
+    ann_lvl_eq = spi_ann_lvl_eq;
+    (* R-W1-2:  the record carries the universe of the witness type
+       joined with the universe of the relation, the same join the point
+       rules compute, so the zk type never sits at Prop. *)
+    lan_lvl = payload_lvl spi_lan_lvl;
+    ran_lvl = (fun _ops _ctx _s _ls -> Error (Error.Not_yet zk_ran_word));
+    subsingleton = no_subsingleton;
+  }
+
+(* The pack of the homomorphic shape, veil D-10 and D-11 (SPEC 4.3). *)
+
+(** veil D-7:  the polarity the fhc pack does not implement. *)
+let fhc_lan_word : string = "Lan SFhc arrives at V5"
+
+let fhc_nat_name : string = "Nat"
+let fhc_level_msg : string = "the level of a ciphertext type is a Nat literal"
+let fhc_fragment_msg : string = "a ciphertext carries a fragment type"
+let fhc_sec_msg : string = "a ciphertext needs a right former as its expected type"
+let fhc_args_msg : string = "a ciphertext section takes two arguments"
+let fhc_cipher_msg : string = "the argument of eval or dec is not a ciphertext"
+let fhc_fun_msg : string = "eval takes a function from the plaintext type to the result type"
+let fhc_key_msg : string = "the key of dec is consumed once"
+let fhc_zero_msg : string = "enc starts at level 0"
+let fhc_grow_msg : string =
+  "the level of the result is the level of the argument plus the depth of the function"
+let as_vfhc (s : 'a Shape.t) : 'a option =
+  match s with
+  | Shape.SFhc l -> Some l
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+  | Shape.SNu (_, _) | Shape.SZk (_, _, _) | Shape.SMpc (_, _) ->
+      None
+
+let fhc_int (l : Literal.t) : Bignum.t option =
+  match l with
+  | Literal.LInt n -> Some n
+  | Literal.LString _ -> None
+
+(** veil D-10:  the level is consumed depth, read as a Nat literal. *)
+let fhc_lvl (ops : 'c ops) (ctx : 'c) (lv : Value.t) : (Bignum.t, Error.t) result =
+  let* w = ops.o_whnf ctx lv in
+  Option.bind (Value.as_lit w) fhc_int
+  |> Option.to_result ~none:(Error.Mismatch fhc_level_msg)
+
+(** veil D-10:  a fragment type is [Nat], or a sum or a record over a collection of them. *)
+let rec fhc_fragment (ops : 'c ops) (ctx : 'c) (ty : Value.t) : (unit, Error.t) result =
+  let* w = ops.o_whnf ctx ty in
+  match w with
+  | Value.VNeutral (Value.HGlobal g, []) ->
+      if String.equal g fhc_nat_name then Ok () else Error (Error.Mismatch fhc_fragment_msg)
+  | Value.VRan (fs, dclo, _u) | Value.VLan (fs, dclo, _u) ->
+      let* _n = as_vcoll fs |> Option.to_result ~none:(Error.Mismatch fhc_fragment_msg) in
+      let* dlegs = coll_legs_of ops ctx dclo in
+      Result.map
+        (fun (_ : unit list) -> ())
+        (all_ok
+           (List.map
+              (fun (dl : Value.vleg) ->
+                let* lty = open_closure (ops.o_ev ctx) dl.Value.vl_clo [] in
+                fhc_fragment ops ctx lty)
+              dlegs))
+  | Value.VUniv _ | Value.VIn (_, _, _) | Value.VSec (_, _) | Value.VLit _
+  | Value.VNeutral (_, _) ->
+      Error (Error.Mismatch fhc_fragment_msg)
+
+(** veil D-10 formation:  a literal level, a fragment plaintext type, that type's universe. *)
+let fhc_form_ran (ops : 'c ops) (ctx : 'c) (s : Term.t Shape.t) (diagram : Term.t)
+    ~expected:(_expected : Level.t option) : (Level.t, Error.t) result =
+  let* l = as_vfhc s |> Option.to_result ~none:(Error.Mismatch wrong_pack) in
+  let* lv = ops.o_eval ctx l in
+  let* _n = fhc_lvl ops ctx lv in
+  let* l_ty = ops.o_infer_univ ctx diagram in
+  let* ty_v = ops.o_eval ctx diagram in
+  let* () = fhc_fragment ops ctx ty_v in
+  Ok l_ty
+
+(** A section argument binds nothing:  a ciphertext leg carries a term, not a branch. *)
+let fhc_arg (lg : Term.leg) : Term.t option =
+  if Int.equal (List.length lg.Term.l_binders) 0 then Some lg.Term.l_body else None
+
+(** veil D-10 [eval f c]:  the result stands at the level of [c] plus the depth of [f]. *)
+let fhc_eval (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (out_lvl : Bignum.t)
+    (out_ty : Value.t) (fw : Value.t) (f_uses : Quantity.usage) (f : Term.t) (c : Term.t) :
+    (Quantity.usage, Error.t) result =
+  let* d = ops.o_circuit ctx f |> Result.map_error (fun (w : string) -> Error.Not_yet w) in
+  let* fvs, fclo, _fu =
+    Value.as_ran fw |> Option.to_result ~none:(Error.Mismatch fhc_fun_msg)
+  in
+  let* fq, fx, f_dom =
+    as_vpi fvs |> Option.to_result ~none:(Error.Mismatch fhc_fun_msg)
+  in
+  let* c_ty, c_uses = ops.o_infer ctx mode c in
+  let* _cw, (cs, cclo, _cu) = former_view ops ctx Value.as_ran fhc_cipher_msg c_ty in
+  let* clv = as_vfhc cs |> Option.to_result ~none:(Error.Mismatch fhc_cipher_msg) in
+  let* in_lvl = fhc_lvl ops ctx clv in
+  let* in_ty = open_closure (ops.o_ev ctx) cclo [] in
+  let* () =
+    if Bignum.equal out_lvl (Bignum.add in_lvl (Bignum.of_int d)) then Ok ()
+    else Error (Error.Mismatch fhc_grow_msg)
+  in
+  let* dom_ok = ops.o_conv_type ctx f_dom in_ty in
+  let* f_cod = open_closure (ops.o_ev ctx) fclo [ Value.var (ops.o_size ctx) ] in
+  let* cod_ok = ops.o_conv_type (ops.o_bind fx fq f_dom ctx) f_cod out_ty in
+  if dom_ok && cod_ok then Ok (Quantity.sequence f_uses c_uses)
+  else Error (Error.Mismatch fhc_fun_msg)
+
+(** R-W2-6:  a non-dependent [Pi A B] read off a ciphertext's plaintext type
+    and the section's own codomain.  The codomain does not use the bound
+    argument, so quoting it under one extra binder reindexes it for free
+    (the readback [o_quote] turns a stable level into an index that fits
+    the larger context, SB-D25 style). *)
+let fhc_pi_const (ops : 'c ops) (ctx : 'c) (dom : Value.t) (cod : Value.t) :
+    (Value.t, Error.t) result =
+  let ctx' = ops.o_bind "_" Quantity.Many dom ctx in
+  let* cod_term = ops.o_quote ctx' cod in
+  Ok (Value.VRan (Shape.SPi (Quantity.Many, "_", dom), Value.close (ops.o_env ctx) cod_term, None))
+
+(** R-W2-6:  [eval f c] when [f] has no type of its own (an un-ascribed
+    [fun]).  Infer the ciphertext leg [c] first, read the plaintext type off
+    it, and check the function leg [f] against the [Pi A B] this gives. *)
+let fhc_eval_cipher_first (ops : 'c ops) (ctx : 'c) (mode : Quantity.t)
+    (out_lvl : Bignum.t) (out_ty : Value.t) (f : Term.t) (c : Term.t) :
+    (Quantity.usage, Error.t) result =
+  let* d = ops.o_circuit ctx f |> Result.map_error (fun (w : string) -> Error.Not_yet w) in
+  let* c_ty, c_uses = ops.o_infer ctx (Quantity.mul mode Quantity.Many) c in
+  let* _cw, (cs, cclo, _cu) = former_view ops ctx Value.as_ran fhc_cipher_msg c_ty in
+  let* clv = as_vfhc cs |> Option.to_result ~none:(Error.Mismatch fhc_cipher_msg) in
+  let* in_lvl = fhc_lvl ops ctx clv in
+  let* in_ty = open_closure (ops.o_ev ctx) cclo [] in
+  let* () =
+    if Bignum.equal out_lvl (Bignum.add in_lvl (Bignum.of_int d)) then Ok ()
+    else Error (Error.Mismatch fhc_grow_msg)
+  in
+  let* pi_ty = fhc_pi_const ops ctx in_ty out_ty in
+  let* f_uses = ops.o_check ctx (Quantity.mul mode Quantity.Many) f pi_ty in
+  Ok (Quantity.sequence f_uses c_uses)
+
+(** D-10 section:  a first argument of function type is [eval], any other is [enc] (D-11). *)
+let fhc_intro_sec (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (_s : Term.t Shape.t)
+    (legs : Term.leg list) ~(expected : Value.t) : (Quantity.usage, Error.t) result =
+  let* _w, (vs, dclo, _u) = former_view ops ctx Value.as_ran fhc_sec_msg expected in
+  let* lv = as_vfhc vs |> Option.to_result ~none:(Error.Mismatch wrong_pack) in
+  let* out_lvl = fhc_lvl ops ctx lv in
+  let* out_ty = open_closure (ops.o_ev ctx) dclo [] in
+  let* head_leg, tail_leg =
+    two_of legs |> Option.to_result ~none:(Error.Mismatch fhc_args_msg)
+  in
+  let* first = fhc_arg head_leg |> Option.to_result ~none:(Error.Mismatch fhc_args_msg) in
+  let* second = fhc_arg tail_leg |> Option.to_result ~none:(Error.Mismatch fhc_args_msg) in
+  ops.o_infer ctx (Quantity.mul mode Quantity.Many) first
+  |> Result.fold
+       ~ok:(fun ((first_ty : Value.t), (first_uses : Quantity.usage)) ->
+         let* fw = ops.o_whnf ctx first_ty in
+         let is_fun =
+           Value.as_ran fw
+           |> Option.fold ~none:false
+                ~some:(fun
+                    ((fs : Value.t Shape.t), (_c : Value.closure), (_l : Level.t option)) ->
+                  Option.is_some (as_vpi fs))
+         in
+         if is_fun then fhc_eval ops ctx mode out_lvl out_ty fw first_uses first second
+         else if Bignum.equal out_lvl Bignum.zero then
+           Result.map (Quantity.sequence first_uses) (ops.o_check ctx mode second out_ty)
+         else Error (Error.Mismatch fhc_zero_msg))
+       ~error:(fun (_e : Error.t) ->
+         fhc_eval_cipher_first ops ctx mode out_lvl out_ty first second)
+
+(** D-10 and D-11 [dec sk c]:  the key is consumed once, the answer is the plaintext type. *)
+let fhc_elim_out (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (_s : Term.t Shape.t)
+    (addr : Term.addr) (head : Term.t) : (Value.t * Quantity.usage, Error.t) result =
+  let* aq, key =
+    Term.as_apt addr
+    |> Option.to_result ~none:(Error.Wrong_leg "dec takes the key address")
+  in
+  let* () =
+    if Quantity.equal aq Quantity.One then Ok () else Error (Error.Quantity fhc_key_msg)
+  in
+  let* head_ty, head_uses = ops.o_infer ctx mode head in
+  let* _w, (vs, dclo, _u) = former_view ops ctx Value.as_ran fhc_cipher_msg head_ty in
+  let* lv = as_vfhc vs |> Option.to_result ~none:(Error.Mismatch fhc_cipher_msg) in
+  let* _n = fhc_lvl ops ctx lv in
+  let* _kty, key_uses = ops.o_infer ctx (Quantity.mul mode Quantity.One) key in
+  let* result = open_closure (ops.o_ev ctx) dclo [] in
+  Ok (result, Quantity.sequence head_uses key_uses)
+
+(** A ciphertext type lives at the universe of its plaintext type. *)
+let fhc_ran_lvl (ls : Level.t list) : Level.t =
+  level_pair ls
+  |> Option.fold ~none:(max_of ls) ~some:(fun ((_l : Level.t), (l' : Level.t)) -> l')
+
+(** The pack:  the right former carries the work, the left former answers the D-7 word. *)
+let fhc_pack (() : unit) : 'c rule_pack =
+  {
+    form_lan = (fun _ops _ctx _s _d ~expected:_ -> Error (Error.Not_yet fhc_lan_word));
+    form_ran = fhc_form_ran;
+    intro_in =
+      (fun _ops _ctx _mode _s _addr _args ~expected:_ ->
+        Error (Error.Not_yet fhc_lan_word));
+    elim_elim =
+      (fun _ops _ctx _mode _e ~expected:_ -> Error (Error.Not_yet fhc_lan_word));
+    intro_sec = fhc_intro_sec;
+    elim_out = fhc_elim_out;
+    beta = (fun _ev _r -> Ok None);
+    eta = { eta_ran = false; eta_lan = false };
+    diagram_arity = coll_diagram_arity;
+    spine_ty = (fun _ops _ctx _s _d _addr -> Ok None);
+    expand_ran = None;
+    expand_lan = None;
+    conv_diagram = coll_conv_diagram;
+    ann_lvl_eq = spi_ann_lvl_eq;
+    lan_lvl = (fun _ops _ctx _s _ls -> Error (Error.Not_yet fhc_lan_word));
+    ran_lvl = payload_lvl fhc_ran_lvl;
+    subsingleton = no_subsingleton;
+  }
+
+(* The pack of the multi party shape, veil D-12 (SPEC 4.4). *)
+
+(** veil D-7:  the polarity the mpc pack does not implement. *)
+let mpc_lan_word : string = "Session arrives at V5"
+
+let mpc_nat_name : string = "Nat"
+let mpc_set_name : string = "q"
+let mpc_party_msg : string = "the party set of an mpc type is a finite enumeration"
+let mpc_sec_msg : string = "a share needs a right former as its expected type"
+let mpc_leg_msg : string = "an mpc section leg binds nothing"
+let mpc_arity_msg : string = "an mpc section takes one argument or more"
+let mpc_fun_msg : string = "mpc takes a function from the share types to the result type"
+let mpc_result_msg : string = "the result of mpc is the type that remains after the last share"
+let mpc_addr_msg : string = "open takes the party set address with the authorization proof"
+let mpc_proof_q_msg : string = "the authorization proof of open is erased"
+let mpc_proof_msg : string = "open carries one authorization proof"
+let mpc_share_msg : string = "the argument of open is not a share"
+
+(** The mpc payload:  the party set and the authorization predicate. *)
+let as_vmpc (s : 'a Shape.t) : ('a * 'a) option =
+  match s with
+  | Shape.SMpc (p, a) -> Some (p, a)
+  | Shape.SPi (_, _, _) | Shape.SColl _ | Shape.SPar (_, _) | Shape.SMu (_, _)
+  | Shape.SNu (_, _) | Shape.SZk (_, _, _) | Shape.SFhc _ ->
+      None
+
+(** The point view of a term, so [open] reads its address without a partial read. *)
+let as_tin (t : Term.t) : (Term.t Shape.t * Term.addr * Term.t list) option =
+  match t with
+  | Term.In (s, a, args) -> Some (s, a, args)
+  | Term.Var _ | Term.Univ _ | Term.Lan (_, _) | Term.Ran (_, _) | Term.Elim _
+  | Term.Sec (_, _) | Term.Out (_, _, _) | Term.Let (_, _, _, _) | Term.Ann (_, _)
+  | Term.Global _ | Term.Lit _ | Term.Auto ->
+      None
+
+(** veil D-12:  [Sub P] is the record over [SColl n] of [n] Nat membership flags. *)
+let mpc_sub_ty (n : int) : Term.t =
+  prod_ty (List.init n (fun (_k : int) -> Term.Global mpc_nat_name))
+
+(** veil D-12:  the authorization predicate reads the subset at quantity Zero. *)
+let mpc_pred_ty (n : int) : Term.t =
+  arrow Quantity.Zero mpc_set_name (mpc_sub_ty n) (Term.Univ Level.zero)
+
+(** A party of the enumeration carries no payload:  its leg is the empty record. *)
+let mpc_party (ops : 'c ops) (ctx : 'c) (ty : Value.t) : (unit, Error.t) result =
+  let* w = ops.o_whnf ctx ty in
+  let* vs, _dclo, _u =
+    Value.as_ran w |> Option.to_result ~none:(Error.Mismatch mpc_party_msg)
+  in
+  let* n = as_vcoll vs |> Option.to_result ~none:(Error.Mismatch mpc_party_msg) in
+  if Int.equal n 0 then Ok () else Error (Error.Mismatch mpc_party_msg)
+
+(** veil D-12:  [P] whnfs to the sum over [SColl n] of [n] empty records. *)
+let mpc_parties (ops : 'c ops) (ctx : 'c) (pv : Value.t) : (int, Error.t) result =
+  let* w = ops.o_whnf ctx pv in
+  let* vs, dclo, _u =
+    Value.as_lan w |> Option.to_result ~none:(Error.Mismatch mpc_party_msg)
+  in
+  let* n = as_vcoll vs |> Option.to_result ~none:(Error.Mismatch mpc_party_msg) in
+  let* legs = coll_legs_of ops ctx dclo in
+  Result.map
+    (fun (_ : unit list) -> n)
+    (all_ok
+       (List.map
+          (fun (lg : Value.vleg) ->
+            let* lty = open_closure (ops.o_ev ctx) lg.Value.vl_clo [] in
+            mpc_party ops ctx lty)
+          legs))
+
+(** veil D-12 formation:  a finite party set, a Zero use predicate over
+    its subsets, and the universe of the payload type. *)
+let mpc_form_ran (ops : 'c ops) (ctx : 'c) (s : Term.t Shape.t) (diagram : Term.t)
+    ~expected:(_expected : Level.t option) : (Level.t, Error.t) result =
+  let* p, a = as_vmpc s |> Option.to_result ~none:(Error.Mismatch wrong_pack) in
+  let* pv = ops.o_eval ctx p in
+  let* n = mpc_parties ops ctx pv in
+  let* pred_v = ops.o_eval ctx (mpc_pred_ty n) in
+  let* _uses = ops.o_check ctx Quantity.Zero a pred_v in
+  ops.o_infer_univ ctx diagram
+
+(** The share type of one peeled domain, at the party set and the predicate of the section. *)
+let mpc_share_ty (ops : 'c ops) (ctx : 'c) (pv : Value.t) (av : Value.t) (ty : Value.t) :
+    (Value.t, Error.t) result =
+  Result.map
+    (fun (t : Term.t) ->
+      Value.VRan (Shape.SMpc (pv, av), Value.close (ops.o_env ctx) t, None))
+    (ops.o_quote ctx ty)
+
+(** veil D-12 [mpc ps f c1 .. cn]:  one [Pi] domain is peeled per share
+    and the type that remains after the last share is the result (R-W3-2). *)
+let rec mpc_shares (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (pv : Value.t)
+    (av : Value.t) (fty : Value.t) (cs : Term.t list) :
+    (Value.t * Quantity.usage, Error.t) result =
+  match cs with
+  | [] -> Ok (fty, Quantity.empty)
+  | c :: rest ->
+      let* w = ops.o_whnf ctx fty in
+      let* vs, fclo, _u =
+        Value.as_ran w |> Option.to_result ~none:(Error.Mismatch mpc_fun_msg)
+      in
+      let* _q, _x, dom = as_vpi vs |> Option.to_result ~none:(Error.Mismatch mpc_fun_msg) in
+      let* share_ty = mpc_share_ty ops ctx pv av dom in
+      let* c_uses = ops.o_check ctx (Quantity.mul mode Quantity.One) c share_ty in
+      let* cod = open_closure (ops.o_ev ctx) fclo [ Value.var (ops.o_size ctx) ] in
+      let* tail_ty, tail_uses = mpc_shares ops ctx mode pv av cod rest in
+      Ok (tail_ty, Quantity.sequence c_uses tail_uses)
+
+(** veil D-12:  the joint computation runs a circuit over one share of every party. *)
+let mpc_join (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (pv : Value.t) (av : Value.t)
+    (out_ty : Value.t) (ps : Term.t) (f : Term.t) (cs : Term.t list) :
+    (Quantity.usage, Error.t) result =
+  let* n = mpc_parties ops ctx pv in
+  let* sub_v = ops.o_eval ctx (mpc_sub_ty n) in
+  let* set_uses = ops.o_check ctx (Quantity.mul mode Quantity.Many) ps sub_v in
+  let* _d = ops.o_circuit ctx f |> Result.map_error (fun (w : string) -> Error.Not_yet w) in
+  let* f_ty, f_uses = ops.o_infer ctx (Quantity.mul mode Quantity.Many) f in
+  let* rest, c_uses = mpc_shares ops ctx mode pv av f_ty cs in
+  let* ok = ops.o_conv_type ctx rest out_ty in
+  if ok then Ok (Quantity.sequence set_uses (Quantity.sequence f_uses c_uses))
+  else Error (Error.Mismatch mpc_result_msg)
+
+(** veil D-12 section:  the arity picks the rule.  One leg is [share x],
+    two legs are [input p x], three or more are [mpc ps f c1 .. cn]. *)
+let mpc_intro_sec (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (_s : Term.t Shape.t)
+    (legs : Term.leg list) ~(expected : Value.t) : (Quantity.usage, Error.t) result =
+  let* _w, (vs, dclo, _u) = former_view ops ctx Value.as_ran mpc_sec_msg expected in
+  let* pv, av = as_vmpc vs |> Option.to_result ~none:(Error.Mismatch wrong_pack) in
+  let* out_ty = open_closure (ops.o_ev ctx) dclo [] in
+  let* args =
+    all_ok
+      (List.map
+         (fun (lg : Term.leg) ->
+           fhc_arg lg |> Option.to_result ~none:(Error.Mismatch mpc_leg_msg))
+         legs)
+  in
+  match args with
+  | [] -> Error (Error.Mismatch mpc_arity_msg)
+  | [ x ] -> ops.o_check ctx (Quantity.mul mode Quantity.One) x out_ty
+  | [ p; x ] ->
+      let* p_uses = ops.o_check ctx (Quantity.mul mode Quantity.Many) p pv in
+      Result.map (Quantity.sequence p_uses)
+        (ops.o_check ctx (Quantity.mul mode Quantity.One) x out_ty)
+  | ps :: f :: c :: cs -> mpc_join ops ctx mode pv av out_ty ps f (c :: cs)
+
+(** veil D-12 [open Q h c]:  the address carries the subset [Q] and the
+    proof [h : A Q] at quantity Zero, and the answer is the payload type. *)
+let mpc_elim_out (ops : 'c ops) (ctx : 'c) (mode : Quantity.t) (_s : Term.t Shape.t)
+    (addr : Term.addr) (head : Term.t) : (Value.t * Quantity.usage, Error.t) result =
+  let* aq, point =
+    Term.as_apt addr |> Option.to_result ~none:(Error.Wrong_leg mpc_addr_msg)
+  in
+  let* () =
+    if Quantity.equal aq Quantity.Zero then Ok () else Error (Error.Quantity mpc_proof_q_msg)
+  in
+  let* ps, paddr, pargs =
+    as_tin point |> Option.to_result ~none:(Error.Wrong_leg mpc_addr_msg)
+  in
+  let* _pq, _px, _pdom =
+    as_vpi ps |> Option.to_result ~none:(Error.Wrong_leg mpc_addr_msg)
+  in
+  let* _sq, qset =
+    Term.as_apt paddr |> Option.to_result ~none:(Error.Wrong_leg mpc_addr_msg)
+  in
+  let* proof = one_of pargs |> Option.to_result ~none:(Error.Mismatch mpc_proof_msg) in
+  let* head_ty, head_uses = ops.o_infer ctx mode head in
+  let* _hw, (vs, dclo, _u) = former_view ops ctx Value.as_ran mpc_share_msg head_ty in
+  let* pv, av = as_vmpc vs |> Option.to_result ~none:(Error.Mismatch mpc_share_msg) in
+  let* n = mpc_parties ops ctx pv in
+  let* sub_v = ops.o_eval ctx (mpc_sub_ty n) in
+  let* set_uses = ops.o_check ctx Quantity.Zero qset sub_v in
+  let* a_t = ops.o_quote ctx av in
+  let* prop_v =
+    ops.o_eval ctx
+      (Term.Out
+         ( Shape.SPi (Quantity.Zero, mpc_set_name, mpc_sub_ty n),
+           Term.APt (Quantity.Zero, qset),
+           a_t ))
+  in
+  let* proof_uses = ops.o_check ctx Quantity.Zero proof prop_v in
+  let* result = open_closure (ops.o_ev ctx) dclo [] in
+  Ok (result, Quantity.sequence head_uses (Quantity.sequence set_uses proof_uses))
+
+(** A share type lives at the universe of the payload type. *)
+let mpc_ran_lvl (ls : Level.t list) : Level.t = max_of ls
+
+(** The pack:  the right former carries the work, the left former answers the D-7 word. *)
+let mpc_pack (() : unit) : 'c rule_pack =
+  {
+    form_lan = (fun _ops _ctx _s _d ~expected:_ -> Error (Error.Not_yet mpc_lan_word));
+    form_ran = mpc_form_ran;
+    intro_in =
+      (fun _ops _ctx _mode _s _addr _args ~expected:_ ->
+        Error (Error.Not_yet mpc_lan_word));
+    elim_elim =
+      (fun _ops _ctx _mode _e ~expected:_ -> Error (Error.Not_yet mpc_lan_word));
+    intro_sec = mpc_intro_sec;
+    elim_out = mpc_elim_out;
+    beta = (fun _ev _r -> Ok None);
+    eta = { eta_ran = false; eta_lan = false };
+    diagram_arity = coll_diagram_arity;
+    spine_ty = (fun _ops _ctx _s _d _addr -> Ok None);
+    expand_ran = None;
+    expand_lan = None;
+    conv_diagram = coll_conv_diagram;
+    ann_lvl_eq = spi_ann_lvl_eq;
+    lan_lvl = (fun _ops _ctx _s _ls -> Error (Error.Not_yet mpc_lan_word));
+    ran_lvl = payload_lvl mpc_ran_lvl;
+    subsingleton = no_subsingleton;
+  }
+
+(** The dispatch of plan section 5.  Five shapes have a pack;  the
+    other three carry their milestone word, so a term that reaches the
     checker at one of them fails with the name of the milestone that
     admits it (D-M0-2). *)
 let rules (s : 'a Shape.t) : ('c rule_pack, Error.t) result =
@@ -1430,6 +2038,12 @@ let rules (s : 'a Shape.t) : ('c rule_pack, Error.t) result =
   (* SB-M4 site;  M1 Stage G installs the pack the refusal stood for. *)
   | Shape.SMu (_, _) -> Ok (mu_pack ())
   | Shape.SNu (_, _) -> Error (Error.Not_yet snu_word)
+  (* veil wave 1 installs the pack the D-7 word stood for. *)
+  | Shape.SZk (_, _, _) -> Ok (zk_pack ())
+  (* veil wave 2 installs the pack the D-7 word stood for. *)
+  | Shape.SFhc _ -> Ok (fhc_pack ())
+  (* veil wave 3 installs the pack the D-7 word stood for. *)
+  | Shape.SMpc (_, _) -> Ok (mpc_pack ())
 
 (** The two eliminations, with the pack found from the shape.  eval.ml
     calls these, so no shape name reaches it. *)
@@ -1456,6 +2070,9 @@ let samples : Term.t Shape.t list =
     Shape.SPar (Term.Univ Level.zero, Term.Univ Level.zero);
     Shape.SMu ("x", []);
     Shape.SNu ("x", []);
+    Shape.SZk (Quantity.Zero, "w", Term.Univ Level.zero);
+    Shape.SFhc (Term.Univ Level.zero);
+    Shape.SMpc (Term.Univ Level.zero, Term.Univ Level.zero);
   ]
 
 let packs : (string * unit rule_pack) list =
@@ -1475,7 +2092,14 @@ let eta_table : (string * eta_row) list =
     criterion of brief 3.4, in the order the declared row uses (R-Q2,
     SH-D10, M1-PLAN.md:8). *)
 let named_declared : string list =
-  [ "proof-irrelevance"; "subsingleton-large-elimination"; "literal-fast-path" ]
+  [
+    "proof-irrelevance";
+    "subsingleton-large-elimination";
+    "literal-fast-path";
+    "zk-fhc";
+    "zk-mpc";
+    "fhc-mpc";
+  ]
 
 let named_present : string list =
   [ "proof-irrelevance"; "subsingleton-large-elimination"; "literal-fast-path" ]

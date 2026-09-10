@@ -60,6 +60,20 @@ let keywords : (string * Token.kind) list =
     (* M1 Stage I, SI-D8:  the one word the minimal recursive
        definition production adds, which stands after "def". *)
     ("rec", Token.KRec);
+    (* V1 wave 1, D-9:  the three words of the zk sugar. *)
+    ("zk", Token.KZk);
+    ("prove", Token.KProve);
+    ("verify", Token.KVerify);
+    (* V1 wave 2, D-10:  the four words of the fhc sugar. *)
+    ("fhc", Token.KFhc);
+    ("enc", Token.KEnc);
+    ("eval", Token.KEval);
+    ("dec", Token.KDec);
+    (* V1 wave 3, D-12:  the four words of the mpc sugar. *)
+    ("mpc", Token.KMpc);
+    ("input", Token.KInput);
+    ("share", Token.KShare);
+    ("open", Token.KOpen);
   ]
 
 let ident_kind (s : string) : Token.kind =
@@ -152,6 +166,9 @@ let rec go (loc : Token.loc) (cs : char list) (acc : Token.t list) :
   | '*' :: rest -> go (Token.next_col loc) rest ({ Token.kind = Token.Star; loc } :: acc)
   | ',' :: rest -> go (Token.next_col loc) rest ({ Token.kind = Token.Comma; loc } :: acc)
   | '|' :: rest -> go (Token.next_col loc) rest ({ Token.kind = Token.Pipe; loc } :: acc)
+  (* V1 wave 3, D-12:  the brackets of the share type. *)
+  | '[' :: rest -> go (Token.next_col loc) rest ({ Token.kind = Token.LBracket; loc } :: acc)
+  | ']' :: rest -> go (Token.next_col loc) rest ({ Token.kind = Token.RBracket; loc } :: acc)
   | '.' :: rest ->
       let digits, loc', rest' = span is_digit (Token.next_col loc) rest in
       Result.bind (dot_tokens loc digits) (fun tokens ->

@@ -1,0 +1,6 @@
+-- A ciphertext carries a fragment type.  An opaque axiom type is not a
+-- fragment type, so the formation refuses it (veil D-10).
+axiom Pk : Type
+axiom pk : Pk
+axiom T : Type
+def seal : (t : T) -> fhc 0 T := fun (t : T) => enc pk t

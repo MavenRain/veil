@@ -1,0 +1,21 @@
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def isTrue : (b : Bool) -> Prop :=
+  fun (b : Bool) =>
+    case b as z return Prop with
+    | 0 (x : prod ()) => prod ()
+    | 1 (y : prod ()) => sum ()
+
+def Party : Prop := sum (prod (), prod ())
+def alice : Party := inj 0 of 2 ()
+def bob : Party := inj 1 of 2 ()
+def allParties : prod (Nat, Nat) := tuple (1, 1)
+
+def both : (q : prod (Nat, Nat)) -> Prop :=
+  fun (q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)
+
+-- The D-12 pair, one:  an open with no authorization proof.  The h slot
+-- holds a Nat, so the party subset carries no proof of the predicate.
+def bad : (0 h : Nat) -> (1 c : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat) -> Nat :=
+  fun (0 h : Nat) (1 c : mpc[Party, fun (0 q : prod (Nat, Nat)) => isTrue (natEq (natAdd q.0 q.1) 2)] Nat) =>
+    open allParties h c

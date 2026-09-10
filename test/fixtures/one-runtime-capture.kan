@@ -19,8 +19,8 @@ def callCapture : (1 x : Nat) -> prod (Nat, (Nat -> Nat)) :=
   fun (1 x : Nat) => tuple (x, (fun (dummy : Nat) => ignore x))
 
 mu P : Prop with
-| prove : P
-def getProof : (0 n : Nat) -> P := fun (0 n : Nat) => prove
+| attest : P
+def getProof : (0 n : Nat) -> P := fun (0 n : Nat) => attest
 def proofCapture : (1 x : Nat) -> prod (Nat, (Nat -> Nat)) :=
   fun (1 x : Nat) => tuple (x,
     (fun (dummy : Nat) => let proof : P := getProof x in 0))

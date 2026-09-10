@@ -1,0 +1,5 @@
+-- The level of the result is the level of the argument plus the depth
+-- of the function.  The function has depth 1 and the argument stands at
+-- level 2, so level 4 is refused (veil D-11).
+def bad : (c : fhc 2 Nat) -> fhc 4 Nat :=
+  fun (c : fhc 2 Nat) => eval ((fun (x : Nat) => natAdd x 1) : (y : Nat) -> Nat) c

@@ -13,10 +13,24 @@ type 'a t =
   | SPar of 'a * 'a
   | SMu of string * 'a list
   | SNu of string * 'a list
+  | SZk of Quantity.t * string * 'a
+      (* witness quantity, its name, its type W (veil D-6) *)
+  | SFhc of 'a (* level, a term of type Nat (veil D-6) *)
+  | SMpc of 'a * 'a (* party set P, access structure A (veil D-6) *)
 
-(** The five declared shapes, in the order of the sum above.  spec_count.ml
-    prints the length of this list, so a sixth shape moves the R0 count. *)
-let declared : string list = [ "SPi"; "SColl"; "SPar"; "SMu"; "SNu" ]
+(** The eight declared shapes, in the order of the sum above.  spec_count.ml
+    prints the length of this list, so a ninth shape moves the R0 count.
+    veil D-6 adds [SZk], [SFhc] and [SMpc] after the five kanon shapes. *)
+let declared : string list =
+  [ "SPi"; "SColl"; "SPar"; "SMu"; "SNu"; "SZk"; "SFhc"; "SMpc" ]
+
+(** [true] for the function shape, the only shape whose codomain
+    continues a type-valued chain (R-W5-6). *)
+let is_pi (s : 'a t) : bool =
+  match s with
+  | SPi (_, _, _) -> true
+  | SColl _ | SPar (_, _) | SMu (_, _) | SNu (_, _)
+  | SZk (_, _, _) | SFhc _ | SMpc (_, _) -> false
 
 (** M1 Stage G, brief 3.2:  the payload a shape carries, so positivity.ml
     walks a former and spells no shape name (dev/r0-audit.sh:6-11). *)
@@ -27,6 +41,9 @@ let payload (s : 'a t) : 'a list =
   | SPar (a, b) -> [ a; b ]
   | SMu (_, ix) -> ix
   | SNu (_, ix) -> ix
+  | SZk (_, _, w) -> [ w ]
+  | SFhc l -> [ l ]
+  | SMpc (p, a) -> [ p; a ]
 
 (** The domain of the point shape, the left of an arrow (rules.ml:220).
     [None] at every other shape, so a reader that must tell the arrow
@@ -38,6 +55,10 @@ let point_dom (s : 'a t) : 'a option =
   | SPar (_, _) -> None
   | SMu (_, _) -> None
   | SNu (_, _) -> None
+  (* SZk's intro point is the witness (veil D-6). *)
+  | SZk (_, _, w) -> Some w
+  | SFhc _ -> None
+  | SMpc (_, _) -> None
 
 (** M1 Stage G:  the family name a recursive shape carries.  A type at a
     family is a left former at that shape and never a global name, so
@@ -50,6 +71,9 @@ let family (s : 'a t) : string option =
   | SPi (_, _, _) -> None
   | SColl _ -> None
   | SPar (_, _) -> None
+  | SZk (_, _, _) -> None
+  | SFhc _ -> None
+  | SMpc (_, _) -> None
 
 let name (s : 'a t) : string =
   match s with
@@ -58,3 +82,6 @@ let name (s : 'a t) : string =
   | SPar (_, _) -> "SPar"
   | SMu (_, _) -> "SMu"
   | SNu (_, _) -> "SNu"
+  | SZk (_, _, _) -> "SZk"
+  | SFhc _ -> "SFhc"
+  | SMpc (_, _) -> "SMpc"

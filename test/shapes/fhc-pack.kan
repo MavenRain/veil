@@ -1,0 +1,25 @@
+-- fhc-pack: the veil D-10 homomorphic ciphertext picture of ASK
+-- section 7, in the syntax the surface has.  "seal" encrypts a Nat at
+-- level 0.  "addEnc" evaluates a circuit fragment of depth 1 on a
+-- ciphertext at level 2, so the result stands at level 3.  "reveal"
+-- consumes the secret key once and decrypts.
+--
+-- The checker infers the ciphertext leg of "eval" first, reads the
+-- plaintext type off it, and checks the function leg against the
+-- Pi this gives, so the function under "eval" needs no ascription.
+--
+-- The ciphertext under "dec" stays a variable.  D-10 gives the shape no
+-- beta, so "dec sk (enc pk t)" is a stuck elimination.
+--
+-- The program checks and erases.  Its erased form calls the reactor
+-- ops.  The run program under test/host/ is the wave 4 witness.
+
+axiom Pk : Type
+axiom Sk : Type
+axiom pk : Pk
+axiom sk : Sk
+def seal : (t : Nat) -> fhc 0 Nat := fun (t : Nat) => enc pk t
+def addEnc : (c : fhc 2 Nat) -> fhc 3 Nat :=
+  fun (c : fhc 2 Nat) => eval (fun (x : Nat) => natAdd x 1) c
+def reveal : (1 k : Sk) -> (c : fhc 3 Nat) -> Nat :=
+  fun (1 k : Sk) (c : fhc 3 Nat) => dec k c

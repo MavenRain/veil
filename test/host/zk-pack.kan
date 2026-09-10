@@ -1,0 +1,28 @@
+-- zk-pack, the run program of test/shapes/zk-pack.kan (R-W4-17).  The
+-- check-level pack stays where it is;  this file is the same picture
+-- with a nullary "main" the reactor can export.
+--
+-- "sqProof" stays a definition, but "main" does not call it (R-W4-2).
+-- Op 10 takes the instance and the witness now (R-W4-8); the erased
+-- zk type is the host blob handle "union any".
+-- "main" is the public instance the surface can reach in v1 (R-W4-2):
+-- the relation at the witness 3, that is "natMul 3 3".
+--
+-- The twin has no security.  It exists to test the ABI (D-15).
+
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def isTrue : (b : Bool) -> Prop :=
+  fun (b : Bool) =>
+    case b as z return Prop with
+    | 0 (x : prod ()) => sum ()
+    | 1 (y : prod ()) => prod ()
+
+def preimageR : (y : Nat) -> (w : Nat) -> Prop :=
+  fun (y : Nat) (w : Nat) => isTrue (natEq (natMul w w) y)
+
+def sqProof : (y : Nat) -> (1 w : Nat) -> (r : preimageR y w) ->
+    zk (0 w : Nat) * preimageR y w :=
+  fun (y : Nat) (1 w : Nat) (r : preimageR y w) => prove y w r
+
+def main : Nat := natMul 3 3

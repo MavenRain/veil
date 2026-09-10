@@ -1,0 +1,150 @@
+-- test/circuit-spine.kan: veil D-7/D-8 circuit fragment spine, wave 0
+-- part (b) ii.  Every admitted circuit form and every REACHABLE D-7
+-- refused head gets one top-level definition.  `kanon circuit` prints
+-- one line per definition below, `NAME: depth D` or `NAME: refused:
+-- HEAD`, and exits 1 because refused definitions are present by design.
+--
+-- D-7 names eleven head words.  Four are reachable at this pin and
+-- each gets a sample: `mu`, `unbounded iteration`, `unknown global
+-- NAME`, `opaque callee`.  The `mu` sample (`spineCount` below) also
+-- proves a kernel repair made in wave 0, part (b) ii: before it,
+-- `Circuit.depth` looped forever on any `def rec` that passed the
+-- structural termination guard of `lib/totality.ml`.  That guard puts
+-- the recursive call behind a `fun`/`match` boundary, and the closure
+-- made inside the global's body was applied later under the caller's
+-- own `seen` list, which no longer named the global being unfolded, so
+-- the cycle check never fired.  A closure value now carries the `seen`
+-- list in force where it was written (`VClo of Term.leg * value list *
+-- string list`), and `apply_all` evaluates the body under the union of
+-- that captured list and the current one.  The `spineCount` line below
+-- is the proof: it returns `refused: mu` at once instead of hanging.
+--   `SPar`, `SNu`  refused as whole shapes by rules.ml (`SPar arrives
+--     at M1`, `SNu arrives at M2`) before `circuit` ever runs, and no
+--     surface syntax constructs a checked term of either shape here.
+--   `SZk`, `SFhc`, `SMpc`  likewise refused as whole shapes (`arrives
+--     at V1/V2/V3`); waves 1-3 add the surface syntax that first makes
+--     them reachable.
+--   `host op`  no reactor host-op construct exists anywhere in the
+--     surface language or the kernel term type at this pin (`Term.t`
+--     has no host-op constructor), so `Circuit.depth` has no code path
+--     that ever answers this head; it is dead code in the D-7
+--     vocabulary until a host op is added.
+--   `auto`  `lib/check.ml` refuses `Term.Auto` outright ("instances
+--     arrive at M2") before a definition that uses it can become part
+--     of a checked file, so `kanon circuit` never sees one: the whole
+--     file would fail `kanon check` first, not print a `circuit`
+--     refusal line.
+--
+-- `kanon check test/circuit-spine.kan` exits 0 (the file is well
+-- typed); `kanon circuit test/circuit-spine.kan` exits 1 (five
+-- definitions below are refused, by design).
+
+-- Admitted: a Nat literal.
+
+def natLit : Nat := 5
+
+-- Admitted: a parameter used as a variable.
+
+def identity : (n : Nat) -> Nat := fun (n : Nat) => n
+
+-- Admitted: a primitive call (natAdd).
+
+def total : Nat := natAdd 2 3
+
+-- Admitted: nested natMul, multiplicative depth 2.
+
+def nested : Nat := natMul (natMul 2 3) 4
+
+-- The two-constructor sum used as Bool, and the case eliminator over it
+-- (Lan SColl): admitted.
+
+def Unit : Type 0 := prod ()
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def toNat : (b : Bool) -> Nat :=
+  fun (b : Bool) =>
+    case b with
+    | 0 (x : prod ()) => 0
+    | 1 (y : prod ()) => 1
+
+-- Admitted: natLt read back through the case above.
+
+def cmpFlag : Nat := toNat (natLt 1 2)
+
+-- Admitted: a dependent pair (Ran SColl) built, then projected on both
+-- legs.
+
+def pairVal : (a : Nat) * Nat := (3, 4)
+def pairSum : Nat := natAdd pairVal.1 pairVal.2
+
+-- Admitted: a non-recursive fun applied to an argument.
+
+def addOne : (n : Nat) -> Nat := fun (n : Nat) => natAdd n 1
+def five : Nat := addOne 4
+
+-- A literal peano-shaped mu family, the model for D-8's bounded
+-- iteration (examples/m1-spine.kan's `SpineN`/`spineCount` block).
+
+mu SpineN : Type 0 :=
+| spineZero : SpineN
+| spineSucc (n : SpineN) : SpineN
+
+-- REFUSED, head `mu`: an introduction of a mu family whose argument
+-- names that same family.  `eval_in` refuses every nested constructor
+-- of a mu family, so a peano literal bound to a global name is never a
+-- circuit; only a literal written in place at the match site is.
+
+def spineThree : SpineN := spineSucc (spineSucc (spineSucc spineZero))
+
+-- Admitted: bounded iteration, a match on a literal peano value
+-- written in place (a `literal_mu_bound` scrutinee, decision 5(a);
+-- the scrutinee keeps its type annotation, which `literal_mu_bound`
+-- now reads through, decision 11);
+-- no recursive global is needed to exercise this admit path.
+
+def spineDirect : Nat :=
+  match (spineSucc (spineSucc spineZero) : SpineN) as x in SpineN return Nat with
+  | spineZero => 0
+  | spineSucc p => 1
+
+-- REFUSED, head `unbounded iteration`: a non-recursive match whose
+-- scrutinee is a bound parameter, not a literal peano value (R-3);
+-- no self-reference here, so this is `unbounded iteration`, never
+-- `mu`.
+
+def spineWidth : (n : SpineN) -> Nat :=
+  fun (n : SpineN) =>
+    match n as x in SpineN return Nat with
+    | spineZero => 0
+    | spineSucc p => 1
+
+-- REFUSED, head `mu`: a self-recursive definition.  It passes the
+-- structural termination guard, so `kanon check` admits it, and
+-- `Circuit.depth` meets `spineCount` a second time while the first
+-- unfolding is still open.  The closure that the `fun` makes carries
+-- the open-global list with it, so the cycle check fires across the
+-- application boundary.  This line is the regression test for that
+-- repair: before it, this file hung.
+
+def rec spineCount : SpineN -> Nat :=
+  fun (n : SpineN) =>
+    match n as x in SpineN return Nat with
+    | spineZero => 0
+    | spineSucc smaller => natAdd 1 (spineCount smaller)
+
+-- REFUSED, head `unknown global NAME`: an axiom has no body, so the
+-- global lookup the evaluator closes over answers `None`.
+
+axiom axNat : Nat
+def useAxiom : Nat := axNat
+
+-- REFUSED, head `opaque callee`: `f` arrives as a plain bound
+-- parameter, evaluates to `VD 0`, and is then applied; `apply_all`
+-- cannot see through it (R-2).
+
+def opaqueApply : (f : Nat -> Nat) -> Nat :=
+  fun (f : Nat -> Nat) => f 3
+
+def main : Nat :=
+  natAdd (natAdd (natAdd natLit (identity 1)) (natAdd total nested))
+    (natAdd (natAdd cmpFlag pairSum) (natAdd five spineDirect))

@@ -1,0 +1,1 @@
+the term has type (Lan SColl 2 (Sec SColl 2 [ => (Ran SColl 0 (Sec SColl 0 []));  => (Ran SColl 0 (Sec SColl 0 []))])) and the expected type is Nat

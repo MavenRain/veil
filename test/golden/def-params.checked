@@ -1,0 +1,3 @@
+def sq : (Ran SPi w x Nat Nat) := (Sec SPi w x Nat [x => (Out SPi w b Nat (APt w x) (Out SPi w a Nat (APt w x) natMul))])
+def sqz : (Ran SPi 0 t Type 1 (Ran SPi w x Nat Nat)) := (Sec SPi 0 t Type 1 [t => (Sec SPi w x Nat [x => x])])
+def app : (Ran SPi w f (Ran SPi w n Nat Nat) (Ran SPi w x Nat Nat)) := (Sec SPi w f (Ran SPi w n Nat Nat) [f => (Sec SPi w x Nat [x => (Out SPi w n Nat (APt w x) f)])])

@@ -243,6 +243,212 @@ leg_pin () {
   return 1
 }
 
+# CIRCUIT.  The D-8 circuit spine: one line per definition, either
+# "NAME: depth D" or "NAME: refused: HEAD".  The verb exits 1 when the
+# file holds a refused definition, which this file does by design, so
+# the leg reads stdout only and ignores the exit code.  A timeout wraps
+# the run when the host has one, because a lost refusal shows up as a
+# hang, not as a wrong line.
+leg_circuit () {
+  local out delta
+  local -a tmo
+  tmo=(timeout 20)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  $tmo $DRIVER circuit $ROOT/test/circuit-spine.kan > $WORK/circuit-spine.out 2>&1
+  out=$(cat $WORK/circuit-spine.out)
+  delta=$(diff -u $ROOT/test/golden/circuit-spine.circuit $WORK/circuit-spine.out 2>&1)
+  if [[ -z $delta ]]; then
+    print -r -- "PASS CIRCUIT lines=$(print -r -- "$out" | wc -l | tr -d ' ')"
+    return 0
+  fi
+  print -r -- "$delta"
+  print -r -- "FAIL CIRCUIT"
+  return 1
+}
+
+# ZK.  The veil D-9 zk pack over test/shapes/zk-pack.kan reads three
+# ways: the checked form, the D-8 circuit spine and the D-13 disclosure,
+# each against its golden.  The "circuit" verb exits 1 on a refused row
+# by design, and this file holds one, so the leg reads stdout and
+# ignores the exit code.  R-W1-10: an empty golden or an empty driver
+# output is a FAIL, because an empty match is not a pass.
+leg_zk () {
+  local src=$ROOT/test/shapes/zk-pack.kan
+  local part delta lines
+  local -a tmo
+  tmo=(timeout 20)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  $tmo $DRIVER check --print $src > $WORK/zk-pack.checked 2>&1
+  $tmo $DRIVER circuit $src > $WORK/zk-pack.circuit 2>&1
+  $tmo $DRIVER axioms $src > $WORK/zk-pack.axioms 2>&1
+  for part in checked circuit axioms; do
+    if [[ ! -s $ROOT/test/golden/zk-pack.$part ]]; then
+      print -r -- "zk: the golden test/golden/zk-pack.$part is empty"
+      print -r -- "FAIL ZK"
+      return 1
+    fi
+    if [[ ! -s $WORK/zk-pack.$part ]]; then
+      print -r -- "zk: the driver wrote nothing for $part"
+      print -r -- "FAIL ZK"
+      return 1
+    fi
+    delta=$(diff -u $ROOT/test/golden/zk-pack.$part $WORK/zk-pack.$part 2>&1)
+    if [[ -n $delta ]]; then
+      print -r -- "$delta"
+      print -r -- "FAIL ZK"
+      return 1
+    fi
+  done
+  lines=$(cat $WORK/zk-pack.checked $WORK/zk-pack.circuit $WORK/zk-pack.axioms \
+    | wc -l | tr -d ' ')
+  print -r -- "PASS ZK lines=$lines"
+  return 0
+}
+
+# FHC.  The veil D-10 and D-11 fhc pack over test/shapes/fhc-pack.kan
+# reads three ways: the checked form, the D-8 circuit spine and the D-13
+# disclosure, each against its golden.  The "circuit" verb exits 1 on a
+# refused row by design, and this file holds three of them, so the leg
+# reads stdout and ignores the exit code.  R-W1-10: an empty golden or an
+# empty driver output is a FAIL, because an empty match is not a pass.
+leg_fhc () {
+  local src=$ROOT/test/shapes/fhc-pack.kan
+  local part delta lines
+  local -a tmo
+  tmo=(timeout 20)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  $tmo $DRIVER check --print $src > $WORK/fhc-pack.checked 2>&1
+  $tmo $DRIVER circuit $src > $WORK/fhc-pack.circuit 2>&1
+  $tmo $DRIVER axioms $src > $WORK/fhc-pack.axioms 2>&1
+  for part in checked circuit axioms; do
+    if [[ ! -s $ROOT/test/golden/fhc-pack.$part ]]; then
+      print -r -- "fhc: the golden test/golden/fhc-pack.$part is empty"
+      print -r -- "FAIL FHC"
+      return 1
+    fi
+    if [[ ! -s $WORK/fhc-pack.$part ]]; then
+      print -r -- "fhc: the driver wrote nothing for $part"
+      print -r -- "FAIL FHC"
+      return 1
+    fi
+    delta=$(diff -u $ROOT/test/golden/fhc-pack.$part $WORK/fhc-pack.$part 2>&1)
+    if [[ -n $delta ]]; then
+      print -r -- "$delta"
+      print -r -- "FAIL FHC"
+      return 1
+    fi
+  done
+  lines=$(cat $WORK/fhc-pack.checked $WORK/fhc-pack.circuit $WORK/fhc-pack.axioms \
+    | wc -l | tr -d ' ')
+  print -r -- "PASS FHC lines=$lines"
+  return 0
+}
+
+# V1 wave 3, D-12.  The SMpc pack.  The leg reads test/shapes/mpc-pack.kan
+# three ways: the checked form, the D-8 circuit spine and the D-13
+# disclosure, each against its golden.  The "circuit" verb exits 1 on a
+# refused row by design, and this file holds three of them, so the leg
+# reads stdout and ignores the exit code.  R-W1-10: an empty golden or an
+# empty driver output is a FAIL, because an empty match is not a pass.
+leg_mpc () {
+  local src=$ROOT/test/shapes/mpc-pack.kan
+  local part delta lines
+  local -a tmo
+  tmo=(timeout 20)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  $tmo $DRIVER check --print $src > $WORK/mpc-pack.checked 2>&1
+  $tmo $DRIVER circuit $src > $WORK/mpc-pack.circuit 2>&1
+  $tmo $DRIVER axioms $src > $WORK/mpc-pack.axioms 2>&1
+  for part in checked circuit axioms; do
+    if [[ ! -s $ROOT/test/golden/mpc-pack.$part ]]; then
+      print -r -- "mpc: the golden test/golden/mpc-pack.$part is empty"
+      print -r -- "FAIL MPC"
+      return 1
+    fi
+    if [[ ! -s $WORK/mpc-pack.$part ]]; then
+      print -r -- "mpc: the driver wrote nothing for $part"
+      print -r -- "FAIL MPC"
+      return 1
+    fi
+    delta=$(diff -u $ROOT/test/golden/mpc-pack.$part $WORK/mpc-pack.$part 2>&1)
+    if [[ -n $delta ]]; then
+      print -r -- "$delta"
+      print -r -- "FAIL MPC"
+      return 1
+    fi
+  done
+  lines=$(cat $WORK/mpc-pack.checked $WORK/mpc-pack.circuit $WORK/mpc-pack.axioms \
+    | wc -l | tr -d ' ')
+  print -r -- "PASS MPC lines=$lines"
+  return 0
+}
+
+# HOST.  V1 wave 4, D-15.  The three run programs of test/host/ reach the
+# reactor ops.  "kanon build" links each program with runtime/reactor.kan,
+# the Kanon twin, so the module has no import and dev/run-node.mjs prints
+# the export "main".  The leg diffs that answer against the golden
+# test/golden/NAME.run.  R-W1-10: an empty golden or an empty runner
+# output is a FAIL, because an empty match is not a pass.
+leg_host () {
+  local src name delta out programs
+  local -a tmo
+  tmo=(timeout 60)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  programs=0
+  for name in zk-pack fhc-pack mpc-pack; do
+    src=$ROOT/test/host/$name.kan
+    if [[ ! -s $ROOT/test/golden/$name.run ]]; then
+      print -r -- "host: the golden test/golden/$name.run is empty"
+      print -r -- "FAIL HOST"
+      return 1
+    fi
+    if ! $tmo $DRIVER check $src > $WORK/$name.hostcheck 2>&1; then
+      cat $WORK/$name.hostcheck
+      print -r -- "host: check refused $name"
+      print -r -- "FAIL HOST"
+      return 1
+    fi
+    if ! $tmo $DRIVER build $ROOT/runtime/reactor.kan $src \
+      -o $WORK/$name.host.wasm --export main > $WORK/$name.hostbuild 2>&1; then
+      cat $WORK/$name.hostbuild
+      print -r -- "host: build refused $name"
+      print -r -- "FAIL HOST"
+      return 1
+    fi
+    $tmo node $ROOT/dev/run-node.mjs $WORK/$name.host.wasm main \
+      > $WORK/$name.hostrun 2>&1
+    if [[ ! -s $WORK/$name.hostrun ]]; then
+      print -r -- "host: the runner wrote nothing for $name"
+      print -r -- "FAIL HOST"
+      return 1
+    fi
+    delta=$(diff -u $ROOT/test/golden/$name.run $WORK/$name.hostrun 2>&1)
+    if [[ -n $delta ]]; then
+      print -r -- "$delta"
+      print -r -- "FAIL HOST"
+      return 1
+    fi
+    programs=$(( programs + 1 ))
+  done
+  print -r -- "PASS HOST programs=$programs"
+  return 0
+}
+
 mkdir -p $WORK || exit 9
 
 # One leg alone, which is how the watchdog reaches a leg body.
@@ -258,6 +464,11 @@ if [[ $# -ge 2 && $1 == "--leg" ]]; then
     agreement) leg_agreement; exit $? ;;
     denominators) leg_denominators; exit $? ;;
     pin) leg_pin; exit $? ;;
+    circuit) leg_circuit; exit $? ;;
+    zk) leg_zk; exit $? ;;
+    fhc) leg_fhc; exit $? ;;
+    mpc) leg_mpc; exit $? ;;
+    host) leg_host; exit $? ;;
     *) print -r -- "gates: unknown leg $2"; exit 64 ;;
   esac
 fi
@@ -329,6 +540,11 @@ leg SLOW M0-TIME SELF zsh $SELF --leg time
 leg SLOW M0-RATIO SELF zsh $SELF --leg ratio
 leg FAST TRUSTED-LINES '^TRUSTED-LINES kernel=[0-9]+/[0-9]+ encoder=[0-9]+/[0-9]+ OK$' \
   zsh $ROOT/dev/trusted-lines.sh $ROOT
+leg FAST CIRCUIT SELF zsh $SELF --leg circuit
+leg FAST ZK SELF zsh $SELF --leg zk
+leg FAST FHC SELF zsh $SELF --leg fhc
+leg FAST MPC SELF zsh $SELF --leg mpc
+leg MED HOST SELF zsh $SELF --leg host
 leg MED DENOMINATORS SELF zsh $SELF --leg denominators
 leg MED HOUSE '^HOUSE OK$' zsh $ROOT/dev/house.sh $ROOT
 leg FAST PIN SELF zsh $SELF --leg pin

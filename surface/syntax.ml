@@ -123,6 +123,28 @@ and t =
   | SFun of binder list * t
   | SArrow of binder * t
   | SStar of binder * t
+  | SZkTy of binder * t
+      (** V1 wave 1, D-9:  "zk (q w : W) * R", the sugar of
+          [Lan (SZk (q, w, W)) R]. *)
+  | SProve of t * t * t
+  | SVerify of t * t
+  | SFhcTy of t * t
+      (** V1 wave 2, D-10:  "fhc l T", the sugar of [Ran (SFhc l) T]. *)
+  | SEnc of t * t
+  | SEval of t * t
+  | SDec of t * t
+  | SMpcTy of t * t * t
+      (** V1 wave 3, D-12:  "mpc[P, A] T", the sugar of
+          [Ran (SMpc (P, A)) T]. *)
+  | SShare of t  (** V1 wave 3, D-12:  the one leg section "share x". *)
+  | SInput of t * t  (** V1 wave 3, D-12:  the two leg section "input p x". *)
+  | SJoin of t * t * t list
+      (** V1 wave 3, D-12:  "mpc ps f c1 .. cn", the joint section.  The
+          list holds one share at least (R-W3-2). *)
+  | SOpen of Kanon_kernel.Quantity.t option * t * t * t
+      (** V1 wave 3, D-12:  "open Q h c", the projection.  The option
+          holds the WRITTEN quantity of the authorization proof, and an
+          absent mark stands for the erased mark the pack demands. *)
   | SLet of string * t * t * t
   | SAnn of t * t
   | SCase of t * motive option * branch list
@@ -176,6 +198,18 @@ let level_of (s : t) : int =
   | SFun (_, _) -> 0
   | SArrow (_, _) -> 0
   | SStar (_, _) -> 0
+  | SZkTy (_, _) -> 0
+  | SProve (_, _, _) -> 1
+  | SVerify (_, _) -> 1
+  | SFhcTy (_, _) -> 1
+  | SEnc (_, _) -> 1
+  | SEval (_, _) -> 1
+  | SDec (_, _) -> 1
+  | SMpcTy (_, _, _) -> 1
+  | SShare _ -> 1
+  | SInput (_, _) -> 1
+  | SJoin (_, _, _) -> 1
+  | SOpen (_, _, _, _) -> 1
   | SLet (_, _, _, _) -> 0
   | SCase (_, _, _) -> 0
   | SMatch (_, _, _) -> 0
@@ -252,6 +286,23 @@ and raw (s : t) : string =
         (at 0 body)
   | SArrow (b, cod) -> binder_text b ^ " -> " ^ at 0 cod
   | SStar (b, cod) -> binder_text b ^ " * " ^ at 0 cod
+  | SZkTy (b, cod) -> "zk " ^ binder_text b ^ " * " ^ at 0 cod
+  | SProve (x, w, r) -> Printf.sprintf "prove %s %s %s" (at 2 x) (at 2 w) (at 2 r)
+  | SVerify (x, p) -> Printf.sprintf "verify %s %s" (at 2 x) (at 2 p)
+  | SFhcTy (l, ty) -> Printf.sprintf "fhc %s %s" (at 2 l) (at 2 ty)
+  | SEnc (pk, t) -> Printf.sprintf "enc %s %s" (at 2 pk) (at 2 t)
+  | SEval (f, c) -> Printf.sprintf "eval %s %s" (at 2 f) (at 2 c)
+  | SDec (sk, c) -> Printf.sprintf "dec %s %s" (at 2 sk) (at 2 c)
+  | SMpcTy (p, a, ty) -> Printf.sprintf "mpc[%s, %s] %s" (at 0 p) (at 0 a) (at 2 ty)
+  | SShare x -> "share " ^ at 2 x
+  | SInput (p, x) -> Printf.sprintf "input %s %s" (at 2 p) (at 2 x)
+  | SJoin (ps, f, cs) ->
+      Printf.sprintf "mpc %s %s%s" (at 2 ps) (at 2 f)
+        (String.concat "" (List.map (fun (c : t) -> " " ^ at 2 c) cs))
+  | SOpen (q, qs, h, c) ->
+      Printf.sprintf "open %s %s%s %s" (at 2 qs)
+        (q |> Option.fold ~none:"" ~some:mark)
+        (at 2 h) (at 2 c)
   | SLet (x, ty, def, body) ->
       Printf.sprintf "let %s : %s := %s in %s" x (at 1 ty) (at 1 def) (at 0 body)
   | SAnn (a, ty) -> Printf.sprintf "(%s : %s)" (at 0 a) (at 0 ty)

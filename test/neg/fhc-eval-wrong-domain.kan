@@ -1,0 +1,6 @@
+-- "eval" takes a function from the plaintext type to the result type.
+-- The function below starts at an unrelated type (veil D-11).
+axiom A : Type
+axiom a : A
+def bad : (c : fhc 2 Nat) -> fhc 3 Nat :=
+  fun (c : fhc 2 Nat) => eval ((fun (x : A) => natAdd 1 1) : (y : A) -> Nat) c

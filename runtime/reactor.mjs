@@ -171,6 +171,41 @@ async function atomicWrite(path, body) {
   }
 }
 
+// The eight veil host ops, REACTOR.md rows 10 to 17. A blob is a slot
+// that holds a flag and a plaintext. The flag is 0 for the zk ops, the
+// level for the fhc ops, and the party flag for the mpc ops. The party
+// flag is the constant 0 in version one. A slot index and a plaintext
+// cross the request boundary as decimal byte strings, like every other
+// numeric argument. This twin has no security.
+export const blobs = new Map();
+// The request boundary carries byte strings, so a function value cannot
+// cross it, and the runtime adds no export for one. The host twin names
+// a function with a code into this table. The Wasm twin
+// (runtime/reactor.kan) takes the function value itself.
+const hostFunctions = [
+  values => values.reduce((total, value) => total + value, 0),
+  values => values.reduce((total, value) => total * value, 1),
+  values => values.reduce((total, value) => total + value, 0) ** 2,
+  values => values.reduce((total, value) => total + value, 0) + 1,
+];
+const hostFunction = argument => {
+  const code = numeric(argument);
+  const chosen = hostFunctions.at(code);
+  if (!chosen || code >= hostFunctions.length) throw new RangeError(`unknown host function ${code}`);
+  return chosen;
+};
+const readSlot = argument => {
+  const index = numeric(argument);
+  const slot = blobs.get(index);
+  if (!slot) throw new Error(`unknown blob slot ${index}`);
+  return slot;
+};
+const writeSlot = (flag, plain) => {
+  const index = blobs.size + 1;
+  blobs.set(index, { flag: nat(flag), plain: nat(plain) });
+  return Buffer.from(String(index));
+};
+
 async function perform(code, args, body, interrupted) {
   switch (code) {
     case 1: {
@@ -202,6 +237,31 @@ async function perform(code, args, body, interrupted) {
     case 7: await writeStream(process.stderr, body); return Buffer.alloc(0);
     case 8: return Buffer.from(await realpath(args[0]));
     case 9: return Buffer.from(resolve(args[0], args[1]));
+    case 10: return writeSlot(numeric(args[0]), numeric(args[1]));
+    case 11: {
+      const slot = readSlot(args[0]);
+      const instance = numeric(args[1]);
+      const relation = hostFunction(args[2]);
+      return Buffer.from(String(Number(relation([slot.plain]) === instance)));
+    }
+    case 12: return writeSlot(numeric(args[0]), numeric(args[1]));
+    case 13: {
+      const level = numeric(args[0]);
+      const evaluated = hostFunction(args[1]);
+      const slot = readSlot(args[2]);
+      return writeSlot(level, evaluated([slot.plain]));
+    }
+    case 14: return Buffer.from(String(readSlot(args[0]).plain));
+    case 15: return writeSlot(0, numeric(args[0]));
+    case 16: {
+      const subset = numeric(args[0]);
+      const joint = hostFunction(args[1]);
+      const slots = args.slice(2).map(readSlot);
+      if (!slots.length) throw new RangeError('a joint computation needs one share or more');
+      if (subset < slots.length) throw new RangeError('the subset holds fewer parties than the joint computation has shares');
+      return writeSlot(0, joint(slots.map(slot => slot.plain)));
+    }
+    case 17: return Buffer.from(String(readSlot(args[0]).plain));
     default: throw new Error(`unknown OS request ${code}`);
   }
 }
@@ -209,6 +269,9 @@ async function perform(code, args, body, interrupted) {
 export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
   const { instance } = await WebAssembly.instantiate(await readFile(wasmPath));
   const api = instance.exports;
+  // Each run starts with an empty slot store, so a slot index of one run
+  // never reaches another run.
+  blobs.clear();
   const required = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail', 'emptyWords', 'consWords',
     'wordsEmpty', 'wordsHead', 'wordsTail', 'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
   for (const name of required) if (typeof api[name] !== 'function') throw new Error(`missing reactor export ${name}`);

@@ -1,0 +1,4 @@
+-- The argument of "eval" is a ciphertext.  A plain Nat is refused by the
+-- pack (veil D-11).
+def bad : (n : Nat) -> fhc 1 Nat :=
+  fun (n : Nat) => eval ((fun (x : Nat) => natAdd x 1) : (y : Nat) -> Nat) n

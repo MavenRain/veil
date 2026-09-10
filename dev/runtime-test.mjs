@@ -15,6 +15,12 @@ const sandbox = async t => {
 const command = (s, deadline, source) => [s.out, s.err, s.path, deadline, process.execPath, '-e', source];
 const fields = response => response.toString().split('\0');
 const absent = async path => assert.rejects(access(path), { code: 'ENOENT' });
+// W4-F19: under load the marker write can lag the SIGKILL race by more
+// than a scheduler tick, so the escalation subtest polls up to one second
+// (50 rounds of 20 ms) before it falls through to the existing read.
+const awaitMarker = async path => {
+  for (let round = 0; round < 50 && !existsSync(path); round += 1) await delay(20);
+};
 const sideEffect = s => `require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, 'ran')`;
 
 test('rejects invalid process inputs before opening files or spawning', async t => {
@@ -150,6 +156,7 @@ test('escalation callback errors are caught and cleanup retries the kill', { ski
       require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, String(process.pid));
       setInterval(() => {}, 1000);
     `), { signal: null }), error => error === injected);
+    await awaitMarker(s.marker);
     const pid = Number(await readFile(s.marker, 'utf8'));
     assert.throws(() => originalKill.call(process, pid, 0), { code: 'ESRCH' });
   } finally {
@@ -348,4 +355,70 @@ test('an interruption reported by operation 4 earns one shutdown request', { ski
   assert.equal(status, 128 + constants.signals.SIGINT);
   assert.deepEqual(performed, ['0:0', '1:0']);
   assert.equal(await readFile(s.marker, 'utf8'), 'summary');
+});
+
+// The reactor level zk verdict. No surface program reaches operation 11 in
+// version one, because "verify" is a proposition there.
+test('operation 11 answers the zk verdict of a proof slot', async t => {
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  const word = text => [...Buffer.from(text)];
+  const answers = [];
+  // State 0 proves the witness 3 at the instance 9, so the slot holds the
+  // instance in its flag and the witness in its plaintext (R-W4-8).
+  // States 1 and 2 verify that slot with the squaring relation, host
+  // function 2, against the instance 9 and then against the instance 10.
+  const api = {
+    ...lists,
+    init: () => 0,
+    requestCode: state => state === 0 ? 10 : state < 3 ? 11 : 0,
+    requestArgs: state => (state === 0
+      ? ['9', '3']
+      : [answers.at(0), state === 1 ? '9' : '10', '2']).map(word),
+    requestBody: () => [],
+    resume: (state, status, answer) => {
+      assert.equal(status, 0);
+      answers.push(Buffer.from(answer).toString());
+      return state + 1;
+    },
+    exitCode: () => 0,
+  };
+  globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+  assert.deepEqual(answers, ['1', '1', '0']);
+});
+
+test('the fhc and mpc operations keep one slot layout', async t => {
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  const word = text => [...Buffer.from(text)];
+  const answers = [];
+  // Seal 5 at level 0, evaluate the successor at level 3, and read the
+  // plaintext back. Then take two shares, add them jointly over a subset of
+  // two parties, and open the result.
+  const script = [
+    { code: 12, args: () => ['0', '5'] },
+    { code: 13, args: slots => ['3', '3', slots.at(0)] },
+    { code: 14, args: slots => [slots.at(1)] },
+    { code: 15, args: () => ['7'] },
+    { code: 15, args: () => ['8'] },
+    { code: 16, args: slots => ['2', '0', slots.at(3), slots.at(4)] },
+    { code: 17, args: slots => [slots.at(5)] },
+  ];
+  const api = {
+    ...lists,
+    init: () => 0,
+    requestCode: state => state < script.length ? script.at(state).code : 0,
+    requestArgs: state => script.at(state).args(answers).map(word),
+    requestBody: () => [],
+    resume: (state, status, answer) => {
+      assert.equal(status, 0);
+      answers.push(Buffer.from(answer).toString());
+      return state + 1;
+    },
+    exitCode: () => 0,
+  };
+  globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+  assert.deepEqual(answers, ['1', '2', '6', '3', '4', '5', '15']);
 });

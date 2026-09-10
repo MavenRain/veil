@@ -1,0 +1,42 @@
+-- zk-pack: the veil D-9 zero-knowledge picture of ASK section 7, in the
+-- syntax the surface has.  The relation is the preimage of a square:
+-- "preimageR y w" holds when "w * w" equals "y".
+--
+-- The bridge from the Bool the prims answer to the Prop the formation
+-- asks for is a case on the two leg sum (RULINGS-1.md R-W1-1).  The
+-- true leg is the empty product, which is the unit proposition; the
+-- false leg is the empty sum, which is the empty proposition.
+--
+-- The witness binder of the relation stands at quantity Many, because a
+-- definition body is checked at runtime mode and the relation reads its
+-- witness (R-W1-3).  The zero of the ASK sits on the zk type binder.
+--
+-- The zk type lives at the universe of the witness type (R-W1-2), so
+-- "verify" reads the erased witness of the branch and belongs in a type
+-- position.  "stmt" is that position.
+
+def Bool : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
+
+def isTrue : (b : Bool) -> Prop :=
+  fun (b : Bool) =>
+    case b as z return Prop with
+    | 0 (x : prod ()) => prod ()
+    | 1 (y : prod ()) => sum ()
+
+def preimageR : (y : Nat) -> (w : Nat) -> Prop :=
+  fun (y : Nat) (w : Nat) => isTrue (natEq (natMul w w) y)
+
+-- The relation reads a recursive family, so its head is mu.
+mu Chain : Type 0 with
+| stop : Chain
+| step : (1 tail : Chain) -> Chain
+
+def rec chainR : (1 w : Chain) -> Prop :=
+  fun (1 w : Chain) =>
+    case w as self in Chain return Prop with
+    | stop => prod ()
+    | step 1 tail => chainR tail
+
+def chainProof : (1 w : Chain) -> (r : chainR w) ->
+    zk (0 w : Chain) * chainR w :=
+  fun (1 w : Chain) (r : chainR w) => prove w w r

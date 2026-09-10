@@ -41,6 +41,13 @@ let read_file : string -> (string, string) result = Sys_io.read_file
 (** The ".kan" files of a directory, sorted, without the extension. *)
 let kan_names : string -> (string list, string) result = Sys_io.kan_names
 
+(** The ".kan" files of a directory, sorted, without the extension, or
+    the empty list when the directory itself is absent (R-W5-7: a fresh
+    clone holds no tracked file under erase-neg/, so the group it feeds
+    stays empty rather than the suite crashing). *)
+let kan_names_optional (dir : string) : (string list, string) result =
+  if Sys.file_exists dir then kan_names dir else Ok []
+
 let path_of (dir : string) (name : string) (ext : string) : string =
   Filename.concat dir (name ^ ext)
 
@@ -443,7 +450,7 @@ let () =
   let listed =
     let* fixtures = kan_names (Filename.concat root "fixtures") in
     let* negatives = kan_names (Filename.concat root "neg") in
-    let* erase_negatives = kan_names (Filename.concat root "erase-neg") in
+    let* erase_negatives = kan_names_optional (Filename.concat root "erase-neg") in
     Ok (fixtures, negatives, erase_negatives)
   in
   listed

@@ -1,0 +1,11 @@
+Bool: depth 0
+isTrue: depth 1
+Party: depth 0
+alice: depth 0
+bob: depth 0
+allParties: depth 0
+both: depth 2
+jointSum: refused: SMpc
+joint: refused: unknown global secretA
+reveal: refused: SMpc
+opened: refused: unknown global secretA

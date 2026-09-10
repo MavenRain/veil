@@ -13,6 +13,10 @@ set -u
 chpwd_functions=()
 unfunction chpwd 2>/dev/null
 
+# The library search prefix follows the same switch as PATH, so an active
+# opam switch elsewhere in the calling shell cannot hide zarith from dune.
+export OPAM_SWITCH_PREFIX=/Users/oobi/.opam/zxcaml-p1
+unset OCAMLPATH OCAMLFIND_CONF CAML_LD_LIBRARY_PATH
 export PATH=/Users/oobi/.opam/zxcaml-p1/bin:$PATH
 cd /Users/oobi/Documents/kan-lang-tot-pin || exit 3
 exec dune "$@"
