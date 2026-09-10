@@ -1,0 +1,450 @@
+PASS BUILD
+PASS CARRY
+PASS R0-COUNT
+PASS R0-AUDIT
+FAIL SUITE-KERNEL
+PARSE-OK 155/155
+CHECK a01-fun-app OK
+CHECK a02-arrow-star OK
+CHECK a03-pair-proj OK
+CHECK a04-inj-case OK
+CHECK a05-tuple-proj OK
+CHECK a06-unit-absurd OK
+CHECK a07-universes OK
+CHECK a08-nat-prims OK
+CHECK a09-let-ann OK
+CHECK a10-def-axiom OK
+CHECK b01-function-eta OK
+CHECK b02-pair-eta OK
+CHECK b03-tuple-eta OK
+CHECK b04-unit-eta OK
+CHECK b05-proof-irrelevance OK
+CHECK b06-impredicativity OK
+CHECK b07-nat-fast-path OK
+CHECK b08-axiom-disclosure OK
+CHECK b09-sum-prod OK
+CHECK b10-case-motive OK
+CHECK b11-leg-proj OK
+CHECK b12-bool-prims OK
+CHECK c01-prop-argument OK
+CHECK c02-zero-binder OK
+CHECK c03-tail-call OK
+CHECK c04-case-tags OK
+CHECK c05-let-erased OK
+CHECK c06-dependent-pair OK
+CHECK c07-dependent-case OK
+CHECK c08-dependent-let OK
+CHECK c09-partial-erased OK
+CHECK c10-eta-captures OK
+CHECK circuit-fhc FAIL: the checked form is not the golden text
+CHECK circuit-named-tree FAIL: the checked form is not the golden text
+CHECK d01-lit-prims OK
+CHECK d02-tail-call OK
+CHECK d03-pair OK
+CHECK d04-tuple OK
+CHECK d05-sum-legs OK
+CHECK d06-closure-capture OK
+CHECK d07-partial-over OK
+CHECK d08-erased-poly OK
+CHECK d09-let-chain OK
+CHECK d10-i31-boundary OK
+CHECK d11-poly-pair OK
+CHECK d12-poly-case OK
+CHECK d13-function-case OK
+CHECK d14-generic-capture OK
+CHECK d15-generic-aggregates OK
+CHECK def-params OK
+CHECK grouped-binders OK
+CHECK mu-cata-depth OK
+CHECK mu-constructor-scopes OK
+CHECK mu-dependent-copy OK
+CHECK mu-dependent-layout OK
+CHECK mu-direct OK
+CHECK mu-empty-large-elim OK
+CHECK mu-erase OK
+CHECK mu-indexed OK
+CHECK mu-mutual OK
+CHECK mu-mutual-emit OK
+CHECK mu-parameter-layout OK
+CHECK mu-prop-large-elim OK
+CHECK mu-rec-direct OK
+CHECK mu-rec-indexed OK
+CHECK mu-rec-mutual OK
+CHECK nat-big OK
+CHECK nat-runtime-capture OK
+CHECK nat-runtime-edges OK
+CHECK nat-runtime-export OK
+CHECK nat-runtime-mu OK
+CHECK one-branches OK
+CHECK one-fields OK
+CHECK one-identity OK
+CHECK one-recursive OK
+CHECK one-runtime-capture OK
+CHECK one-shadowing OK
+CHECK one-unreachable-capture OK
+CHECK sl-match-indexed OK
+CHECK sl-mutual-three OK
+CHECK-OK 78/80
+ERASE a01-fun-app OK
+ERASE a02-arrow-star OK
+ERASE a03-pair-proj OK
+ERASE a04-inj-case OK
+ERASE a05-tuple-proj OK
+ERASE a06-unit-absurd OK
+ERASE a07-universes OK
+ERASE a08-nat-prims OK
+ERASE a09-let-ann OK
+ERASE a10-def-axiom OK
+ERASE b01-function-eta OK
+ERASE b02-pair-eta OK
+ERASE b03-tuple-eta OK
+ERASE b04-unit-eta OK
+ERASE b05-proof-irrelevance OK
+ERASE b06-impredicativity OK
+ERASE b07-nat-fast-path OK
+ERASE b08-axiom-disclosure OK
+ERASE b09-sum-prod OK
+ERASE b10-case-motive OK
+ERASE b11-leg-proj OK
+ERASE b12-bool-prims OK
+ERASE c01-prop-argument OK
+ERASE c02-zero-binder OK
+ERASE c03-tail-call OK
+ERASE c04-case-tags OK
+ERASE c05-let-erased OK
+ERASE c06-dependent-pair OK
+ERASE c07-dependent-case OK
+ERASE c08-dependent-let OK
+ERASE c09-partial-erased OK
+ERASE c10-eta-captures OK
+ERASE circuit-fhc FAIL: the erased form is not the golden text
+ERASE circuit-named-tree FAIL: the erased form is not the golden text
+ERASE d01-lit-prims OK
+ERASE d02-tail-call OK
+ERASE d03-pair OK
+ERASE d04-tuple OK
+ERASE d05-sum-legs OK
+ERASE d06-closure-capture OK
+ERASE d07-partial-over OK
+ERASE d08-erased-poly OK
+ERASE d09-let-chain OK
+ERASE d10-i31-boundary OK
+ERASE d11-poly-pair OK
+ERASE d12-poly-case OK
+ERASE d13-function-case OK
+ERASE d14-generic-capture OK
+ERASE d15-generic-aggregates OK
+ERASE def-params OK
+ERASE grouped-binders OK
+ERASE mu-cata-depth OK
+ERASE mu-constructor-scopes OK
+ERASE mu-dependent-copy OK
+ERASE mu-dependent-layout OK
+ERASE mu-direct OK
+ERASE mu-empty-large-elim OK
+ERASE mu-erase OK
+ERASE mu-indexed OK
+ERASE mu-mutual OK
+ERASE mu-mutual-emit OK
+ERASE mu-parameter-layout OK
+ERASE mu-prop-large-elim OK
+ERASE mu-rec-direct OK
+ERASE mu-rec-indexed OK
+ERASE mu-rec-mutual OK
+ERASE nat-big OK
+ERASE nat-runtime-capture OK
+ERASE nat-runtime-edges OK
+ERASE nat-runtime-export OK
+ERASE nat-runtime-mu OK
+ERASE one-branches OK
+ERASE one-fields OK
+ERASE one-identity OK
+ERASE one-recursive OK
+ERASE one-runtime-capture OK
+ERASE one-shadowing OK
+ERASE one-unreachable-capture OK
+ERASE sl-match-indexed OK
+ERASE sl-mutual-three OK
+ERASE-OK 78/80
+NEG fhc-dec-not-ciphertext OK
+NEG fhc-enc-level OK
+NEG fhc-eval-not-ciphertext OK
+NEG fhc-eval-wrong-domain OK
+NEG fhc-leaf-depth FAIL: the message is "the level of the result is the level of the argument plus the depth of the function"
+NEG fhc-level-not-literal OK
+NEG fhc-not-circuit OK
+NEG fhc-payload-not-fragment OK
+NEG fhc-wrong-level OK
+NEG grouped-erased-read OK
+NEG grouped-linear-drop OK
+NEG mpc-input-drops-share OK
+NEG mpc-join-not-function OK
+NEG mpc-join-result OK
+NEG mpc-not-circuit OK
+NEG mpc-open-no-proof OK
+NEG mpc-open-not-share OK
+NEG mpc-party-not-enum OK
+NEG mpc-proof-quantity OK
+NEG mpc-share-former OK
+NEG mpc-share-not-share-type OK
+NEG mu-dependent-copy-index OK
+NEG mu-field-universe OK
+NEG mu-index-mismatch OK
+NEG mu-index-runtime OK
+NEG mu-large-elim-nonsub OK
+NEG mu-large-elim-selfrec OK
+NEG mu-missing-branch OK
+NEG mu-motive-wrong-family OK
+NEG mu-no-motive OK
+NEG mu-nonpositive OK
+NEG mu-nonstructural OK
+NEG mu-rec-guard-order OK
+NEG mu-rec-nondecreasing OK
+NEG mu-rec-sibling-position OK
+NEG mu-redeclared OK
+NEG mu-redeclared-mutual OK
+NEG mu-result-index-type OK
+NEG mu-result-index-unbound OK
+NEG mu-result-parameter OK
+NEG mu-result-parameter-order OK
+NEG mu-type-erased-cast OK
+NEG n01-universe OK
+NEG n02-quantity OK
+NEG n03-sec-non-ran OK
+NEG n04-wrong-leg OK
+NEG n05-missing-branch OK
+NEG n06-auto OK
+NEG n07-self-global OK
+NEG n08-pi-misuse OK
+NEG n09-mismatch OK
+NEG n10-unbound OK
+NEG n11-not-a-function OK
+NEG one-annotation-only OK
+NEG one-closure-duplication OK
+NEG one-eager-alias OK
+NEG one-field-unused OK
+NEG one-let-duplication OK
+NEG one-many-consumer OK
+NEG one-missing-branch OK
+NEG one-recursive-leg OK
+NEG one-scrutinee-branch OK
+NEG one-shadowed-unused OK
+NEG one-tuple-duplication OK
+NEG one-unreachable-capture OK
+NEG one-unreachable-closure OK
+NEG one-unused OK
+NEG one-used-twice OK
+NEG one-zero-only OK
+NEG sl-match-collection OK
+NEG sl-match-dependent-annotation OK
+NEG sl-match-field-annotation OK
+NEG zk-not-circuit-axiom OK
+NEG zk-not-circuit-mu OK
+NEG zk-wrong-quantity OK
+NEG-OK 74/75
+ERASE-NEG-OK 0/0
+KNEG smu OK
+KNEG self OK
+KNEG-OK 2/2
+REC values OK
+REC-OK 1/1
+MIGRATED mu-erase OK
+MIGRATED mu-rec-direct OK
+MIGRATED mu-rec-indexed OK
+MIGRATED mu-rec-mutual OK
+MIGRATED-OK 4/4
+SUITE-KERNEL FAIL
+PASS SUITE-WASM
+PASS ENCODER-SUBSET
+PASS AXIOMS
+PASS M0-E2E main=521
+BENCH m0_e2e_1 median_ms=209.501 min_ms=175.315 max_ms=286.365 runs=5
+BENCH m0_e2e_2 median_ms=382.412 min_ms=276.002 max_ms=1374.784 runs=5
+BENCH m0_e2e_3 median_ms=427.269 min_ms=191.339 max_ms=883.798 runs=5
+FAIL M0-TIME median_ms=382.412 bound_ms=150 load1=67.277 samples=3x5
+BENCH m1_check_corpus median_ms=31.291 min_ms=24.785 max_ms=38.284 runs=5
+MEASURE M0-RATIO kanon_ms=31.291 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.456504 bound=2.000 load1=67.277
+FAIL M0-RATIO kanon_ms=31.291 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.456504 bound=2.000 load1=67.277
+PASS TRUSTED-LINES
+PASS CIRCUIT lines=28
+PASS ZK lines=15
+PASS FHC lines=15
+PASS MPC lines=27
+PASS HOST programs=3
+denominators.json: OK
+PASS DENOMINATORS
+PASS HOUSE
+PASS PIN sha=8cf0b8b
+PASS POSITIVITY fixtures=25 negative=mu-nonpositive
+PASS M1-CORPUS elapsed_ms=537.159 bound_ms=713 lines=1000 main=814 load1=66.134
+M1-LEDGER direct-family positive=mu-direct negative=mu-nonpositive main=2 OK
+M1-LEDGER mutual-family positive=mu-mutual negative=mu-redeclared-mutual main=2 OK
+M1-LEDGER indexed-family positive=mu-indexed negative=mu-index-mismatch main=2 OK
+M1-LEDGER direct-recursion positive=mu-rec-direct negative=mu-nonstructural main=4 OK
+M1-LEDGER mutual-recursion positive=mu-rec-mutual negative=mu-rec-sibling-position main=2 OK
+M1-LEDGER indexed-recursion positive=mu-rec-indexed negative=mu-rec-nondecreasing main=2 OK
+M1-LEDGER dependent-match positive=mu-dependent-copy negative=mu-dependent-copy-index main=42 OK
+M1-LEDGER subsingleton-large-elimination positive=mu-prop-large-elim negative=mu-large-elim-nonsub main=7 OK
+M1-LEDGER empty-large-elimination positive=mu-empty-large-elim negative=mu-large-elim-selfrec main=0 OK
+M1-LEDGER linear-one positive=one-identity negative=one-used-twice main=7 OK
+M1-LEDGER large-nat positive=nat-big negative=nat-runtime-export main=7 OK
+M1-LEDGER agreement-natAdd small-witness-and-negative OK
+M1-LEDGER agreement-natSub small-witness-and-negative OK
+M1-LEDGER agreement-natMul small-witness-and-negative OK
+M1-LEDGER agreement-natEq small-witness-and-negative OK
+M1-LEDGER agreement-natLt small-witness-and-negative OK
+M1-LEDGER surface-spine lines>=300 OK
+ONE-DIRECT kernel-linear-identity OK accepted
+ONE-DIRECT kernel-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-zero-only OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-zero-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-one-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-many-stamp-one-type OK accepted
+ONE-DIRECT kernel-apt-zero-stamp-one-type OK accepted
+ONE-DIRECT kernel-once-per-branch OK accepted
+ONE-DIRECT kernel-asymmetric-branches OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-once OK accepted
+ONE-DIRECT kernel-scrutinee-many OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-zero OK quantity: an erased scrutinee cannot be eliminated at runtime
+ONE-DIRECT kernel-scrutinee-plus-branch OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-sequential-tuple OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-once OK accepted
+ONE-DIRECT kernel-let-unused OK accepted
+ONE-DIRECT kernel-let-eager-duplicate OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-twice OK quantity: the linear alias alias may be used at most once
+ONE-DIRECT kernel-shadowed-name-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-capture-once OK accepted
+ONE-DIRECT kernel-capture-twice OK quantity: the linear alias closure may be used at most once
+ONE-DIRECT kernel-empty-elimination OK accepted
+ONE-DIRECT kernel-unreachable-body OK accepted
+ONE-DIRECT kernel-unreachable-unused-let OK accepted
+ONE-DIRECT kernel-unreachable-alternative OK accepted
+ONE-DIRECT kernel-nested-branches OK accepted
+ONE-DIRECT kernel-negative-literal OK mismatch: a Nat literal must be nonnegative
+ONE-DIRECT 27/27
+ONE-PATH identity OK exit=0 expected=0 stderr=''
+ONE-PATH branches OK exit=0 expected=0 stderr=''
+ONE-PATH fields OK exit=0 expected=0 stderr=''
+ONE-PATH shadowing OK exit=0 expected=0 stderr=''
+ONE-PATH recursive OK exit=0 expected=0 stderr=''
+ONE-PATH unreachable-capture OK exit=0 expected=0 stderr=''
+ONE-PATH used-twice OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH zero-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH many-consumer OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH missing-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH tuple-duplication OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH let-duplication OK exit=1 expected=1 stderr='quantity: the linear alias y may be used at most once'
+ONE-PATH closure-duplication OK exit=1 expected=1 stderr='quantity: the linear alias f may be used at most once'
+ONE-PATH shadowed-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH field-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH annotation-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH scrutinee-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH recursive-leg OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-closure OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH eager-alias OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-capture OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATHS 22/22 OK
+NAT-RUNTIME OK nat-big kernel exit=0 expected=7
+NAT-RUNTIME OK nat-big node exit=0 expected=7
+NAT-RUNTIME OK nat-big wasmtime exit=0 expected=7
+NAT-RUNTIME OK nat-big both exit=0 expected=7
+NAT-RUNTIME OK nat-runtime-edges kernel exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges node exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges wasmtime exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges both exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-capture kernel exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture node exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture wasmtime exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture both exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-mu kernel exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu node exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu wasmtime exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu both exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-export kernel exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export node exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export wasmtime exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export both exit=4 expected=trap
+NAT-RUNTIME OK 20/20
+SL-SURFACE constructor-sugar OK
+SL-SURFACE mutual-sugar OK
+SL-SURFACE match-elaboration OK
+SL-SURFACE mu-roundtrip OK
+SL-SURFACE legacy-mu-roundtrip OK
+SL-SURFACE mutual-roundtrip OK
+SL-SURFACE legacy-mutual-roundtrip OK
+SL-SURFACE match-roundtrip OK
+SL-SURFACE case-roundtrip OK
+SL-SURFACE mixed-fields-roundtrip OK
+SL-SURFACE nested-match-roundtrip OK
+SL-SURFACE empty-match-roundtrip OK
+SL-SURFACE case-numeric-roundtrip OK
+SL-SURFACE match-numeric-refusal OK
+SL-SURFACE mutual-empty-refusal OK
+SL-SURFACE mutual-singleton-refusal OK
+SL-SURFACE mutual-unclosed-refusal OK
+SL-SURFACE mutual-and-refusal OK
+SL-SURFACE grouped-def OK
+SL-SURFACE grouped-fun OK
+SL-SURFACE grouped-star OK
+SL-SURFACE grouped-family OK
+SL-SURFACE grouped-branch OK
+SL-SURFACE grouped-branch-annotation OK
+SL-SURFACE grouped-case OK
+SL-SURFACE grouped-roundtrip OK
+SL-SURFACE grouped-dependent-check OK
+SL-SURFACE grouped-linear-check OK
+SL-SURFACE grouped-annotation-fallback OK
+SL-SURFACE grouped-name-annotation-fallback OK
+SL-SURFACE grouped-empty-refusal OK
+SL-SURFACE grouped-missing-colon-refusal OK
+SL-SURFACE grouped-missing-close-refusal OK
+SL-SURFACE grouped-zk-expansion OK
+SL-SURFACE nu-term-refusal OK
+SL-SURFACE nu-declaration-refusal OK
+SL-SURFACE-OK 36/36
+SL-SURFACE OK
+PASS M1-SUITE ledger=16 focused-one=49 nat-runtime=20 surface=OK
+AGREEMENT unary natEq 1089/1089 OK
+AGREEMENT full-range natEq 400/400 OK
+AGREEMENT unary natLt 1089/1089 OK
+AGREEMENT full-range natLt 400/400 OK
+AGREEMENT unary natSub 1089/1089 OK
+AGREEMENT full-range natSub 400/400 OK
+AGREEMENT unary natAdd 1089/1089 OK
+AGREEMENT full-range natAdd 400/400 OK
+AGREEMENT unary natMul 1089/1089 OK
+AGREEMENT full-range natMul 400/400 OK
+AGREEMENT OK 7445/7445
+PASS AGREEMENT cases=7445 unary=5445 full-range=2000
+PASS REACTOR
+PASS RUNTIME
+
+MEASURE BUILD tier=SLOW elapsed_ms=189.706 exit=0
+MEASURE CARRY tier=MED elapsed_ms=489.063 exit=0
+MEASURE R0-COUNT tier=FAST elapsed_ms=96.024 exit=0
+MEASURE R0-AUDIT tier=FAST elapsed_ms=64.721 exit=0
+MEASURE SUITE-KERNEL tier=SUITE elapsed_ms=994.885 exit=1
+MEASURE SUITE-WASM tier=SUITE elapsed_ms=5776.822 exit=0
+MEASURE ENCODER-SUBSET tier=FAST elapsed_ms=120.969 exit=0
+MEASURE AXIOMS tier=MED elapsed_ms=59.324 exit=0
+MEASURE M0-E2E tier=SLOW elapsed_ms=919.788 exit=0
+MEASURE M0-TIME tier=SLOW elapsed_ms=7951.567 exit=1
+MEASURE M0-RATIO tier=SLOW elapsed_ms=423.611 exit=1
+MEASURE TRUSTED-LINES tier=FAST elapsed_ms=40.158 exit=0
+MEASURE CIRCUIT tier=FAST elapsed_ms=94.437 exit=0
+MEASURE ZK tier=FAST elapsed_ms=139.631 exit=0
+MEASURE FHC tier=FAST elapsed_ms=144.536 exit=0
+MEASURE MPC tier=FAST elapsed_ms=143.618 exit=0
+MEASURE HOST tier=MED elapsed_ms=585.607 exit=0
+MEASURE DENOMINATORS tier=MED elapsed_ms=72.175 exit=0
+MEASURE HOUSE tier=MED elapsed_ms=1003.003 exit=0
+MEASURE PIN tier=FAST elapsed_ms=254.849 exit=0
+MEASURE POSITIVITY tier=SUITE elapsed_ms=949.590 exit=0
+MEASURE M1-CORPUS tier=SLOW elapsed_ms=783.850 exit=0
+MEASURE M1-SUITE tier=SUITE elapsed_ms=9608.563 exit=0
+MEASURE AGREEMENT tier=SUITE elapsed_ms=46020.044 exit=0
+MEASURE REACTOR tier=MED elapsed_ms=1256.051 exit=0
+MEASURE RUNTIME tier=MED elapsed_ms=5046.778 exit=0
+
+GATES-FAIL

@@ -1,0 +1,351 @@
+PASS BUILD
+PASS CARRY
+PASS R0-COUNT
+PASS R0-AUDIT
+PASS SUITE-KERNEL
+PASS SUITE-WASM
+PASS ENCODER-SUBSET
+PASS AXIOMS
+PASS M0-E2E main=521
+BENCH m0_e2e_1 median_ms=413.510 min_ms=346.357 max_ms=698.404 runs=5
+BENCH m0_e2e_2 median_ms=340.608 min_ms=201.109 max_ms=669.452 runs=5
+BENCH m0_e2e_3 median_ms=371.654 min_ms=206.153 max_ms=1060.011 runs=5
+FAIL M0-TIME median_ms=371.654 bound_ms=150 load1=72.898 samples=3x5
+BENCH m1_check_corpus median_ms=35.607 min_ms=30.561 max_ms=76.294 runs=5
+MEASURE M0-RATIO kanon_ms=35.607 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.795333 bound=2.000 load1=72.898
+FAIL M0-RATIO kanon_ms=35.607 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.795333 bound=2.000 load1=72.898
+PASS TRUSTED-LINES
+PASS CIRCUIT lines=28
+PASS ZK lines=15
+PASS FHC lines=15
+PASS MPC lines=27
+PASS HOST programs=3
+denominators.json: OK
+PASS DENOMINATORS
+PASS HOUSE
+PASS PIN sha=8cf0b8b
+PASS POSITIVITY fixtures=25 negative=mu-nonpositive
+PASS M1-CORPUS elapsed_ms=434.897 bound_ms=713 lines=1000 main=814 load1=76.830
+M1-LEDGER direct-family positive=mu-direct negative=mu-nonpositive main=2 OK
+M1-LEDGER mutual-family positive=mu-mutual negative=mu-redeclared-mutual main=2 OK
+M1-LEDGER indexed-family positive=mu-indexed negative=mu-index-mismatch main=2 OK
+M1-LEDGER direct-recursion positive=mu-rec-direct negative=mu-nonstructural main=4 OK
+M1-LEDGER mutual-recursion positive=mu-rec-mutual negative=mu-rec-sibling-position main=2 OK
+M1-LEDGER indexed-recursion positive=mu-rec-indexed negative=mu-rec-nondecreasing main=2 OK
+M1-LEDGER dependent-match positive=mu-dependent-copy negative=mu-dependent-copy-index main=42 OK
+M1-LEDGER subsingleton-large-elimination positive=mu-prop-large-elim negative=mu-large-elim-nonsub main=7 OK
+M1-LEDGER empty-large-elimination positive=mu-empty-large-elim negative=mu-large-elim-selfrec main=0 OK
+M1-LEDGER linear-one positive=one-identity negative=one-used-twice main=7 OK
+M1-LEDGER large-nat positive=nat-big negative=nat-runtime-export main=7 OK
+M1-LEDGER agreement-natAdd small-witness-and-negative OK
+M1-LEDGER agreement-natSub small-witness-and-negative OK
+M1-LEDGER agreement-natMul small-witness-and-negative OK
+M1-LEDGER agreement-natEq small-witness-and-negative OK
+M1-LEDGER agreement-natLt small-witness-and-negative OK
+M1-LEDGER surface-spine lines>=300 OK
+ONE-DIRECT kernel-linear-identity OK accepted
+ONE-DIRECT kernel-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-zero-only OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-zero-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-one-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-many-stamp-one-type OK accepted
+ONE-DIRECT kernel-apt-zero-stamp-one-type OK accepted
+ONE-DIRECT kernel-once-per-branch OK accepted
+ONE-DIRECT kernel-asymmetric-branches OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-once OK accepted
+ONE-DIRECT kernel-scrutinee-many OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-zero OK quantity: an erased scrutinee cannot be eliminated at runtime
+ONE-DIRECT kernel-scrutinee-plus-branch OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-sequential-tuple OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-once OK accepted
+ONE-DIRECT kernel-let-unused OK accepted
+ONE-DIRECT kernel-let-eager-duplicate OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-twice OK quantity: the linear alias alias may be used at most once
+ONE-DIRECT kernel-shadowed-name-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-capture-once OK accepted
+ONE-DIRECT kernel-capture-twice OK quantity: the linear alias closure may be used at most once
+ONE-DIRECT kernel-empty-elimination OK accepted
+ONE-DIRECT kernel-unreachable-body OK accepted
+ONE-DIRECT kernel-unreachable-unused-let OK accepted
+ONE-DIRECT kernel-unreachable-alternative OK accepted
+ONE-DIRECT kernel-nested-branches OK accepted
+ONE-DIRECT kernel-negative-literal OK mismatch: a Nat literal must be nonnegative
+ONE-DIRECT 27/27
+ONE-PATH identity OK exit=0 expected=0 stderr=''
+ONE-PATH branches OK exit=0 expected=0 stderr=''
+ONE-PATH fields OK exit=0 expected=0 stderr=''
+ONE-PATH shadowing OK exit=0 expected=0 stderr=''
+ONE-PATH recursive OK exit=0 expected=0 stderr=''
+ONE-PATH unreachable-capture OK exit=0 expected=0 stderr=''
+ONE-PATH used-twice OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH zero-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH many-consumer OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH missing-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH tuple-duplication OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH let-duplication OK exit=1 expected=1 stderr='quantity: the linear alias y may be used at most once'
+ONE-PATH closure-duplication OK exit=1 expected=1 stderr='quantity: the linear alias f may be used at most once'
+ONE-PATH shadowed-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH field-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH annotation-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH scrutinee-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH recursive-leg OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-closure OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH eager-alias OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-capture OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATHS 22/22 OK
+NAT-RUNTIME OK nat-big kernel exit=0 expected=7
+NAT-RUNTIME OK nat-big node exit=0 expected=7
+NAT-RUNTIME OK nat-big wasmtime exit=0 expected=7
+NAT-RUNTIME OK nat-big both exit=0 expected=7
+NAT-RUNTIME OK nat-runtime-edges kernel exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges node exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges wasmtime exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges both exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-capture kernel exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture node exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture wasmtime exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture both exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-mu kernel exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu node exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu wasmtime exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu both exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-export kernel exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export node exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export wasmtime exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export both exit=4 expected=trap
+NAT-RUNTIME OK 20/20
+SL-SURFACE constructor-sugar OK
+SL-SURFACE mutual-sugar OK
+SL-SURFACE match-elaboration OK
+SL-SURFACE mu-roundtrip OK
+SL-SURFACE legacy-mu-roundtrip OK
+SL-SURFACE mutual-roundtrip OK
+SL-SURFACE legacy-mutual-roundtrip OK
+SL-SURFACE match-roundtrip OK
+SL-SURFACE case-roundtrip OK
+SL-SURFACE mixed-fields-roundtrip OK
+SL-SURFACE nested-match-roundtrip OK
+SL-SURFACE empty-match-roundtrip OK
+SL-SURFACE case-numeric-roundtrip OK
+SL-SURFACE match-numeric-refusal OK
+SL-SURFACE mutual-empty-refusal OK
+SL-SURFACE mutual-singleton-refusal OK
+SL-SURFACE mutual-unclosed-refusal OK
+SL-SURFACE mutual-and-refusal OK
+SL-SURFACE grouped-def OK
+SL-SURFACE grouped-fun OK
+SL-SURFACE grouped-star OK
+SL-SURFACE grouped-family OK
+SL-SURFACE grouped-branch OK
+SL-SURFACE grouped-branch-annotation OK
+SL-SURFACE grouped-case OK
+SL-SURFACE grouped-roundtrip OK
+SL-SURFACE grouped-dependent-check OK
+SL-SURFACE grouped-linear-check OK
+SL-SURFACE grouped-annotation-fallback OK
+SL-SURFACE grouped-name-annotation-fallback OK
+SL-SURFACE grouped-empty-refusal OK
+SL-SURFACE grouped-missing-colon-refusal OK
+SL-SURFACE grouped-missing-close-refusal OK
+SL-SURFACE grouped-zk-expansion OK
+SL-SURFACE nu-term-refusal OK
+SL-SURFACE nu-declaration-refusal OK
+SL-SURFACE-OK 36/36
+SL-SURFACE OK
+PASS M1-SUITE ledger=16 focused-one=49 nat-runtime=20 surface=OK
+AGREEMENT unary natEq 1089/1089 OK
+AGREEMENT full-range natEq 400/400 OK
+AGREEMENT unary natLt 1089/1089 OK
+AGREEMENT full-range natLt 400/400 OK
+AGREEMENT unary natSub 1089/1089 OK
+AGREEMENT full-range natSub 400/400 OK
+AGREEMENT unary natAdd 1089/1089 OK
+AGREEMENT full-range natAdd 400/400 OK
+AGREEMENT unary natMul 1089/1089 OK
+AGREEMENT full-range natMul 400/400 OK
+AGREEMENT OK 7445/7445
+PASS AGREEMENT cases=7445 unary=5445 full-range=2000
+PASS REACTOR
+FAIL RUNTIME
+TAP version 13
+# Subtest: rejects invalid process inputs before opening files or spawning
+ok 1 - rejects invalid process inputs before opening files or spawning
+  ---
+  duration_ms: 22.634667
+  type: 'test'
+  ...
+# Subtest: prior interruption creates empty captures and never starts a command
+ok 2 - prior interruption creates empty captures and never starts a command
+  ---
+  duration_ms: 3.064208
+  type: 'test'
+  ...
+# Subtest: interruption delivered while captures open prevents spawning
+ok 3 - interruption delivered while captures open prevents spawning
+  ---
+  duration_ms: 232.630125
+  type: 'test'
+  ...
+# Subtest: captures binary stdout and stderr with exact exit status
+ok 4 - captures binary stdout and stderr with exact exit status
+  ---
+  duration_ms: 95.826583
+  type: 'test'
+  ...
+# Subtest: reports spawn errors through the response and closes captures
+ok 5 - reports spawn errors through the response and closes captures
+  ---
+  duration_ms: 8.581291
+  type: 'test'
+  ...
+# Subtest: timeout escalates for a child that ignores SIGTERM
+ok 6 - timeout escalates for a child that ignores SIGTERM
+  ---
+  duration_ms: 441.322917
+  type: 'test'
+  ...
+# Subtest: signal callback errors reject normally after killing and reaping the child
+not ok 7 - signal callback errors reject normally after killing and reaping the child
+  ---
+  duration_ms: 233.030792
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt18/veil-circuit/dev/runtime-test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-YjflIz/marker'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:634:25)
+    async readFile (node:internal/fs/promises:1238:14)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt18/veil-circuit/dev/runtime-test.mjs:115:24)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: active interruption returns signal status and reaps the process
+ok 8 - active interruption returns signal status and reaps the process
+  ---
+  duration_ms: 352.867209
+  type: 'test'
+  ...
+# Subtest: escalation callback errors are caught and cleanup retries the kill
+ok 9 - escalation callback errors are caught and cleanup retries the kill
+  ---
+  duration_ms: 417.512625
+  type: 'test'
+  ...
+# Subtest: unexpected descendant wait errors kill the remaining process group
+ok 10 - unexpected descendant wait errors kill the remaining process group
+  ---
+  duration_ms: 700.245
+  type: 'test'
+  ...
+# Subtest: a lingering group member cannot hold a deadline of zero open
+ok 11 - a lingering group member cannot hold a deadline of zero open
+  ---
+  duration_ms: 578.406875
+  type: 'test'
+  ...
+# Subtest: a leader that exits before its deadline keeps its own status
+ok 12 - a leader that exits before its deadline keeps its own status
+  ---
+  duration_ms: 580.130208
+  type: 'test'
+  ...
+# Subtest: an OS string argument keeps its bytes or is rejected
+ok 13 - an OS string argument keeps its bytes or is rejected
+  ---
+  duration_ms: 0.683792
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 0 without interruption
+ok 14 - a terminal request preserves application exit code 0 without interruption
+  ---
+  duration_ms: 8.1565
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 7 without interruption
+ok 15 - a terminal request preserves application exit code 7 without interruption
+  ---
+  duration_ms: 7.450834
+  type: 'test'
+  ...
+# Subtest: the argument list reaches init in order and unchanged
+ok 16 - the argument list reaches init in order and unchanged
+  ---
+  duration_ms: 10.903542
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGINT status
+ok 17 - a terminal request after operation 4 preserves SIGINT status
+  ---
+  duration_ms: 90.809458
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGTERM status
+ok 18 - a terminal request after operation 4 preserves SIGTERM status
+  ---
+  duration_ms: 7.142166
+  type: 'test'
+  ...
+# Subtest: a signal between requests ends the loop with 128 plus the signal number
+ok 19 - a signal between requests ends the loop with 128 plus the signal number
+  ---
+  duration_ms: 19.305292
+  type: 'test'
+  ...
+# Subtest: an interruption reported by operation 4 earns one shutdown request
+ok 20 - an interruption reported by operation 4 earns one shutdown request
+  ---
+  duration_ms: 743.268875
+  type: 'test'
+  ...
+# Subtest: operation 11 answers the zk verdict of a proof slot
+ok 21 - operation 11 answers the zk verdict of a proof slot
+  ---
+  duration_ms: 12.275458
+  type: 'test'
+  ...
+# Subtest: the fhc and mpc operations keep one slot layout
+ok 22 - the fhc and mpc operations keep one slot layout
+  ---
+  duration_ms: 36.094416
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 21
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5032.62825
+
+MEASURE BUILD tier=SLOW elapsed_ms=299.728 exit=0
+MEASURE CARRY tier=MED elapsed_ms=1637.519 exit=0
+MEASURE R0-COUNT tier=FAST elapsed_ms=289.619 exit=0
+MEASURE R0-AUDIT tier=FAST elapsed_ms=80.659 exit=0
+MEASURE SUITE-KERNEL tier=SUITE elapsed_ms=2466.114 exit=0
+MEASURE SUITE-WASM tier=SUITE elapsed_ms=11280.603 exit=0
+MEASURE ENCODER-SUBSET tier=FAST elapsed_ms=744.297 exit=0
+MEASURE AXIOMS tier=MED elapsed_ms=153.156 exit=0
+MEASURE M0-E2E tier=SLOW elapsed_ms=4111.623 exit=0
+MEASURE M0-TIME tier=SLOW elapsed_ms=8636.880 exit=1
+MEASURE M0-RATIO tier=SLOW elapsed_ms=874.398 exit=1
+MEASURE TRUSTED-LINES tier=FAST elapsed_ms=95.751 exit=0
+MEASURE CIRCUIT tier=FAST elapsed_ms=93.330 exit=0
+MEASURE ZK tier=FAST elapsed_ms=93.843 exit=0
+MEASURE FHC tier=FAST elapsed_ms=83.763 exit=0
+MEASURE MPC tier=FAST elapsed_ms=123.986 exit=0
+MEASURE HOST tier=MED elapsed_ms=340.176 exit=0
+MEASURE DENOMINATORS tier=MED elapsed_ms=52.815 exit=0
+MEASURE HOUSE tier=MED elapsed_ms=2204.260 exit=0
+MEASURE PIN tier=FAST elapsed_ms=386.282 exit=0
+MEASURE POSITIVITY tier=SUITE elapsed_ms=1006.327 exit=0
+MEASURE M1-CORPUS tier=SLOW elapsed_ms=583.058 exit=0
+MEASURE M1-SUITE tier=SUITE elapsed_ms=18851.857 exit=0
+MEASURE AGREEMENT tier=SUITE elapsed_ms=49606.668 exit=0
+MEASURE REACTOR tier=MED elapsed_ms=1842.751 exit=0
+MEASURE RUNTIME tier=MED elapsed_ms=5256.656 exit=1
+
+GATES-FAIL

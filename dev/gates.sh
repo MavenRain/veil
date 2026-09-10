@@ -249,19 +249,55 @@ leg_pin () {
 # the leg reads stdout only and ignores the exit code.  A timeout wraps
 # the run when the host has one, because a lost refusal shows up as a
 # hang, not as a wrong line.
+#
+# R-W1-10 for the reader regressions: the exit code of
+# circuit_bounds.exe answers against the length of its own case list, so
+# a deleted case still exits 0.  The leg reads the count line and holds
+# it against the intended count below.  Raise BOUNDS_EXPECT with the
+# case list, never to make a red leg green.
+#
+# The leg also holds the circuit rows of two older fixtures whose fields
+# are closed data of another shape, because the rule for a field of an
+# introduction at SMu decides whether those rows read a depth or a
+# refusal.
+BOUNDS_EXPECT='CIRCUIT-BOUNDS 18/18'
+CIRCUIT_FIXTURES=(mu-dependent-layout one-fields)
 leg_circuit () {
-  local out delta
+  local out delta bounds name
   local -a tmo
   tmo=(timeout 20)
   if ! command -v timeout > /dev/null 2>&1; then
     tmo=()
   fi
   mkdir -p $WORK || return 9
+  $tmo $ROOT/_build/default/test/circuit_bounds.exe > $WORK/circuit-bounds.out 2>&1
+  if [[ $? -ne 0 ]]; then
+    cat $WORK/circuit-bounds.out
+    print -r -- "FAIL CIRCUIT"
+    return 1
+  fi
+  bounds=$(rg -N -- '^CIRCUIT-BOUNDS [0-9]+/[0-9]+$' $WORK/circuit-bounds.out)
+  if [[ $bounds != $BOUNDS_EXPECT ]]; then
+    cat $WORK/circuit-bounds.out
+    print -r -- "circuit: expected [$BOUNDS_EXPECT], read [$bounds]"
+    print -r -- "FAIL CIRCUIT"
+    return 1
+  fi
+  for name in $CIRCUIT_FIXTURES; do
+    $tmo $DRIVER circuit $ROOT/test/fixtures/$name.kan > $WORK/circuit-$name.out 2>&1
+    delta=$(diff -u $ROOT/test/golden/circuit-$name.circuit $WORK/circuit-$name.out 2>&1)
+    if [[ -n $delta || ! -s $WORK/circuit-$name.out ]]; then
+      print -r -- "$delta"
+      print -r -- "circuit: fixture $name"
+      print -r -- "FAIL CIRCUIT"
+      return 1
+    fi
+  done
   $tmo $DRIVER circuit $ROOT/test/circuit-spine.kan > $WORK/circuit-spine.out 2>&1
   out=$(cat $WORK/circuit-spine.out)
   delta=$(diff -u $ROOT/test/golden/circuit-spine.circuit $WORK/circuit-spine.out 2>&1)
-  if [[ -z $delta ]]; then
-    print -r -- "PASS CIRCUIT lines=$(print -r -- "$out" | wc -l | tr -d ' ')"
+  if [[ -z $delta && -s $WORK/circuit-spine.out ]]; then
+    print -r -- "PASS CIRCUIT lines=$(print -r -- "$out" | wc -l | tr -d ' ') $bounds"
     return 0
   fi
   print -r -- "$delta"

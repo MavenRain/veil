@@ -189,11 +189,12 @@ Admitted forms, with the depth each one gets:
 | a primitive name, applied or bare | `cost name` |
 | a saturated primitive call | `cost name` plus the largest argument depth |
 | `In` at `SColl`, and `In` at `SPi` | the largest depth in the address and the arguments |
+| `In` at `SMu` | the largest field depth; a field that names the family must be a closed constructor tree, through acyclic global aliases |
 | `Out` at `SColl`, a projection | the depth of the record |
 | `Sec` at `SPi` with one leg | a closure; the depth of the body with each parameter read as 0 |
 | `Out` at `SPi`, an application | the depth of the callee body with the argument depths in place |
 | `Elim` at `SPi` or `SColl`, a case | the larger of the scrutinee depth and 1 plus the largest branch |
-| `Elim` at `SMu` on a literal peano value | the literal bound times the largest branch |
+| `Elim` at `SMu` on a closed constructor tree | the largest branch; a branch that reads a field of its own constructor can fold, so the constructor height, counting the leaf, multiplies it |
 | `Let` | the depth of the body with the bound value in place |
 | `Ann` | the depth of the term inside |
 | `Global` naming a definition | the depth of that definition body |
@@ -209,7 +210,10 @@ D-7 gives eleven head words: `mu`, `auto`, `host op`, `SPar`, `SNu`,
 `opaque callee`. A shape that arrives at a later milestone refuses with
 its own name. A global that is met a second time while its first
 unfolding is still open refuses `mu`. A global with no body refuses
-`unknown global NAME`. An application whose callee is a plain value,
+`unknown global NAME` where the reader evaluates it. In the scrutinee of
+a match at `SMu` it refuses `unbounded iteration`, because the
+finite-tree certificate runs before the evaluation and a global with no
+body certifies no tree. An application whose callee is a plain value,
 not a closure, refuses `opaque callee`.
 
 `Circuit.depth` returns the bare head word as its `Error` payload.
@@ -217,12 +221,30 @@ not a closure, refuses `opaque callee`.
 HEAD`. A rule pack that turns a refusal into `Error.Not_yet` calls
 `Circuit.word`. The driver prints the bare head and strips no prefix.
 
-An `Elim` at `SMu` is admitted only when the scrutinee is a literal
-peano value written at the match site. A scrutinee that reaches the
-match through a variable or through a global name refuses `unbounded
-iteration`. The public bound of D-8, which reads the count off a
-Zero-quantity argument, arrives at V5, when the introduction site can
-resolve that argument to a literal.
+An `Elim` at `SMu` accepts a finite constructor tree written at the match
+site or reached through acyclic global definitions and annotations. Every
+field must recursively be a constructor tree or a literal. Its height is
+one plus the maximum child height of the matched family; literals and a
+payload of another family have height zero. A scrutinee of height zero
+reaches no branch of the match, so it refuses `unbounded iteration`. The
+height multiplies the largest branch only when a branch reads a field
+that its own constructor binds, because such a branch can fold over the
+tree. A match whose branches read no field of their own constructor runs
+one branch once, so its depth is the largest branch alone. The largest
+branch counts the branch of a leaf match, and every field must pass,
+which prevents a known child from hiding an opaque sibling. A product or
+increment beyond the host depth integer refuses `unbounded iteration`.
+
+Variables (including local let bindings), computed fields, functions,
+unresolved globals and cycles cannot certify a match bound. Such matches
+refuse `unbounded iteration`. A constructor value keeps the largest
+depth of its fields, and refuses `mu` only when a field names its own
+family and no certificate covers that field. A field of any other shape
+is ordinary data at its own depth, and an unknown global inside a field
+keeps the `unknown global NAME` refusal.
+Recursive branch functions retain the global-cycle refusal. This
+slice does not unroll recursive functions. Resolving a Zero-quantity
+argument to a public bound remains deferred.
 
 `kanon circuit FILE` prints one line for each definition in the file,
 in source order: `NAME: depth D` when the definition is a circuit, and

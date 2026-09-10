@@ -1,0 +1,4 @@
+def namedLeaf : (Lan SMu FhcLeaf [] (Sec SColl 0 [])) := (In SMu FhcLeaf [] (ACtor fhcLeaf) [])
+def leafAlias : (Lan SMu FhcLeaf [] (Sec SColl 0 [])) := namedLeaf
+def leafCircuit : (Ran SPi w n Nat Nat) := (Sec SPi w n Nat [n => (Elim SMu FhcLeaf [] leafAlias as x return Nat with | (ACtor fhcLeaf)  => (Out SPi w b Nat (APt w 2) (Out SPi w a Nat (APt w (Out SPi w b Nat (APt w 1) (Out SPi w a Nat (APt w n) natAdd))) natMul)))])
+def lift : (Ran SPi w c (Ran SFhc 0 Nat) (Ran SFhc 2 Nat)) := (Sec SPi w c (Ran SFhc 0 Nat) [c => (Sec SFhc 2 [ => leafCircuit;  => c])])

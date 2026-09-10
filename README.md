@@ -298,6 +298,12 @@ dev/                the runners, the gate scripts and the logs
 
 ## Build and test
 
+The circuit reader accepts finite constructor trees and matches on their
+acyclic global aliases. It counts arithmetic in leaf branches, multiplies
+by the tree height only when a branch reads a field of its own
+constructor, and rejects unknown or computed fields. See [CIRCUIT-BOUNDS.md](dev/CIRCUIT-BOUNDS.md)
+for the supported fragment and regression evidence.
+
 The OCaml toolchain is in the zxcaml-p1 opam switch, which is not on the
 default PATH.  Two runner scripts add it and set the root, so you can call
 them from any directory:

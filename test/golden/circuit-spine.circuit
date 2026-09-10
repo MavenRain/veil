@@ -10,10 +10,19 @@ pairVal: depth 0
 pairSum: depth 2
 addOne: depth 1
 five: depth 1
-spineThree: refused: mu
+spineThree: depth 0
 spineDirect: depth 0
 spineWidth: refused: unbounded iteration
 spineCount: refused: mu
 useAxiom: refused: unknown global axNat
 opaqueApply: refused: opaque callee
 main: depth 5
+spineAlias: depth 0
+spineNamed: depth 1
+spineZeroWork: depth 2
+spineTree: depth 0
+spineTreeMatch: depth 2
+spineMixed: refused: unbounded iteration
+spineUnknown: refused: unbounded iteration
+spineComputed: refused: unbounded iteration
+spineLocal: refused: unbounded iteration

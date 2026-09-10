@@ -1,0 +1,6 @@
+def tree : (Lan SMu CircuitTree [] (Sec SColl 0 [])) := (In SMu CircuitTree [] (ACtor circuitFork) [(In SMu CircuitTree [] (ACtor circuitLeaf) [3]); (In SMu CircuitTree [] (ACtor circuitLeaf) [4])])
+def treeAlias : (Lan SMu CircuitTree [] (Sec SColl 0 [])) := tree
+def leaf : (Lan SMu CircuitTree [] (Sec SColl 0 [])) := (In SMu CircuitTree [] (ACtor circuitLeaf) [7])
+def bump : (Ran SPi w n Nat Nat) := (Sec SPi w n Nat [n => (Elim SMu CircuitTree [] leaf as x return Nat with | (ACtor circuitLeaf) value => (Out SPi w b Nat (APt w n) (Out SPi w a Nat (APt w value) natAdd)) | (ACtor circuitFork) left right => 0)])
+def branch : Nat := (Elim SMu CircuitTree [] treeAlias as x return Nat with | (ACtor circuitLeaf) n => n | (ACtor circuitFork) left right => 34)
+def main : Nat := (Out SPi w b Nat (APt w branch) (Out SPi w a Nat (APt w (Out SPi w n Nat (APt w 1) bump)) natAdd))

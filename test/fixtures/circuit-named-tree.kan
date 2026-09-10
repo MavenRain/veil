@@ -1,0 +1,20 @@
+-- Named finite constructors feed a circuit through a closed match.
+mu CircuitTree : Type 0 :=
+| circuitLeaf (n : Nat) : CircuitTree
+| circuitFork (left right : CircuitTree) : CircuitTree
+
+def tree : CircuitTree := circuitFork (circuitLeaf 3) (circuitLeaf 4)
+def treeAlias : CircuitTree := tree
+def leaf : CircuitTree := circuitLeaf 7
+
+def bump (n : Nat) : Nat :=
+  match leaf as x in CircuitTree return Nat with
+  | circuitLeaf value => natAdd value n
+  | circuitFork left right => 0
+
+def branch : Nat :=
+  match treeAlias as x in CircuitTree return Nat with
+  | circuitLeaf n => n
+  | circuitFork left right => 34
+
+def main : Nat := natAdd (bump 1) branch

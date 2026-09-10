@@ -1,0 +1,12 @@
+rec [mu<CircuitTree>; leg<mu<CircuitTree>,0,union nat>; leg<mu<CircuitTree>,1,union mu<CircuitTree>,union mu<CircuitTree>>]
+fun tree () : union mu<CircuitTree> := KTag mu<CircuitTree> 1 [KTag mu<CircuitTree> 0 [KLit 3]; KTag mu<CircuitTree> 0 [KLit 4]]
+rec [mu<CircuitTree>]
+fun treeAlias () : union mu<CircuitTree> := KGlobal tree
+rec [mu<CircuitTree>; leg<mu<CircuitTree>,0,union nat>; leg<mu<CircuitTree>,1,union mu<CircuitTree>,union mu<CircuitTree>>]
+fun leaf () : union mu<CircuitTree> := KTag mu<CircuitTree> 0 [KLit 7]
+rec [nat; mu<CircuitTree>; leg<mu<CircuitTree>,0,union nat>; leg<mu<CircuitTree>,1,union mu<CircuitTree>,union mu<CircuitTree>>]
+fun bump (union nat) : union nat := KCase mu<CircuitTree> (KGlobal leaf) [{0 1 (KTail (KGlobal natAdd) [KVar 0; KVar 1])}; {1 2 (KLit 0)}]
+rec [nat; mu<CircuitTree>; leg<mu<CircuitTree>,0,union nat>; leg<mu<CircuitTree>,1,union mu<CircuitTree>,union mu<CircuitTree>>]
+fun branch () : union nat := KCase mu<CircuitTree> (KGlobal treeAlias) [{0 1 (KVar 0)}; {1 2 (KLit 34)}]
+rec [nat]
+fun main () : union nat := KTail (KGlobal natAdd) [KApp (KGlobal bump) [KLit 1]; KGlobal branch]

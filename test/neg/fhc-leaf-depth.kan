@@ -1,0 +1,9 @@
+-- A leaf match executes arithmetic, so its ciphertext level must grow.
+mu LeafDepth : Type 0 :=
+| leafDepthZero : LeafDepth
+
+def leafCircuit (n : Nat) : Nat :=
+  match (leafDepthZero : LeafDepth) as x in LeafDepth return Nat with
+  | leafDepthZero => natMul (natAdd n 1) 2
+
+def bad (c : fhc 0 Nat) : fhc 0 Nat := eval leafCircuit c

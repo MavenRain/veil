@@ -1,0 +1,8 @@
+rec [mu<FhcLeaf>; leg<mu<FhcLeaf>,0>]
+fun namedLeaf () : union mu<FhcLeaf> := KTag mu<FhcLeaf> 0 []
+rec [mu<FhcLeaf>]
+fun leafAlias () : union mu<FhcLeaf> := KGlobal namedLeaf
+rec [nat; mu<FhcLeaf>; leg<mu<FhcLeaf>,0>]
+fun leafCircuit (union nat) : union nat := KCase mu<FhcLeaf> (KGlobal leafAlias) [{0 0 (KTail (KGlobal natMul) [KApp (KGlobal natAdd) [KVar 0; KLit 1]; KLit 2])}]
+rec [any]
+fun lift (union any) : union any := KApp (KGlobal fhcEval) [KLit 2; KGlobal leafCircuit; KVar 0]

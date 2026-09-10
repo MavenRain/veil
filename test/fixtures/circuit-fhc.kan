@@ -1,0 +1,12 @@
+-- A named leaf match contributes its two primitive layers to eval.
+mu FhcLeaf : Type 0 :=
+| fhcLeaf : FhcLeaf
+
+def namedLeaf : FhcLeaf := fhcLeaf
+def leafAlias : FhcLeaf := namedLeaf
+
+def leafCircuit (n : Nat) : Nat :=
+  match leafAlias as x in FhcLeaf return Nat with
+  | fhcLeaf => natMul (natAdd n 1) 2
+
+def lift (c : fhc 0 Nat) : fhc 2 Nat := eval leafCircuit c

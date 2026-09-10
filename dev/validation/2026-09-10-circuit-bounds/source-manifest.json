@@ -1,0 +1,33 @@
+{
+  "base": "d843a01986dd3213d8f45cfb9b4ac4ef526aa2df",
+  "files": {
+    "README.md": "19fd05cb45632b28e9c0c8352d4e2689f71cae36ba383c72963b3471e4a5d035",
+    "SPEC.md": "6b5e3929c6d81ba77f3832dd76cf8ca78711374cabedf0eae46e220f25adb875",
+    "dev/CIRCUIT-BOUNDS.md": "c9f021c3ae1c0ec9d31bf264496b72e508694e83f4df9b2c3e6b98ffe02ed934",
+    "dev/gates.sh": "1d0645146ca726c9691e4ef9530417234837d2b1f8b190a43808faa8277553ce",
+    "dev/validation/2026-09-10-circuit-bounds/README.md": "567b94abf4c7388e3f48348d07c5a1f159da4a97752fbba3c7f467601238e8cf",
+    "dev/validation/2026-09-10-circuit-bounds/gates-before-increment-fix.log": "9ae4992aafb9cbccd6a91b8124d9286b12d487dcd089981ef8b782f045f95fad",
+    "dev/validation/2026-09-10-circuit-bounds/gates-first.log": "e5c80220d41c47556233ef68cc0657f0b401c6189351d03d35bb7ab8f0c8c09b",
+    "dev/validation/2026-09-10-circuit-bounds/gates-review.log": "49d68e9a8851d4352770af97fee702746d8fc47005e018fffba5a8236138dcdc",
+    "dev/validation/2026-09-10-circuit-bounds/gates.log": "1f5e5f077bf63e1a025a2cd8a182b5d8d7e6c14c63119dfaab1de2a0aadf1773",
+    "dev/validation/2026-09-10-circuit-bounds/regressions.json": "fb9772842fd25ebfa643f5dab2b34e425c55fe5a9f597be46a9bfebeae9470d2",
+    "dev/validation/2026-09-10-circuit-bounds/runtime-baseline.log": "d3dfab80856de33230fa8734e470147c867bf0bf7f264297fa4628c88261fe22",
+    "dev/validation/2026-09-10-circuit-bounds/runtime-recheck.log": "9cc55da2197b6f35069240a4fa064366278df425a3ad72c7d64c1fd6d63f3b19",
+    "lib/circuit.ml": "a37775c6913320af217859f4f66a11e350252ee5e5e2dc9f4e1c722daec6dc34",
+    "test/circuit-spine.kan": "c955223921fe5a05c059ee32b76d9e610e01e3f27a448ab4185c88bfbf30e768",
+    "test/circuit_bounds.ml": "49e4620e103eaf0a2ce05c067c907534868a40de6b1c787e6e69734fcba0f32b",
+    "test/dune": "49b61343268ae0fb68c6e5d91e4ec74a8eb951881b46d814b4e9ade6279cd512",
+    "test/fixtures/circuit-fhc.kan": "e4ffb96b579ba1c73c95dbede06067cdced0ad4d403e6526a1d87e4098178b29",
+    "test/fixtures/circuit-named-tree.kan": "2cafefbd70a6584bddbf14b1951ae8606d907d29cf0466f3cbbc24134c7b07ba",
+    "test/golden/circuit-fhc.checked": "f1de166301ff4a708e4f21256b88a69bf0ee6f7da19bac576872c0b64d728131",
+    "test/golden/circuit-fhc.erased": "6b28e16415f0b827da9f0e7ed10f15da65f046140c5ff260b9f7dc5e3d02d056",
+    "test/golden/circuit-mu-dependent-layout.circuit": "a1e04bfab28cffa276aa601d7c85f48a36be8eac8236bfefc65b8b61903070e3",
+    "test/golden/circuit-named-tree.checked": "aaecbf4715821769c721eaf831be072834313e0ddcb2fe2d26d258967f8713ea",
+    "test/golden/circuit-named-tree.erased": "2b6f5a704c7aabd046bb39d658f5bda1ca9e7bfd6a7e42518faa1788bc511359",
+    "test/golden/circuit-named-tree.wat": "82abdb732ba1e5de270ec1bc5ef1f10c660b8d4b7e68865eaa5bd5b482226221",
+    "test/golden/circuit-one-fields.circuit": "3e3167e8af9f881296e661095a011d07b4977219fa53f8a9af289d9ad4c12110",
+    "test/golden/circuit-spine.circuit": "1c7a14ab2d14bbbcc80dd59966413e1c3da63c0cfdb78bdb65a0d309aacf60fa",
+    "test/neg/fhc-leaf-depth.err": "14ce35ed551c51761a98dd5db9ff6a139f74b94d2464545567c8530ebf1002d9",
+    "test/neg/fhc-leaf-depth.kan": "ad82831c4d81ddb89f02b7c206150b44f911eeee9b71ed6ba59c978e32ff087b"
+  }
+}

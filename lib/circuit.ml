@@ -51,6 +51,11 @@ type value =
     circuit cost of its own until it is called, so it reads 0. *)
 let vd_of (v : value) : int = match v with VD n -> n | VClo (_, _, _) -> 0
 
+let bounded_depth (n : Bignum.t) : (value, string) result =
+  Bignum.to_int n
+  |> Option.fold ~none:(Error "unbounded iteration")
+       ~some:(fun (d : int) -> Ok (VD d))
+
 (** The globals open at a closure's birth, joined with the globals open
     at its call site.  Order does not matter, only membership: a name in
     either list is a name whose body is still being unfolded, so meeting
@@ -84,49 +89,157 @@ let eval_type_shape (s : Term.t Shape.t) : (value, string) result =
   | Shape.SFhc _ -> Error "SFhc"
   | Shape.SMpc (_, _) -> Error "SMpc"
 
-(** A literal peano-shaped [SMu] value: 0 at a leaf constructor (one
-    whose arguments do not mention the family at all), 1 plus the
-    deepest recursive argument otherwise.  [None] when a constructor
-    argument mentions the family without itself being a literal chain
-    (an opaque recursive value), so the caller falls back to refusal
-    (R-3: the circuit fragment drops the Zero-quantity multiplier-1
-    fallback, so a non-literal bound is always [unbounded iteration]). *)
-let rec literal_mu_bound (t : Term.t) : int option =
+(** A closed constructor tree of the family [fam], allowing literal
+    fields and acyclic global aliases. Count the layers that belong to
+    [fam], including the leaf: even a match on a leaf executes a branch.
+    A layer of another family passes its own height on without adding
+    one, which keeps a mutually recursive tree at its true [fam] height
+    and keeps a plain payload of another family out of the count. Every
+    field must pass, so one known child cannot hide an opaque sibling.
+    Variables, functions and computed fields remain outside this
+    finite-data fragment.
+
+    One alias body can name the same alias in more than one field, so the
+    alias graph is a directed acyclic graph and a plain walk pays the
+    number of paths, not the number of aliases. [memo] carries the answer
+    of each alias name of one certification as an immutable list, and each
+    step returns the list that it grew, which makes the walk linear in the
+    number of aliases. The key is the name alone, because [fam] is fixed
+    for one list and the answer of a name does not depend on the path that
+    reaches it: a name that [seen] holds is a name that reaches itself,
+    and such a name answers [None] from every start, because every field
+    must pass. *)
+let rec literal_mu_bound (memo : (string * int option) list)
+    (glookup : string -> Term.t option) (fam : string)
+    (seen : string list) (t : Term.t) :
+    int option * (string * int option) list =
   match t with
-  | Term.Var _ -> None
-  | Term.Univ _ -> None
-  | Term.Lan (_, _) -> None
-  | Term.Ran (_, _) -> None
-  | Term.In (s, a, args) -> literal_mu_bound_in s a args
-  | Term.Elim _ -> None
-  | Term.Sec (_, _) -> None
-  | Term.Out (_, _, _) -> None
-  | Term.Let (_, _, _, _) -> None
-  | Term.Ann (tm, _ty) -> literal_mu_bound tm
-  | Term.Global _ -> None
-  | Term.Lit _ -> None
-  | Term.Auto -> None
+  | Term.Var _ -> (None, memo)
+  | Term.Univ _ -> (None, memo)
+  | Term.Lan (_, _) -> (None, memo)
+  | Term.Ran (_, _) -> (None, memo)
+  | Term.In (s, _a, args) -> literal_mu_bound_in memo glookup fam seen s args
+  | Term.Elim _ -> (None, memo)
+  | Term.Sec (_, _) -> (None, memo)
+  | Term.Out (_, _, _) -> (None, memo)
+  | Term.Let (_, _, _, _) -> (None, memo)
+  | Term.Ann (tm, _ty) -> literal_mu_bound memo glookup fam seen tm
+  | Term.Global name -> literal_mu_bound_global memo glookup fam seen name
+  | Term.Lit _ -> (Some 0, memo)
+  | Term.Auto -> (None, memo)
 
-and literal_mu_bound_in (s : Term.t Shape.t) (a : Term.addr) (args : Term.t list) :
-    int option =
+and literal_mu_bound_global (memo : (string * int option) list)
+    (glookup : string -> Term.t option) (fam : string)
+    (seen : string list) (name : string) :
+    int option * (string * int option) list =
+  match () with
+  | () when List.mem name seen -> (None, memo)
+  | () when List.mem_assoc name memo ->
+      (Option.join (List.assoc_opt name memo), memo)
+  | () ->
+      let answer, grown =
+        Option.fold ~none:(fun () -> (None, memo))
+          ~some:(fun (body : Term.t) () ->
+            literal_mu_bound memo glookup fam (name :: seen) body)
+          (glookup name) ()
+      in
+      (answer, (name, answer) :: grown)
+
+and literal_mu_bound_in (memo : (string * int option) list)
+    (glookup : string -> Term.t option) (fam : string)
+    (seen : string list) (s : Term.t Shape.t) (args : Term.t list) :
+    int option * (string * int option) list =
   match s with
-  | Shape.SMu (fam, _) -> literal_mu_bound_ctor fam a args
-  | Shape.SPi (_, _, _) -> None
-  | Shape.SColl _ -> None
-  | Shape.SPar (_, _) -> None
-  | Shape.SNu (_, _) -> None
-  | Shape.SZk (_, _, _) -> None
-  | Shape.SFhc _ -> None
-  | Shape.SMpc (_, _) -> None
+  | Shape.SMu (name, _) ->
+      let best, grown =
+        List.fold_left
+          (fun ((acc : int option), (m : (string * int option) list))
+               (arg : Term.t) ->
+            Option.fold ~none:(fun () -> (None, m))
+              ~some:(fun (best : int) () ->
+                let got, m2 = literal_mu_bound m glookup fam seen arg in
+                (Option.map (max best) got, m2))
+              acc ())
+          (Some 0, memo) args
+      in
+      ( Option.map
+          (fun (n : int) -> if String.equal name fam then n + 1 else n)
+          best,
+        grown )
+  | Shape.SPi (_, _, _) -> (None, memo)
+  | Shape.SColl _ -> (None, memo)
+  | Shape.SPar (_, _) -> (None, memo)
+  | Shape.SNu (_, _) -> (None, memo)
+  | Shape.SZk (_, _, _) -> (None, memo)
+  | Shape.SFhc _ -> (None, memo)
+  | Shape.SMpc (_, _) -> (None, memo)
 
-and literal_mu_bound_ctor (fam : string) (a : Term.addr) (args : Term.t list) :
-    int option =
-  let _ = a in
-  if List.exists (Term.exists_name ~include_families:true [ fam ]) args then
-    match List.filter_map literal_mu_bound args with
-    | [] -> None
-    | (_ :: _) as deeper -> Some (1 + List.fold_left max 0 deeper)
-  else Some 0
+(** The scrutinee of a match at [SMu] must be a constructor tree of the
+    matched family: height 0 answers a literal, or a value of another
+    family, which reaches no branch of this match, so it is no bound.
+    Each call starts an empty [memo], because the answers hold for one
+    family only, and it drops the grown list, because the list holds no
+    answer that a later call can use. *)
+and literal_mu_scrut (glookup : string -> Term.t option) (fam : string)
+    (seen : string list) (t : Term.t) : int option =
+  Option.bind
+    (fst (literal_mu_bound [] glookup fam seen t))
+    (fun (n : int) -> if Int.equal n 0 then None else Some n)
+
+(** Does a constructor value at [SMu] carry a certificate of the family
+    [fam]?  This is the introduction side of the same walk, so it also
+    starts its own [memo]. *)
+and literal_mu_certified (glookup : string -> Term.t option) (fam : string)
+    (seen : string list) (s : Term.t Shape.t) (args : Term.t list) : bool =
+  Option.is_some
+    (fst (literal_mu_bound_in [] glookup fam seen s args))
+
+(** Does a branch body read one of the [k] fields that its own branch
+    binds?  A body that reads none of them holds the same depth at every
+    field depth, so a fold over the scrutinee (rules.ml [mu_beta] passes
+    the recursive result in a field) stays at the depth of one pass and
+    the scrutinee height does not multiply it.  Positions that [eval]
+    reads as a type or as a motive carry depth 0, so they cannot pass a
+    field depth on and are not occurrences here. *)
+let reads_field (k : int) (body : Term.t) : bool =
+  let rec occurs (d : int) (tm : Term.t) : bool =
+    match tm with
+    | Term.Var i -> i >= d && i < d + k
+    | Term.Univ _ -> false
+    | Term.Lan (_, _) -> false
+    | Term.Ran (_, _) -> false
+    | Term.In (_, a, args) -> occurs_addr d a || List.exists (occurs d) args
+    | Term.Elim e ->
+        occurs d e.Term.e_scrut
+        || List.exists
+             (fun ((a : Term.addr), (lg : Term.leg)) ->
+               occurs_addr d a
+               || occurs (d + List.length lg.Term.l_binders) lg.Term.l_body)
+             e.Term.e_branches
+    | Term.Sec (_, legs) ->
+        List.exists
+          (fun (lg : Term.leg) ->
+            occurs (d + List.length lg.Term.l_binders) lg.Term.l_body)
+          legs
+    | Term.Out (_, a, head) -> occurs_addr d a || occurs d head
+    | Term.Let (_, _ty, def, inner) -> occurs d def || occurs (d + 1) inner
+    | Term.Ann (tm, _ty) -> occurs d tm
+    | Term.Global _ -> false
+    | Term.Lit _ -> false
+    | Term.Auto -> false
+  and occurs_addr (d : int) (a : Term.addr) : bool =
+    Term.as_apt a
+    |> Option.fold ~none:false ~some:(fun ((_q : Quantity.t), (arg : Term.t)) ->
+           occurs d arg)
+  in
+  k > 0 && occurs 0 body
+
+(** Does any branch of a match read a field of its own constructor? *)
+let branches_read_fields (branches : (Term.addr * Term.leg) list) : bool =
+  List.exists
+    (fun ((_a : Term.addr), (lg : Term.leg)) ->
+      reads_field (List.length lg.Term.l_binders) lg.Term.l_body)
+    branches
 
 (** [app_spine] peels a chain of [SPi] applications down to its ultimate
     head and the full, in-order argument list, purely structurally (no
@@ -236,9 +349,17 @@ and eval_in (glookup : string -> Term.t option) (seen : string list)
             (max_args glookup seen env args))
   | Shape.SColl _ -> max_args glookup seen env args
   | Shape.SMu (fam, _) ->
-      if List.exists (Term.exists_name ~include_families:true [ fam ]) args then
-        Error "mu"
-      else max_args glookup seen env args
+      (* A field that never names the family is ordinary data at its own
+         depth, as it was before the constructor certificate arrived.
+         Only a family-recursive field that no certificate covers
+         refuses [mu].  The arguments are read first, so an unknown
+         global inside a field keeps its own head word. *)
+      Result.bind (max_args glookup seen env args) (fun (v : value) ->
+          let certified = literal_mu_certified glookup fam seen s args in
+          let recursive =
+            List.exists (Term.exists_name ~include_families:true [ fam ]) args
+          in
+          if certified || not recursive then Ok v else Error "mu")
   | Shape.SPar (_, _) -> Error "SPar"
   | Shape.SNu (_, _) -> Error "SNu"
   | Shape.SZk (_, _, _) -> Error "SZk"
@@ -306,7 +427,8 @@ and eval_app (glookup : string -> Term.t option) (seen : string list)
 (** The five M0 primitives, cost 1 plus the deepest argument (D-8). *)
 and eval_app_prim (glookup : string -> Term.t option) (seen : string list)
     (env : value list) (c : int) (args : Term.t list) : (value, string) result =
-  Result.map (fun (m : value) -> VD (c + vd_of m)) (max_args glookup seen env args)
+  Result.bind (max_args glookup seen env args) (fun (m : value) ->
+      bounded_depth (Bignum.add (Bignum.of_int c) (Bignum.of_int (vd_of m))))
 
 (** Any other application: evaluate the head to a function value, then
     consume the arguments one at a time. *)
@@ -381,9 +503,10 @@ and eval_elim (glookup : string -> Term.t option) (seen : string list)
 and eval_elim_case (glookup : string -> Term.t option) (seen : string list)
     (env : value list) (e : Term.elim) : (value, string) result =
   Result.bind (eval glookup seen env e.Term.e_scrut) (fun (sv : value) ->
-      Result.map
-        (fun (bmax : int) -> VD (max (vd_of sv) (1 + bmax)))
-        (fold_max_branches glookup seen env e.Term.e_branches))
+      Result.bind (fold_max_branches glookup seen env e.Term.e_branches)
+        (fun (bmax : int) ->
+          Result.map (fun (v : value) -> VD (max (vd_of sv) (vd_of v)))
+            (bounded_depth (Bignum.add Bignum.one (Bignum.of_int bmax)))))
 
 and fold_max_branches (glookup : string -> Term.t option) (seen : string list)
     (env : value list) (branches : (Term.addr * Term.leg) list) :
@@ -401,23 +524,26 @@ and fold_max_branches (glookup : string -> Term.t option) (seen : string list)
                 (eval glookup seen env' leg.Term.l_body))))
     (Ok 0) branches
 
-(** Bounded iteration (D-8, narrowed by R-3): the only admitted bound is
-    a literal peano-shaped [SMu] value ([literal_mu_bound]); the
-    multiplier count is structural, not read off any runtime value.  Any
-    other [Elim] at [SMu] (a non-literal scrutinee, including the
-    Zero-quantity case the original brief wording suggested) refuses
-    [unbounded iteration]: v1 has no way to read a variable's actual
-    numeric bound off the closed term alone, and admitting it at
-    multiplier 1 would undercount (see CONTRACT-wave0.md and
-    RULINGS-0b.md R-3). *)
+(** The bound comes from a closed constructor tree of the matched
+    family, inline or through acyclic globals. A branch that reads a
+    field of its own constructor can be a fold, so it runs once for each
+    layer of that tree and the height multiplies the largest branch. A
+    match whose branches read no field of their own constructor runs its
+    one branch once, so the bound is the largest branch alone; the leaf
+    branch still counts, because the branch maximum counts it. An
+    unrepresentable depth refuses rather than wrapping the host integer.
+    Recursive branch functions still fail the ordinary global cycle check. *)
 and eval_elim_mu (glookup : string -> Term.t option) (seen : string list)
     (env : value list) (fam : string) (e : Term.elim) : (value, string) result =
-  let _ = fam in
   Result.bind (fold_max_branches glookup seen env e.Term.e_branches) (fun (bmax : int) ->
-      literal_mu_bound e.Term.e_scrut
+      literal_mu_scrut glookup fam seen e.Term.e_scrut
       |> Option.fold
-           ~none:(Error "unbounded iteration")
-           ~some:(fun (n : int) -> Ok (VD (n * bmax))))
+            ~none:(Error "unbounded iteration")
+            ~some:(fun (n : int) ->
+              (if branches_read_fields e.Term.e_branches then
+                 Bignum.mul (Bignum.of_int n) (Bignum.of_int bmax)
+               else Bignum.of_int bmax)
+              |> bounded_depth))
 
 (** An unapplied function definition has no caller to supply its
     parameter, so [depth] reports the depth of its body with every one

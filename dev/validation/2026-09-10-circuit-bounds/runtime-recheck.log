@@ -1,0 +1,46 @@
+✔ rejects invalid process inputs before opening files or spawning (82.329042ms)
+✔ prior interruption creates empty captures and never starts a command (278.031208ms)
+✔ interruption delivered while captures open prevents spawning (262.613292ms)
+✔ captures binary stdout and stderr with exact exit status (485.906ms)
+✔ reports spawn errors through the response and closes captures (29.573625ms)
+✔ timeout escalates for a child that ignores SIGTERM (448.203542ms)
+✖ signal callback errors reject normally after killing and reaping the child (179.105167ms)
+✔ active interruption returns signal status and reaps the process (370.1155ms)
+✔ escalation callback errors are caught and cleanup retries the kill (426.232791ms)
+✔ unexpected descendant wait errors kill the remaining process group (728.549ms)
+✔ a lingering group member cannot hold a deadline of zero open (535.25975ms)
+✔ a leader that exits before its deadline keeps its own status (538.017458ms)
+✔ an OS string argument keeps its bytes or is rejected (0.828334ms)
+✔ a terminal request preserves application exit code 0 without interruption (3.795166ms)
+✔ a terminal request preserves application exit code 7 without interruption (2.338042ms)
+✔ the argument list reaches init in order and unchanged (2.969416ms)
+✔ a terminal request after operation 4 preserves SIGINT status (9.302625ms)
+✔ a terminal request after operation 4 preserves SIGTERM status (12.889625ms)
+✔ a signal between requests ends the loop with 128 plus the signal number (7.734333ms)
+✔ an interruption reported by operation 4 earns one shutdown request (703.628583ms)
+✔ operation 11 answers the zk verdict of a proof slot (4.127083ms)
+✔ the fhc and mpc operations keep one slot layout (5.211333ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 21
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5401.325958
+
+✖ failing tests:
+
+test at dev/runtime-test.mjs:102:1
+✖ signal callback errors reject normally after killing and reaping the child (179.105167ms)
+  Error: ENOENT: no such file or directory, open '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-aNQ0Tj/marker'
+      at async open (node:internal/fs/promises:634:25)
+      at async readFile (node:internal/fs/promises:1238:14)
+      at async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt18/veil-circuit/dev/runtime-test.mjs:115:24)
+      at async Test.run (node:internal/test_runner/test:1054:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-aNQ0Tj/marker'
+  }

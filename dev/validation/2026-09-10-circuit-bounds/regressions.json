@@ -1,0 +1,136 @@
+{
+  "base": "d843a01986dd3213d8f45cfb9b4ac4ef526aa2df",
+  "compiler_sha256": "051f887dcee136bec683e6cdba7de84fd51f079d1aec0317adb0005e872018bd",
+  "baseline_compiler_sha256": "5fb7734c6c3235621ecac1fcbbd1a0980f04d5c55f48522b73b5dd73d369d514",
+  "checks": [
+    {
+      "label": "baseline accepted understated FHC depth",
+      "command": [
+        "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe",
+        "check",
+        "test/neg/fhc-leaf-depth.kan"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "new checker rejects understated FHC depth",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "check",
+        "test/neg/fhc-leaf-depth.kan"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "mismatch: the level of the result is the level of the argument plus the depth of the function\n"
+    },
+    {
+      "label": "correct FHC depth accepted",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "check",
+        "test/fixtures/circuit-fhc.kan"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "named leaf circuit depth",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "circuit",
+        "test/fixtures/circuit-fhc.kan"
+      ],
+      "exit_code": 1,
+      "stdout": "namedLeaf: depth 0\nleafAlias: depth 0\nleafCircuit: depth 2\nlift: refused: SFhc\n",
+      "stderr": ""
+    },
+    {
+      "label": "reader regressions",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/test/circuit_bounds.exe"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS alias\nPASS leaf-work\nPASS opaque-sibling\nPASS cycle-bound\nPASS cycle-value\nPASS representable-depth\nPASS overflow\nPASS integer-limit\nPASS primitive-overflow\nPASS case-overflow\nCIRCUIT-BOUNDS 10/10\n",
+      "stderr": ""
+    },
+    {
+      "label": "tree fixture kernel",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "run",
+        "test/fixtures/circuit-named-tree.kan",
+        "--export",
+        "main",
+        "--host",
+        "kernel"
+      ],
+      "exit_code": 0,
+      "stdout": "42\n",
+      "stderr": ""
+    },
+    {
+      "label": "tree fixture node",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "run",
+        "test/fixtures/circuit-named-tree.kan",
+        "--export",
+        "main",
+        "--host",
+        "node"
+      ],
+      "exit_code": 0,
+      "stdout": "42\n",
+      "stderr": ""
+    },
+    {
+      "label": "tree fixture wasmtime",
+      "command": [
+        "/Users/oobi/Documents/gpt18/veil-circuit/_build/default/bin/kanon.exe",
+        "run",
+        "test/fixtures/circuit-named-tree.kan",
+        "--export",
+        "main",
+        "--host",
+        "wasmtime"
+      ],
+      "exit_code": 0,
+      "stdout": "42\n",
+      "stderr": ""
+    },
+    {
+      "label": "trusted lines",
+      "command": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "TRUSTED-LINES kernel=5122/5250 encoder=246/600 OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "shape audit",
+      "command": [
+        "zsh",
+        "dev/r0-audit.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "R0-AUDIT OK\n",
+      "stderr": ""
+    },
+    {
+      "label": "whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

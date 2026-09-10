@@ -36,7 +36,7 @@
 --     refusal line.
 --
 -- `kanon check test/circuit-spine.kan` exits 0 (the file is well
--- typed); `kanon circuit test/circuit-spine.kan` exits 1 (five
+-- typed); `kanon circuit test/circuit-spine.kan` exits 1 (some
 -- definitions below are refused, by design).
 
 -- Admitted: a Nat literal.
@@ -89,10 +89,8 @@ mu SpineN : Type 0 :=
 | spineZero : SpineN
 | spineSucc (n : SpineN) : SpineN
 
--- REFUSED, head `mu`: an introduction of a mu family whose argument
--- names that same family.  `eval_in` refuses every nested constructor
--- of a mu family, so a peano literal bound to a global name is never a
--- circuit; only a literal written in place at the match site is.
+-- Admitted: a finite nested constructor value, also usable as a bound
+-- through its global name.
 
 def spineThree : SpineN := spineSucc (spineSucc (spineSucc spineZero))
 
@@ -148,3 +146,51 @@ def opaqueApply : (f : Nat -> Nat) -> Nat :=
 def main : Nat :=
   natAdd (natAdd (natAdd natLit (identity 1)) (natAdd total nested))
     (natAdd (natAdd cmpFlag pairSum) (natAdd five spineDirect))
+
+-- Acyclic global aliases preserve the finite tree certificate.
+def spineAlias : SpineN := spineThree
+def spineNamed : Nat :=
+  match spineAlias as x in SpineN return Nat with
+  | spineZero => 0
+  | spineSucc p => natAdd 1 2
+
+-- A leaf still executes its branch, whose depth must not disappear.
+def spineZeroWork : Nat :=
+  match (spineZero : SpineN) as x in SpineN return Nat with
+  | spineZero => natMul (natAdd 1 2) 3
+  | spineSucc p => 0
+
+mu SpineTree : Type 0 :=
+| spineLeaf (n : Nat) : SpineTree
+| spineFork (left right : SpineTree) : SpineTree
+
+def spineTree : SpineTree := spineFork (spineLeaf 3) (spineLeaf 4)
+def spineTreeMatch : Nat :=
+  match spineTree as x in SpineTree return Nat with
+  | spineLeaf n => natAdd n 1
+  | spineFork left right => 7
+
+-- All fields must be finite. A literal sibling cannot hide a variable
+-- or an axiom, even if a match branch ignores that field.
+def spineMixed (t : SpineTree) : Nat :=
+  match (spineFork (spineLeaf 3) t : SpineTree) as x in SpineTree return Nat with
+  | spineLeaf n => 0
+  | spineFork left right => 1
+
+axiom unknownTree : SpineTree
+def spineUnknown : Nat :=
+  match (spineFork (spineLeaf 3) unknownTree : SpineTree) as x in SpineTree return Nat with
+  | spineLeaf n => 0
+  | spineFork left right => 1
+
+-- Computed fields and locally bound values are deliberately deferred.
+def spineComputed : Nat :=
+  match (spineLeaf (natAdd 1 2) : SpineTree) as x in SpineTree return Nat with
+  | spineLeaf n => n
+  | spineFork left right => 0
+
+def spineLocal : Nat :=
+  let t : SpineN := spineThree in
+  match t as x in SpineN return Nat with
+  | spineZero => 0
+  | spineSucc p => 1
