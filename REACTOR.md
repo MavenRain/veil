@@ -122,8 +122,8 @@ the left list's length.
 | 7 | payload is content | Write stderr |
 | 8 | path | Resolve an existing path through realpath |
 | 9 | base, path | Resolve a path relative to a base |
-| 10 | witness | Write a proof slot; return its index |
-| 11 | slot, instance, relation | Return 1 when the relation holds, else 0 |
+| 10 | instance, witness | Write a proof slot; return its index |
+| 11 | slot, instance, relation | Return 1 when the stored instance matches and the relation holds, else 0 |
 | 12 | level, plaintext | Write a ciphertext slot; return its index |
 | 13 | level, f, slot | Write the evaluated slot at the level; return its index |
 | 14 | slot | Return the plaintext of a ciphertext slot |
@@ -136,8 +136,14 @@ a flag and a plaintext. The flag holds the instance for the zk operations, the
 level for the fhc operations, and the party flag for the mpc operations. The
 party flag is the constant 0 in version one. Operation 10 `zk-prove` writes a
 slot that holds the instance and the witness and answers its index. Operation
-11 `zk-verify` reads a proof slot
-and an instance and answers 1 when the witness satisfies the relation, else 0.
+11 `zk-verify` reads a proof slot and an instance. It answers 1 only when
+the supplied instance equals the stored instance and the witness satisfies
+the relation. An instance mismatch answers 0 without applying the relation;
+the host twin rejects an unknown relation code first. On the host side the
+relation answers a natural number, and the verdict is 1 only when that number
+equals the supplied instance, so the table below holds arithmetic functions,
+not predicates. The relation itself is supplied at verification and is not
+stored in the slot.
 Operation 12 `fhc-enc` writes a slot that holds the level and the plaintext and
 answers its index. Operation 13 `fhc-eval` reads a slot, applies `f`, writes a
 new slot at the given level, and answers its index. Operation 14 `fhc-dec`

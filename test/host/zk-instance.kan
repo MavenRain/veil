@@ -1,0 +1,13 @@
+-- Runtime ABI regression, linked with runtime/reactor.kan by the HOST gate.
+-- These ordinary functions exercise the plaintext twin, without postulates.
+def squareRelation (x w : Nat) : Verdict := natEq (natMul w w) x
+def anyRelation (x w : Nat) : Verdict := natEq 0 0
+
+def squareCheck (stored queried witness : Nat) : Nat :=
+  zkVerify (zkProve stored witness) queried squareRelation
+
+def anyCheck (stored queried witness : Nat) : Nat :=
+  zkVerify (zkProve stored witness) queried anyRelation
+
+def storedInstance (instance witness : Nat) : Nat :=
+  slotFlag (zkProve instance witness)

@@ -1,0 +1,17 @@
+node:internal/modules/run_main:104
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: squareCheck(10, 9, 3)
+
+1 !== 0
+
+    at file:///Users/oobi/Documents/gpt3/veil-instance/dev/zk-instance-test.mjs:34:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual'
+}
+
+Node.js v23.10.0

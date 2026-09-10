@@ -172,7 +172,7 @@ async function atomicWrite(path, body) {
 }
 
 // The eight veil host ops, REACTOR.md rows 10 to 17. A blob is a slot
-// that holds a flag and a plaintext. The flag is 0 for the zk ops, the
+// that holds a flag and a plaintext. The flag is the instance for the zk ops, the
 // level for the fhc ops, and the party flag for the mpc ops. The party
 // flag is the constant 0 in version one. A slot index and a plaintext
 // cross the request boundary as decimal byte strings, like every other
@@ -242,7 +242,7 @@ async function perform(code, args, body, interrupted) {
       const slot = readSlot(args[0]);
       const instance = numeric(args[1]);
       const relation = hostFunction(args[2]);
-      return Buffer.from(String(Number(relation([slot.plain]) === instance)));
+      return Buffer.from(String(Number(slot.flag === instance && relation([slot.plain]) === instance)));
     }
     case 12: return writeSlot(numeric(args[0]), numeric(args[1]));
     case 13: {

@@ -366,15 +366,23 @@ test('operation 11 answers the zk verdict of a proof slot', async t => {
   const answers = [];
   // State 0 proves the witness 3 at the instance 9, so the slot holds the
   // instance in its flag and the witness in its plaintext (R-W4-8).
-  // States 1 and 2 verify that slot with the squaring relation, host
-  // function 2, against the instance 9 and then against the instance 10.
+  // The identity relation holds at 3 for the same witness, so that row
+  // isolates instance binding from the relation check at operation 11.
+  const script = [
+    { code: 10, args: () => ['9', '3'] },
+    { code: 11, args: slots => [slots.at(0), '9', '2'] },
+    { code: 11, args: slots => [slots.at(0), '10', '2'] },
+    { code: 11, args: slots => [slots.at(0), '3', '0'] },
+    { code: 11, args: slots => [slots.at(0), '9', '0'] },
+    { code: 10, args: () => ['0', '0'] },
+    { code: 11, args: slots => [slots.at(5), '0', '2'] },
+    { code: 11, args: slots => [slots.at(5), '1', '3'] },
+  ];
   const api = {
     ...lists,
     init: () => 0,
-    requestCode: state => state === 0 ? 10 : state < 3 ? 11 : 0,
-    requestArgs: state => (state === 0
-      ? ['9', '3']
-      : [answers.at(0), state === 1 ? '9' : '10', '2']).map(word),
+    requestCode: state => state < script.length ? script.at(state).code : 0,
+    requestArgs: state => script.at(state).args(answers).map(word),
     requestBody: () => [],
     resume: (state, status, answer) => {
       assert.equal(status, 0);
@@ -385,7 +393,7 @@ test('operation 11 answers the zk verdict of a proof slot', async t => {
   };
   globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
   assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
-  assert.deepEqual(answers, ['1', '1', '0']);
+  assert.deepEqual(answers, ['1', '1', '0', '0', '0', '2', '1', '0']);
 });
 
 test('the fhc and mpc operations keep one slot layout', async t => {

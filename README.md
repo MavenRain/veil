@@ -6,6 +6,10 @@ veil is kanon plus three host shapes for private computation: `SZk`
 the plaintext reactor twins in [REACTOR.md](REACTOR.md).  The trusted
 kernel bound is 5250 lines.
 
+The plaintext proof runtime checks that verification uses the instance
+stored by `zkProve`, as well as checking the supplied relation. The
+[instance-binding validation](dev/ZK-INSTANCE.md) covers both runtime twins.
+
 Function parameters can share a type and quantity:
 
 ```kanon

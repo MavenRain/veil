@@ -127,7 +127,7 @@ column gives the name the row writes, either a `tid` or a `fid`.
 | `Ann` | the term under it, erased | none |
 | `Global` | `KGlobal name` | none |
 | `Lit` | `KLit` | none |
-| `In` at `Lan SZk` (`prove y w r`) | `KApp (KGlobal zkProve, [the witness])`, because the proof is a host blob; the slot holds the flag `0` and the witness, and the erased blob type is `struct pair<>` | none |
+| `In` at `Lan SZk` (`prove y w r`) | `KApp (KGlobal zkProve, [the instance, the witness])`, because the proof is a host blob; the slot holds the instance as its flag and the witness as its plaintext, and the erased blob type is `union any` | none |
 | `Sec` and `Out` at `Ran SFhc` (`enc`, `eval`, `dec`) | `KApp (KGlobal fhcEnc, [the level, the plaintext])`, `KApp (KGlobal fhcEval, [the out level, f, the slot])` and `KApp (KGlobal fhcDec, [the slot])`; the slot holds the level and the plaintext, and only `dec` answers a Nat | none |
 | `Sec` and `Out` at `Ran SMpc` (`input`, `mpc`, `open`) | `KApp (KGlobal mpcInput, [the plaintext])`, `KApp (KGlobal mpcShare, [the subset, f, the share slots])` and `KApp (KGlobal mpcOpen, [the slot])`; the slot holds the party flag, which is the constant `0` in v1, and the plaintext, and only `open` answers a Nat | none |
 | `Auto`, `Sec` and `Out` at `SMu`, every form at `SPar` and at `SNu` | `Error (Not_yet ..)` with the milestone word | none |
@@ -353,15 +353,21 @@ the surface writes it `zk (q w : W) * R`.
 | rule | what the pack decides |
 | --- | --- |
 | formation | `Lan (SZk (q, w, W)) R` stands at the universe of `W` joined with the universe of `R`, which is the join the point rules compute, so the proof type never sits at `Prop` |
-| In | `prove x w r` is `In (SZk ..) (APt (q, w)) [r]`.  It checks against an expected left former, and the witness stands at the quantity the type declares |
+| In | `prove x w r` is `In (SZk ..) (APt (q, w)) [r; x]`.  It checks against an expected left former, and the witness stands at the quantity the type declares |
 | Elim | `verify x p` is an `Elim` at the left former with the leg address `ALeg 0`.  The one branch binds the witness and the relation |
 | beta | `verify x (prove x w r)` converts to the relation at that witness, so a proof of the relation is a proof of the statement |
 | no eta | neither former gets an eta row.  See section 4 |
 
+The runtime proof is a plaintext slot holding the public instance and witness.
+The ordinary runtime function `zkVerify` returns 1 only when the supplied
+instance matches the stored instance and the supplied relation holds.
+It returns 0 for a mismatch even if that witness satisfies another statement.
+The relation is not bound into the slot, and the twin provides no cryptographic
+security. Surface `verify` remains a proposition; the runtime function is
+tested directly through the ABI described in [REACTOR.md](REACTOR.md).
+
 The refusal words of the pack.  The right former answers `Ran SZk
-arrives at V5`, because a co-proof has no meaning in v1.  Erasure of a
-zk type or of a proof answers `host blobs arrive at V4`, because a proof
-is a host value and the erased form carries no host value.  The circuit
+arrives at V5`, because a co-proof has no meaning in v1.  The circuit
 predicate answers `circuit fragment arrives at V5: HEAD` when the
 relation reads a head the fragment cannot compile, for example a
 postulate or a recursive family.

@@ -53,7 +53,7 @@ def bytesAppend : Bytes -> Bytes -> Bytes :=
     bytesReverseOnto (bytesReverseOnto left bytesNil) right
 
 -- The eight veil host ops, REACTOR.md rows 10 to 17.  A blob is a slot
--- that holds a flag and a plaintext.  The flag is 0 for the zk ops, the
+-- that holds a flag and a plaintext.  The flag is the instance for the zk ops, the
 -- level for the fhc ops, and the party flag for the mpc ops.  The party
 -- flag is the constant 0 in v1, because the party of "input" does not
 -- survive erasure.  This twin has no security.  It gives the erased
@@ -71,16 +71,20 @@ def slotPlain : Slot -> Nat := fun (c : Slot) =>
 -- Op 10.  Write a slot that holds the instance and the witness (R-W4-8).
 def zkProve : (x : Nat) -> (w : Nat) -> Slot := fun (x : Nat) (w : Nat) => blob x w
 
--- Op 11.  Apply the relation to the instance and to the slot's witness.
+-- Op 11.  Match the stored instance, then apply the relation to the instance
+-- and to the slot's witness.
 -- The relation answers the two leg sum that the prims answer, and leg 1
 -- is true, so the verdict is 1 for leg 1 and 0 for leg 0.
 def Verdict : Type 0 := sum ((prod () : Type 0), (prod () : Type 0))
 
 def zkVerify : (c : Slot) -> (y : Nat) -> (r : (x : Nat) -> (w : Nat) -> Verdict) -> Nat :=
   fun (c : Slot) (y : Nat) (r : (x : Nat) -> (w : Nat) -> Verdict) =>
-    case (r y (slotPlain c)) as z return Nat with
+    case (natEq (slotFlag c) y) as same return Nat with
     | 0 (x : prod ()) => 0
-    | 1 (t : prod ()) => 1
+    | 1 (t : prod ()) =>
+      case (r y (slotPlain c)) as z return Nat with
+      | 0 (x : prod ()) => 0
+      | 1 (t : prod ()) => 1
 
 -- Op 12.  Write a slot that holds the level and the plaintext.
 def fhcEnc : (level : Nat) -> (x : Nat) -> Slot :=

@@ -438,7 +438,7 @@ leg_mpc () {
 # test/golden/NAME.run.  R-W1-10: an empty golden or an empty runner
 # output is a FAIL, because an empty match is not a pass.
 leg_host () {
-  local src name delta out programs
+  local src name delta out programs verdict
   local -a tmo
   tmo=(timeout 60)
   if ! command -v timeout > /dev/null 2>&1; then
@@ -481,7 +481,34 @@ leg_host () {
     fi
     programs=$(( programs + 1 ))
   done
-  print -r -- "PASS HOST programs=$programs"
+  if ! $tmo node $ROOT/dev/zk-instance-test.mjs $DRIVER > $WORK/zk-instance.hostrun 2>&1; then
+    cat $WORK/zk-instance.hostrun
+    print -r -- "FAIL HOST"
+    return 1
+  fi
+  # R-W1-10 again: the leg reads the verdict line only, so an added passing
+  # case or a warning line on either stream cannot turn the leg red. The leg
+  # is red when the process exits nonzero, when no verdict line is present,
+  # or when the two counts of the verdict line differ.
+  verdict=''
+  while IFS= read -r out; do
+    if [[ $out == 'ZK-INSTANCE '<->'/'<-> ]]; then
+      verdict=${out#ZK-INSTANCE }
+    fi
+  done < $WORK/zk-instance.hostrun
+  if [[ -z $verdict ]]; then
+    cat $WORK/zk-instance.hostrun
+    print -r -- "host: the compiled check printed no ZK-INSTANCE verdict line"
+    print -r -- "FAIL HOST"
+    return 1
+  fi
+  if [[ ${verdict%/*} != ${verdict#*/} ]]; then
+    cat $WORK/zk-instance.hostrun
+    print -r -- "host: the compiled check passed $verdict cases"
+    print -r -- "FAIL HOST"
+    return 1
+  fi
+  print -r -- "PASS HOST programs=$programs zk-instance=$verdict"
   return 0
 }
 
