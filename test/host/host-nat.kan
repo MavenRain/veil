@@ -1,0 +1,40 @@
+-- Observe large plaintext results through small verdict exports.
+def hostSame (actual expected : Nat) : Nat :=
+  case (natEq actual expected) as equal return Nat with
+  | 0 (no : prod ()) => 0
+  | 1 (yes : prod ()) => 1
+
+def hostSquare (x : Nat) : Nat := natMul x x
+def hostSuccessor (x : Nat) : Nat := natAdd x 1
+def hostSquareSum (x y : Nat) : Nat := hostSquare (natAdd x y)
+def hostSuccessorSum (x y : Nat) : Nat := hostSuccessor (natAdd x y)
+def hostRelation (x w : Nat) : Verdict := natEq (hostSquare w) x
+
+def hostProof : Slot := zkProve 100000000000000000000 10000000000
+def zkLarge : Nat := zkVerify hostProof 100000000000000000000 hostRelation
+def zkAdjacent : Nat := zkVerify hostProof 100000000000000000001 hostRelation
+def zkFalse : Nat :=
+  zkVerify (zkProve 100000000000000000000 10000000001) 100000000000000000000 hostRelation
+
+def fhcI31 : Nat :=
+  hostSame (fhcDec (fhcEval 1 hostSuccessor (fhcEnc 0 1073741823))) 1073741824
+def hostCipher : Slot := fhcEval 1 hostSuccessor (fhcEnc 0 9007199254740992)
+def fhcSafe : Nat := hostSame (fhcDec hostCipher) 9007199254740993
+def fhcSquare : Nat :=
+  hostSame (fhcDec (fhcEval 2 hostSquare hostCipher)) 81129638414606699710187514626049
+def fhcLevel : Nat :=
+  hostSame (slotFlag (fhcEval 9007199254740993 hostSuccessor hostCipher)) 9007199254740993
+
+def hostParties : prod (Nat, Nat) := tuple (1, 1)
+def hostLeft : Slot := mpcInput 9007199254740993
+def hostRight : Slot := mpcInput 2
+def mpcSum : Nat :=
+  hostSame (mpcOpen (mpcShare hostParties natAdd hostLeft hostRight)) 9007199254740995
+def mpcProduct : Nat :=
+  hostSame (mpcOpen (mpcShare hostParties natMul hostLeft hostRight)) 18014398509481986
+def mpcSquare : Nat :=
+  hostSame (mpcOpen (mpcShare hostParties hostSquareSum hostLeft hostRight)) 81129638414606735738984533590025
+def mpcSuccessor : Nat :=
+  hostSame (mpcOpen (mpcShare hostParties hostSuccessorSum hostLeft hostRight)) 9007199254740996
+def mpcZero : Nat :=
+  hostSame (mpcOpen (mpcShare hostParties natMul hostLeft (mpcInput 0))) 0

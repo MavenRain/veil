@@ -512,6 +512,47 @@ leg_host () {
   return 0
 }
 
+# The host natural harness compiles test/host/host-nat.kan and
+# test/host/nat-bytes.kan with the reactor and runs the byte cases through
+# the JavaScript host.  R-W1-10, as in leg_host: the leg reads the verdict
+# line only, so an added passing case or a warning line on either stream
+# cannot turn the leg red.  The leg is red when the process exits nonzero,
+# when no verdict line is present, or when the two counts differ.
+leg_host_nat () {
+  local out verdict
+  local -a tmo
+  tmo=(timeout 60)
+  if ! command -v timeout > /dev/null 2>&1; then
+    tmo=()
+  fi
+  mkdir -p $WORK || return 9
+  if ! $tmo node $ROOT/dev/host-nat-test.mjs $DRIVER > $WORK/host-nat.hostrun 2>&1; then
+    cat $WORK/host-nat.hostrun
+    print -r -- "FAIL HOST-NAT"
+    return 1
+  fi
+  verdict=''
+  while IFS= read -r out; do
+    if [[ $out == 'HOST-NAT '<->'/'<-> ]]; then
+      verdict=${out#HOST-NAT }
+    fi
+  done < $WORK/host-nat.hostrun
+  if [[ -z $verdict ]]; then
+    cat $WORK/host-nat.hostrun
+    print -r -- "host-nat: the harness printed no HOST-NAT verdict line"
+    print -r -- "FAIL HOST-NAT"
+    return 1
+  fi
+  if [[ ${verdict%/*} != ${verdict#*/} ]]; then
+    cat $WORK/host-nat.hostrun
+    print -r -- "host-nat: the harness passed $verdict checks"
+    print -r -- "FAIL HOST-NAT"
+    return 1
+  fi
+  print -r -- "PASS HOST-NAT checks=$verdict"
+  return 0
+}
+
 mkdir -p $WORK || exit 9
 
 # One leg alone, which is how the watchdog reaches a leg body.
@@ -532,6 +573,7 @@ if [[ $# -ge 2 && $1 == "--leg" ]]; then
     fhc) leg_fhc; exit $? ;;
     mpc) leg_mpc; exit $? ;;
     host) leg_host; exit $? ;;
+    host-nat) leg_host_nat; exit $? ;;
     *) print -r -- "gates: unknown leg $2"; exit 64 ;;
   esac
 fi
@@ -608,6 +650,7 @@ leg FAST ZK SELF zsh $SELF --leg zk
 leg FAST FHC SELF zsh $SELF --leg fhc
 leg FAST MPC SELF zsh $SELF --leg mpc
 leg MED HOST SELF zsh $SELF --leg host
+leg MED HOST-NAT SELF zsh $SELF --leg host-nat
 leg MED DENOMINATORS SELF zsh $SELF --leg denominators
 leg MED HOUSE '^HOUSE OK$' zsh $ROOT/dev/house.sh $ROOT
 leg FAST PIN SELF zsh $SELF --leg pin

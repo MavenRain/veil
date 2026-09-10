@@ -1,0 +1,14 @@
+{
+  "base": "f3b92cd883b28c234c46e2a6c130f2238a2e68b4",
+  "validated_in": "/Users/oobi/Documents/gpt3/veil-continue",
+  "sha256": {
+    "runtime/reactor.mjs": "7cee6f44ec7c38f0949eb80ffc98cc55028f6cafc664e52226f6eab2cec355c0",
+    "dev/runtime-test.mjs": "d53dd1dc7db5e30fdb2f44f345a6afe26cc10646f1c16f5a2c52376756ebca68",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "test/host/host-nat.kan": "6e1a69e1afe5f1d4ac77389930aad054c3259c117c37bd0e1350826163f085d7",
+    "test/host/nat-bytes.kan": "72f1370639b5bc86da81e89144a9f4c18584cf1f2abef990b9a48b17080c3978"
+  },
+  "compiler_sha256": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+  "capture_format": "stdout followed by stderr, trailing whitespace stripped"
+}

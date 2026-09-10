@@ -169,6 +169,18 @@ into a fixed table: 0 is the sum, 1 is the product, 2 is the square of the sum,
 and 3 is the successor of the sum. Neither twin has security. They exist to
 test the ABI and the three postulates.
 
+The instance, witness, level and plaintext arguments of operations 10 to 17
+are arbitrary-precision naturals. They must be nonempty ASCII decimal digit
+strings. Leading zeros are accepted; plaintext results use canonical decimal
+digits. Signs, spaces, fractions, exponent notation and alternate bases are
+rejected with status 1 through `resume`, without allocating a slot. The
+JavaScript slot store holds flags and plaintexts as `BigInt`, and all four
+host arithmetic functions preserve exact results beyond both the i31 and
+safe-integer limits. Slot indices, function codes and the subset count of
+operation 16 still use safe integers. The direct numeric WebAssembly export
+ABI still requires i31 values; large slot data crosses the host request
+boundary as bytes. [Validation](dev/HOST-NAT.md) exercises both paths.
+
 OS numeric arguments use decimal byte strings and must fit a JavaScript safe
 integer. Timeouts additionally fit `0..2147483647`. A timeout of 0 sets no
 deadline. OS string arguments must be valid UTF-8: a byte string that a UTF-8

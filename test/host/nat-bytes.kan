@@ -1,0 +1,52 @@
+-- Exercise a large decimal through the real request and response byte lists.
+mu NatHostState : Type 0 with
+| sealing : Bytes -> NatHostState
+| evaluating : Bytes -> NatHostState
+| opening : Bytes -> NatHostState
+| reporting : Nat -> Bytes -> NatHostState
+| done : Nat -> NatHostState
+
+def init (argv : Words) : NatHostState := sealing (wordsHead argv)
+
+def resume (state : NatHostState) (status : Nat) (answer : Bytes) : NatHostState :=
+  case (natEq status 0) with
+  | 0 (no : prod ()) => done 1
+  | 1 (yes : prod ()) =>
+    case state as current in NatHostState return NatHostState with
+    | sealing plain => evaluating answer
+    | evaluating slot => opening answer
+    | opening slot => reporting 6 answer
+    | reporting stream body => done 0
+    | done result => done result
+
+def requestCode (state : NatHostState) : Nat :=
+  case state as current in NatHostState return Nat with
+  | sealing plain => 12
+  | evaluating slot => 13
+  | opening slot => 14
+  | reporting stream body => stream
+  | done result => 0
+
+def requestArgs (state : NatHostState) : Words :=
+  case state as current in NatHostState return Words with
+  | sealing plain => wordsCons b"0" (wordsCons plain wordsNil)
+  | evaluating slot => wordsCons b"1" (wordsCons b"3" (wordsCons slot wordsNil))
+  | opening slot => wordsCons slot wordsNil
+  | reporting stream body => wordsNil
+  | done result => wordsNil
+
+def requestBody (state : NatHostState) : Bytes :=
+  case state as current in NatHostState return Bytes with
+  | sealing plain => bytesNil
+  | evaluating slot => bytesNil
+  | opening slot => bytesNil
+  | reporting stream body => body
+  | done result => bytesNil
+
+def exitCode (state : NatHostState) : Nat :=
+  case state as current in NatHostState return Nat with
+  | sealing plain => 1
+  | evaluating slot => 1
+  | opening slot => 1
+  | reporting stream body => 1
+  | done result => result

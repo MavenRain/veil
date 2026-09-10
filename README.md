@@ -9,6 +9,9 @@ kernel bound is 5250 lines.
 The plaintext proof runtime checks that verification uses the instance
 stored by `zkProve`, as well as checking the supplied relation. The
 [instance-binding validation](dev/ZK-INSTANCE.md) covers both runtime twins.
+The host runtime also preserves arbitrary-precision natural values and
+arithmetic results for all three shapes, as checked by the
+[host natural validation](dev/HOST-NAT.md).
 
 Function parameters can share a type and quantity:
 
@@ -342,7 +345,7 @@ Every leg prints one
 captured.  BUILD is the one leg that ends the run when it fails, because
 every later leg reads the build it makes.  Every other leg runs even
 when an earlier leg failed, so one run names every failing leg.  The
-twenty-one legs, in order:
+twenty-seven legs, in order:
 
 ```
 BUILD            dev/dunecho.sh build prints 0 errors, 0 warnings
@@ -357,6 +360,12 @@ M0-E2E           check, emit, wasm-opt, kernel and both hosts on the spine
 M0-TIME          the median of the spine's run stays under the bound
 M0-RATIO         corpus check time per line against tot's frozen baseline
 TRUSTED-LINES    the kernel eight and the encoder stay under their bounds
+CIRCUIT          the circuit rows of the mu fixtures against their bounds
+ZK               the zk pack, its circuit rows and disclosure, against goldens
+FHC              the fhc pack, its circuit rows and disclosure, against goldens
+MPC              the mpc pack, its circuit rows and disclosure, against goldens
+HOST             three compiled host programs and the compiled instance check
+HOST-NAT         exact host naturals in the compiled twin and across the bytes
 DENOMINATORS     dev/denominators.json matches its sha256 row
 HOUSE            the house rules over lib, surface, bin, test, wasm and dev
 PIN              PIN, vendor/tot and the pin worktree name one sha

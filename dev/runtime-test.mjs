@@ -430,3 +430,132 @@ test('the fhc and mpc operations keep one slot layout', async t => {
   assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
   assert.deepEqual(answers, ['1', '2', '6', '3', '4', '5', '15']);
 });
+
+// Drive the actual request loop with a scripted byte-list ABI. Each response
+// is checked before another request can use it as a slot index.
+const slotScript = async (t, script) => {
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  const answers = [];
+  const api = {
+    ...lists,
+    init: () => 0,
+    requestCode: state => state < script.length ? script.at(state).code : 0,
+    requestArgs: state => script.at(state).args.map(text => [...Buffer.from(text)]),
+    requestBody: () => [],
+    resume: (state, status, bytes) => {
+      const step = script.at(state);
+      const answer = Buffer.from(bytes).toString();
+      assert.equal(status, step.status ?? 0, `step ${state}, operation ${step.code}: ${answer}`);
+      if (step.answer instanceof RegExp) assert.match(answer, step.answer);
+      else assert.equal(answer, step.answer, `step ${state}, operation ${step.code}`);
+      answers.push(answer);
+      return state + 1;
+    },
+    exitCode: () => 0,
+  };
+  globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+  assert.equal(answers.length, script.length);
+};
+
+test('veil host naturals roundtrip across i31 and safe-integer boundaries', async t => {
+  const script = [];
+  let nextSlot = 0;
+  for (const input of ['0', '0000', '00042', '1073741823', '1073741824',
+    '9007199254740991', '9007199254740992', '9007199254740993',
+    '123456789012345678901234567890123456789012345678901234567890']) {
+    const canonical = BigInt(input).toString();
+    const proof = String(++nextSlot);
+    const cipher = String(++nextSlot);
+    const evaluated = String(++nextSlot);
+    const share = String(++nextSlot);
+    script.push(
+      { code: 10, args: [input, input], answer: proof },
+      { code: 11, args: [proof, canonical, '0'], answer: '1' },
+      { code: 11, args: [proof, String(BigInt(input) + 1n), '0'], answer: '0' },
+      { code: 12, args: [input, input], answer: cipher },
+      { code: 14, args: [cipher], answer: canonical },
+      { code: 13, args: [input, '0', cipher], answer: evaluated },
+      { code: 14, args: [evaluated], answer: canonical },
+      { code: 15, args: [input], answer: share },
+      { code: 17, args: [share], answer: canonical },
+    );
+  }
+  await slotScript(t, script);
+});
+
+test('veil host naturals compute exact zk, fhc and mpc results', async t => {
+  await slotScript(t, [
+    { code: 10, args: ['100000000000000000000', '10000000000'], answer: '1' },
+    { code: 11, args: ['1', '100000000000000000000', '2'], answer: '1' },
+    { code: 11, args: ['1', '100000000000000000001', '2'], answer: '0' },
+    { code: 10, args: ['100000000000000000000', '10000000001'], answer: '2' },
+    { code: 11, args: ['2', '100000000000000000000', '2'], answer: '0' },
+    { code: 12, args: ['0', '1073741823'], answer: '3' },
+    { code: 13, args: ['1', '3', '3'], answer: '4' },
+    { code: 14, args: ['4'], answer: '1073741824' },
+    { code: 12, args: ['0', '9007199254740992'], answer: '5' },
+    { code: 13, args: ['1', '3', '5'], answer: '6' },
+    { code: 14, args: ['6'], answer: '9007199254740993' },
+    { code: 13, args: ['2', '2', '6'], answer: '7' },
+    { code: 14, args: ['7'], answer: '81129638414606699710187514626049' },
+    { code: 15, args: ['9007199254740993'], answer: '8' },
+    { code: 15, args: ['2'], answer: '9' },
+    { code: 16, args: ['2', '0', '8', '9'], answer: '10' },
+    { code: 17, args: ['10'], answer: '9007199254740995' },
+    { code: 16, args: ['2', '1', '8', '9'], answer: '11' },
+    { code: 17, args: ['11'], answer: '18014398509481986' },
+    { code: 16, args: ['2', '2', '8', '9'], answer: '12' },
+    { code: 17, args: ['12'], answer: '81129638414606735738984533590025' },
+    { code: 16, args: ['2', '3', '8', '9'], answer: '13' },
+    { code: 17, args: ['13'], answer: '9007199254740996' },
+    { code: 15, args: ['0'], answer: '14' },
+    { code: 16, args: ['2', '1', '8', '14'], answer: '15' },
+    { code: 17, args: ['15'], answer: '0' },
+    // Operation 11 is the one request that reads a slot flag, so it is the
+    // one observation of the level that operation 13 stores. Both levels
+    // sit above the safe-integer limit, and they differ by one.
+    { code: 12, args: ['0', '9007199254740993'], answer: '16' },
+    { code: 13, args: ['9007199254740993', '0', '16'], answer: '17' },
+    { code: 11, args: ['17', '9007199254740993', '0'], answer: '1' },
+    { code: 13, args: ['9007199254740994', '0', '16'], answer: '18' },
+    { code: 11, args: ['18', '9007199254740993', '0'], answer: '0' },
+  ]);
+});
+
+test('veil host naturals reject malformed decimals without allocating slots', async t => {
+  const script = [{ code: 10, args: ['1', '1'], answer: '1' }];
+  const positions = [
+    [10, ['1', '1'], 0], [10, ['1', '1'], 1], [11, ['1', '1', '0'], 1],
+    [12, ['0', '1'], 0], [12, ['0', '1'], 1], [13, ['1', '0', '1'], 0],
+    [15, ['1'], 0],
+  ];
+  for (const invalid of ['', '-1', '+1', '1.0', '1e3', '0x10', '0b10', '1_000',
+    ' 1', '1 ', '1\n', '\t1', 'Infinity', '\u0661']) {
+    for (const [code, args, position] of positions) {
+      script.push({ code, args: args.map((arg, index) => index === position ? invalid : arg),
+        status: 1, answer: /^IO: invalid veil natural argument$/ });
+    }
+  }
+  for (const args of [[], ['1']]) {
+    script.push({ code: 10, args, status: 1, answer: /^IO: invalid veil natural argument$/ });
+  }
+  script.push({ code: 15, args: ['7'], answer: '2' },
+    { code: 17, args: ['2'], answer: '7' });
+  await slotScript(t, script);
+});
+
+test('veil host naturals keep bounded slot, function and subset indices', async t => {
+  const invalid = '9007199254740992';
+  await slotScript(t, [
+    { code: 15, args: ['3'], answer: '1' },
+    { code: 14, args: [invalid], status: 1, answer: /^IO: invalid OS numeric argument$/ },
+    { code: 13, args: ['0', invalid, '1'], status: 1, answer: /^IO: invalid OS numeric argument$/ },
+    { code: 16, args: [invalid, '0', '1'], status: 1, answer: /^IO: invalid OS numeric argument$/ },
+    { code: 11, args: ['1', '4', '4'], status: 1, answer: /^IO: unknown host function 4$/ },
+    { code: 16, args: ['0', '0', '1'], status: 1, answer: /^IO: the subset holds fewer parties/ },
+    { code: 16, args: ['1', '0'], status: 1, answer: /^IO: a joint computation needs one share or more$/ },
+    { code: 15, args: ['4'], answer: '2' },
+  ]);
+});

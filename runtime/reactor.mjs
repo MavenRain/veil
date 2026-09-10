@@ -16,6 +16,14 @@ const numeric = value => {
   if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) throw new RangeError('invalid OS numeric argument');
   return Number(value);
 };
+// Slot data crosses as decimal bytes, independently of the i31 export ABI
+// and the safe-integer OS arguments. Parse it without narrowing through Number.
+const veilNatural = value => {
+  if (typeof value !== 'string' || value.length === 0 || /[^0-9]/.test(value)) {
+    throw new RangeError('invalid veil natural argument');
+  }
+  return BigInt(value);
+};
 const signalCode = signal => signal ? 128 + (constants.signals[signal] ?? 0) : 0;
 // How long the runtime waits for the rest of the process group after the
 // leader has exited. The same budget as the termination escalation.
@@ -183,10 +191,10 @@ export const blobs = new Map();
 // a function with a code into this table. The Wasm twin
 // (runtime/reactor.kan) takes the function value itself.
 const hostFunctions = [
-  values => values.reduce((total, value) => total + value, 0),
-  values => values.reduce((total, value) => total * value, 1),
-  values => values.reduce((total, value) => total + value, 0) ** 2,
-  values => values.reduce((total, value) => total + value, 0) + 1,
+  values => values.reduce((total, value) => total + value, 0n),
+  values => values.reduce((total, value) => total * value, 1n),
+  values => values.reduce((total, value) => total + value, 0n) ** 2n,
+  values => values.reduce((total, value) => total + value, 0n) + 1n,
 ];
 const hostFunction = argument => {
   const code = numeric(argument);
@@ -202,7 +210,7 @@ const readSlot = argument => {
 };
 const writeSlot = (flag, plain) => {
   const index = blobs.size + 1;
-  blobs.set(index, { flag: nat(flag), plain: nat(plain) });
+  blobs.set(index, { flag, plain });
   return Buffer.from(String(index));
 };
 
@@ -237,29 +245,29 @@ async function perform(code, args, body, interrupted) {
     case 7: await writeStream(process.stderr, body); return Buffer.alloc(0);
     case 8: return Buffer.from(await realpath(args[0]));
     case 9: return Buffer.from(resolve(args[0], args[1]));
-    case 10: return writeSlot(numeric(args[0]), numeric(args[1]));
+    case 10: return writeSlot(veilNatural(args[0]), veilNatural(args[1]));
     case 11: {
       const slot = readSlot(args[0]);
-      const instance = numeric(args[1]);
+      const instance = veilNatural(args[1]);
       const relation = hostFunction(args[2]);
       return Buffer.from(String(Number(slot.flag === instance && relation([slot.plain]) === instance)));
     }
-    case 12: return writeSlot(numeric(args[0]), numeric(args[1]));
+    case 12: return writeSlot(veilNatural(args[0]), veilNatural(args[1]));
     case 13: {
-      const level = numeric(args[0]);
+      const level = veilNatural(args[0]);
       const evaluated = hostFunction(args[1]);
       const slot = readSlot(args[2]);
       return writeSlot(level, evaluated([slot.plain]));
     }
     case 14: return Buffer.from(String(readSlot(args[0]).plain));
-    case 15: return writeSlot(0, numeric(args[0]));
+    case 15: return writeSlot(0n, veilNatural(args[0]));
     case 16: {
       const subset = numeric(args[0]);
       const joint = hostFunction(args[1]);
       const slots = args.slice(2).map(readSlot);
       if (!slots.length) throw new RangeError('a joint computation needs one share or more');
       if (subset < slots.length) throw new RangeError('the subset holds fewer parties than the joint computation has shares');
-      return writeSlot(0, joint(slots.map(slot => slot.plain)));
+      return writeSlot(0n, joint(slots.map(slot => slot.plain)));
     }
     case 17: return Buffer.from(String(readSlot(args[0]).plain));
     default: throw new Error(`unknown OS request ${code}`);
