@@ -506,6 +506,14 @@ from the annotation and defaults to `Univ zero` (D-M0-6).
 Every surface form maps to one kernel constructor.  Read the right-hand
 column to confirm that no surface form is a former.
 
+In the rows below, and in the surface forms of section 4, `q` stands for
+the optional binder mark, `0` or `1` or no mark at all.  In those rows
+and forms `q` is not a name.  A form such as `(q x : A)` is therefore
+one binder, and not a binder group of the two names `q` and `x`.
+Everywhere else `q` is an ordinary binder name:  in the mpc
+authorization predicate `(0 q : Sub P) -> Prop` of section 4.4 the mark
+is the literal `0` and `q` is the name of the binder.
+
 | surface form | kernel form | note |
 | --- | --- | --- |
 | `fun (q x : A) => b` | `Sec (SPi (q, x, A)) [x => b]` | sugar, not former |
@@ -759,8 +767,9 @@ term    ::= 'fun' binder+ '=>' term
           | 'auto'                                 (* SA-D3 *)
           | 'nu'                                  (* reserved, arrives at M2 *)
           | '(' term ':' term ')'  |  name  |  '(' term ')'
-binder  ::= '(' ('0' | '1')? name ':' term ')'
-field   ::= ('0' | '1')? name | binder             (* M1 Stages H and L *)
+binder  ::= '(' mark? name+ ':' term ')'
+field   ::= mark? name | binder                    (* M1 Stages H and L *)
+mark    ::= nat                                    (* value 0 or value 1 *)
 ```
 
 Precedence, loosest first: the arrow and the star, then application, then
@@ -769,6 +778,9 @@ right associative.  Application is left associative.
 
 The binder mark is one of three:  `0` is `Quantity.Zero`, `1` is
 `Quantity.One` and an absent mark is `Quantity.Many` (SB-D3).  The
+parser reads the mark by value, so every natural literal equal to zero
+or to one is a mark, including `00` and `01`.  A literal of any other
+value is not a mark, and the parser then expects a binder name.  The
 printer writes `0 `, `1 ` and the empty text back, so a marked binder
 round trips.
 
@@ -776,6 +788,20 @@ A `def` may take one or more binders before its `:`.  The parser
 rewrites `def NAME binder+ : TYPE := BODY` to the arrow-header form
 `def NAME : binder+ -> TYPE := fun binder+ => BODY` before elaboration
 sees it (R-W2-5).  A `def` with no binder keeps its plain form.
+
+A binder group such as `(1 x y : Nat)` abbreviates the consecutive
+binders `(1 x : Nat) (1 y : Nat)`, in that order.  Each name receives
+the written type and quantity.  This expansion applies to `def` and
+`fun` parameters, arrow and pair types, family and constructor
+telescopes, typed branch fields, and the binders of a numeric case
+leg.  Types are checked sequentially,
+just as in the expanded spelling, so earlier names are in scope in
+later annotations.  The printer uses the expanded spelling.  `zk`
+continues to select the first expanded pair binder as its witness.
+A parenthesized annotation such as `(f x : Nat)` remains an expression
+when no arrow or star follows it.  Before either operator, the group
+reading wins; write `((f x) : Type 0) -> Nat` to use an annotated type
+application as the domain.
 
 `sum`, `prod`, `mu`, `mutual`, `match`, `end` and `nu` are reserved
 words, and so are the veil words `zk`, `prove`, `verify`, `fhc`, `enc`,

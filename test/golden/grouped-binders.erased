@@ -1,0 +1,14 @@
+rec [nat]
+fun subtract (union nat, union nat) : union nat := KTail (KGlobal natSub) [KVar 1; KVar 0]
+rec [nat]
+fun discardFirst (union nat, union nat) : union nat := KLet used (KVar 1) (KVar 1)
+rec [any]
+fun keep (union any, union any, union any) : union any := KVar 2
+rec [nat]
+fun groupedLambda (union nat, union nat) : union nat := KTail (KGlobal natSub) [KVar 1; KVar 0]
+rec [pair<union nat,struct pair<union nat,union nat>>; pair<union nat,union nat>]
+fun groupedPair () : struct pair<union nat,struct pair<union nat,union nat>> := KStruct pair<union nat,struct pair<union nat,union nat>> [KLit 7; KStruct pair<union nat,union nat> [KLit 3; KLit 1]]
+rec [mu<Grouped>; nat; leg<mu<Grouped>,0,union nat,union nat>]
+fun readGrouped (union mu<Grouped>) : union nat := KCase mu<Grouped> (KVar 0) [{0 2 (KTail (KGlobal natSub) [KVar 1; KVar 0])}]
+rec [nat; mu<Grouped>; leg<mu<Grouped>,0,union nat,union nat>]
+fun groupResult () : union nat := KTail (KGlobal natAdd) [KApp (KGlobal subtract) [KLit 50; KLit 12]; KApp (KGlobal readGrouped) [KTag mu<Grouped> 0 [KLit 7; KLit 3]]]

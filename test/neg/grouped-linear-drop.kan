@@ -1,0 +1,1 @@
+def drop (1 x y : Nat) : Nat := x

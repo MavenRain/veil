@@ -1,0 +1,1 @@
+def read (0 x y : Nat) : Nat := y

@@ -1,0 +1,7 @@
+def subtract : (Ran SPi w x Nat (Ran SPi w y Nat Nat)) := (Sec SPi w x Nat [x => (Sec SPi w y Nat [y => (Out SPi w b Nat (APt w y) (Out SPi w a Nat (APt w x) natSub))])])
+def discardFirst : (Ran SPi 1 x Nat (Ran SPi 1 y Nat Nat)) := (Sec SPi 1 x Nat [x => (Sec SPi 1 y Nat [y => let used : Nat := x in y])])
+def keep : (Ran SPi 0 A Type 1 (Ran SPi 0 B Type 1 (Ran SPi w x A (Ran SPi w y A (Ran SPi w z B A))))) := (Sec SPi 0 A Type 1 [A => (Sec SPi 0 B Type 1 [B => (Sec SPi w x A [x => (Sec SPi w y A [y => (Sec SPi w z B [z => x])])])])])
+def groupedLambda : (Ran SPi w x Nat (Ran SPi w y Nat Nat)) := (Sec SPi w x Nat [x => (Sec SPi w y Nat [y => (Out SPi w b Nat (APt w y) (Out SPi w a Nat (APt w x) natSub))])])
+def groupedPair : (Lan SPi w x Nat (Lan SPi w y Nat Nat)) := (In SPi w x Nat (APt w 7) [(In SPi w y Nat (APt w 3) [1])])
+def readGrouped : (Ran SPi w p (Lan SMu Grouped [] (Sec SColl 0 [])) Nat) := (Sec SPi w p (Lan SMu Grouped [] (Sec SColl 0 [])) [p => (Elim SMu Grouped [] p as q return Nat with | (ACtor grouped) x y => (Out SPi w b Nat (APt w y) (Out SPi w a Nat (APt w x) natSub)))])
+def groupResult : Nat := (Out SPi w b Nat (APt w (Out SPi w p (Lan SMu Grouped [] (Sec SColl 0 [])) (APt w (In SMu Grouped [] (ACtor grouped) [7; 3])) readGrouped)) (Out SPi w a Nat (APt w (Out SPi w y Nat (APt w 12) (Out SPi w x Nat (APt w 50) subtract))) natAdd))

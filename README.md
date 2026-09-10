@@ -1,12 +1,21 @@
-# kanon
+# veil
 
 veil is kanon plus three host shapes for private computation: `SZk`
 (zero-knowledge proof), `SFhc` (fully homomorphic ciphertext) and `SMpc`
-(multi-party computation).  Each shape lands in its own wave (V1, V2,
-V3).  Wave 0 declares all three and raises the trusted kernel bound for
-the new circuit-fragment predicate.  Wave 1 admits `SZk` and wave 2
-admits `SFhc`, which raises the bound to 5250 lines.  `SMpc` is refused
-today.
+(multi-party computation).  All three shapes check, erase and run with
+the plaintext reactor twins in [REACTOR.md](REACTOR.md).  The trusted
+kernel bound is 5250 lines.
+
+Function parameters can share a type and quantity:
+
+```kanon
+def subtract (x y : Nat) : Nat := natSub x y
+```
+
+Grouped binders also work in `fun`, arrow and pair types, family and
+constructor declarations, typed match fields, and numeric case legs.
+They expand to
+consecutive binders in source order, as specified in [SPEC.md](SPEC.md#9-the-surface-grammar).
 
 Kanon's type grammar uses left and right Kan extensions along shapes.
 The [foundation audit](dev/FOUNDATION-AUDIT.md) records the remaining

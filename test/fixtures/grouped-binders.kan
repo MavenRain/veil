@@ -1,0 +1,13 @@
+-- Shared annotations expand in source order, including erased and linear marks.
+def subtract (x y : Nat) : Nat := natSub x y
+def discardFirst (1 x y : Nat) : Nat := let used : Nat := x in y
+def keep (0 A B : Type 0) (x y : A) (z : B) : A := x
+def groupedLambda : (x y : Nat) -> Nat := fun (x y : Nat) => natSub x y
+def groupedPair : (x y : Nat) * Nat := (7, (3, 1))
+mu Grouped : Type 0 :=
+| grouped (x y : Nat) : Grouped
+def readGrouped (p : Grouped) : Nat :=
+  match p as q in Grouped return Nat with
+  | grouped (x y : Nat) => natSub x y
+def groupResult : Nat :=
+  natAdd (subtract 50 12) (readGrouped (grouped 7 3))

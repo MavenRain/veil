@@ -41,6 +41,21 @@ let same_checked (first : string) (second : string) : (unit, string) result =
   let* b = checked second in
   if String.equal a b then Ok () else Error "match changed checked elimination"
 
+(** Check that a source elaborates to exactly the given refusal message. *)
+let checked_refusal (source : string) (message : string) : (unit, string) result =
+  Elab.check_text Global.initial source
+  |> Result.fold
+       ~ok:(fun (_rows : (string * Global.entry) list) -> Error "invalid source elaborated")
+       ~error:(fun (e : Error.t) ->
+         if String.equal (Error.message e) message then Ok ()
+         else Error (Error.to_string e))
+
+(** A family whose constructor fields hold two different types, so a
+    shared annotation cannot agree with both of them. *)
+let two_typed_fields =
+  "mu Tag : Type 0 := | tag : Tag\n\
+   mu Box : Type 0 := | box (m : Nat) (t : Tag) : Box\n"
+
 (** The Stage L constructor field sugar for the natural number family. *)
 let family = "mu N : Type 0 := | zero : N | succ (n : N) : N\n"
 
@@ -93,6 +108,52 @@ let cases : (string * (unit -> (unit, string) result)) list =
     "mutual-and-refusal", (fun () -> parse_refusal
       "mutual mu A : Type 0 := and B : Type 0 := end"
       "expected 'mu' or 'end' in a mutual group, found 'and'");
+    "grouped-def", (fun () -> same_tree
+      "def f (0 A B : Type 0) (x y : Nat) (1 z : Nat) : Nat := natAdd x (natAdd y z)"
+      "def f (0 A : Type 0) (0 B : Type 0) (x : Nat) (y : Nat) (1 z : Nat) : Nat := natAdd x (natAdd y z)");
+    "grouped-fun", (fun () -> same_tree
+      "def f : (1 x y : Nat) -> Nat := fun (1 x y : Nat) => natAdd x y"
+      "def f : (1 x : Nat) -> (1 y : Nat) -> Nat := fun (1 x : Nat) (1 y : Nat) => natAdd x y");
+    "grouped-star", (fun () -> same_tree
+      "axiom p : (x y : Nat) * Nat"
+      "axiom p : (x : Nat) * (y : Nat) * Nat");
+    "grouped-family", (fun () -> same_tree
+      "mu P (0 A B : Type 0) : Type 0 := | pair (x y : A) (z : B) : P A B"
+      "mu P (0 A : Type 0) (0 B : Type 0) : Type 0 := | pair (x : A) (y : A) (z : B) : P A B");
+    "grouped-branch", (fun () -> same_tree
+      "def f : Nat := match p with | pair (1 x y : Nat) z => natAdd x (natAdd y z)"
+      "def f : Nat := match p with | pair (1 x : Nat) (1 y : Nat) z => natAdd x (natAdd y z)");
+    "grouped-branch-annotation", (fun () -> checked_refusal
+      (two_typed_fields ^
+       "def bad : Box -> Nat := fun (b : Box) => \
+        match b as self in Box return Nat with | box (m t : Nat) => 0")
+      "the annotation of constructor field t differs from its declared type");
+    "grouped-case", (fun () -> same_tree
+      "def f : Nat := case p with | 0 (x y : Nat) => natSub x y"
+      "def f : Nat := case p with | 0 (x : Nat) (y : Nat) => natSub x y");
+    "grouped-roundtrip", (fun () -> round_trip
+      "def f (0 A B : Type 0) (1 x y : Nat) : Nat := natAdd x y");
+    "grouped-dependent-check", (fun () -> same_checked
+      "def f (0 A : Type 0) (x y : A) : A := x"
+      "def f (0 A : Type 0) (x : A) (y : A) : A := x");
+    "grouped-linear-check", (fun () -> same_checked
+      "def f (1 x y : Nat) : Nat := let used : Nat := x in y"
+      "def f (1 x : Nat) (1 y : Nat) : Nat := let used : Nat := x in y");
+    "grouped-annotation-fallback", (fun () -> same_tree
+      "axiom f : Nat -> Nat def n : Nat := (f 3 : Nat)"
+      "axiom f : Nat -> Nat def n : Nat := ((f 3) : Nat)");
+    "grouped-name-annotation-fallback", (fun () -> same_tree
+      "axiom f : Nat -> Nat axiom x : Nat def n : Nat := (f x : Nat)"
+      "axiom f : Nat -> Nat axiom x : Nat def n : Nat := ((f x) : Nat)");
+    "grouped-empty-refusal", (fun () -> parse_refusal
+      "def f (0 : Nat) : Nat := 0" "expected a binder name and ':', found ':'");
+    "grouped-missing-colon-refusal", (fun () -> parse_refusal
+      "def f (x y) : Nat := 0" "expected ':', found ')'");
+    "grouped-missing-close-refusal", (fun () -> parse_refusal
+      "def f (x y : Nat := 0" "expected ')', found ':='");
+    "grouped-zk-expansion", (fun () -> same_tree
+      "axiom P : zk (0 x y : Nat) * prod ()"
+      "axiom P : zk (0 x : Nat) * (0 y : Nat) * prod ()");
     "nu-term-refusal", (fun () -> parse_refusal "def f : Type 0 := nu" "nu arrives at M2");
     "nu-declaration-refusal", (fun () -> parse_refusal "nu N : Type 0 :=" "nu arrives at M2") ]
 

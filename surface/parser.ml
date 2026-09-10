@@ -156,8 +156,8 @@ and zk_of_star (loc : Token.loc) (body : Syntax.t) (rest : Token.t list) :
 (** "fun binder+ => body".  One binder at least;  the body reaches as
     far right as it can. *)
 and parse_fun (ts : Token.t list) : (Syntax.t * Token.t list, Error.t) result =
-  let* first, rest = parse_binder ts in
-  let* binders, rest2 = parse_binders rest [ first ] in
+  let* first, rest = parse_binder_group ts in
+  let* binders, rest2 = parse_binders rest (List.rev first) in
   match rest2 with
   | { Token.kind = Token.DArrow; loc = _ } :: rest3 ->
       let* body, rest4 = parse_term rest3 in
@@ -170,24 +170,28 @@ and parse_binders (ts : Token.t list) (acc : Syntax.binder list) :
     (Syntax.binder list * Token.t list, Error.t) result =
   match ts with
   | { Token.kind = Token.LParen; loc = _ } :: _rest ->
-      let* b, rest = parse_binder ts in
-      parse_binders rest (b :: acc)
+      let* bs, rest = parse_binder_group ts in
+      parse_binders rest (List.rev_append bs acc)
   | ({ Token.kind = _; loc = _ } :: _ | []) -> Ok (List.rev acc, ts)
 
-(** binder ::= '(' ('0' | '1')? name ':' term ')' *)
-and parse_binder (ts : Token.t list) : (Syntax.binder * Token.t list, Error.t) result =
+(** Expand a shared type and quantity to consecutive binders, in source order. *)
+and parse_binder_group (ts : Token.t list) :
+    (Syntax.binder list * Token.t list, Error.t) result =
   match ts with
   | { Token.kind = Token.LParen; loc = _ } :: rest -> (
       let q, rest_q = mark_prefix rest in
       match rest_q with
-      | { Token.kind = Token.Ident x; loc = _ }
-        :: { Token.kind = Token.Colon; loc = _ }
-        :: rest2 -> (
-          let* ty, rest3 = parse_term rest2 in
-          match rest3 with
-          | { Token.kind = Token.RParen; loc = _ } :: rest4 ->
-              Ok ({ Syntax.b_q = q; b_name = x; b_ty = ty }, rest4)
-          | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "')'" rest3)
+      | { Token.kind = Token.Ident x; loc = _ } :: names_rest -> (
+          let names, rest_colon = parse_names names_rest [ x ] in
+          match rest_colon with
+          | { Token.kind = Token.Colon; loc = _ } :: rest2 -> (
+              let* ty, rest3 = parse_term rest2 in
+              match rest3 with
+              | { Token.kind = Token.RParen; loc = _ } :: rest4 ->
+                  Ok (List.map (fun (name : string) ->
+                      { Syntax.b_q = q; b_name = name; b_ty = ty }) names, rest4)
+              | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "')'" rest3)
+          | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "':'" rest_colon)
       | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "a binder name and ':'" rest_q)
   | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "'('" ts
 
@@ -297,10 +301,11 @@ and parse_fields (ts : Token.t list) (acc : Syntax.field list) :
     (Syntax.field list * Token.t list, Error.t) result =
   match ts with
   | { Token.kind = Token.LParen; loc = _ } :: _rest ->
-      let* b, rest = parse_binder ts in
-      parse_fields rest
-        ({ Syntax.fd_q = b.Syntax.b_q; fd_name = b.Syntax.b_name;
-           fd_ty = Some b.Syntax.b_ty } :: acc)
+      let* bs, rest = parse_binder_group ts in
+      let fields = List.map (fun (b : Syntax.binder) ->
+          { Syntax.fd_q = b.Syntax.b_q; fd_name = b.Syntax.b_name;
+            fd_ty = Some b.Syntax.b_ty }) bs in
+      parse_fields rest (List.rev_append fields acc)
   | ({ Token.kind = _; loc = _ } :: _ | []) ->
       let q, rest = mark_prefix ts in
       match rest with
@@ -314,20 +319,20 @@ and parse_fields (ts : Token.t list) (acc : Syntax.field list) :
     kan-lang-tot-pin/surface/parser.ml:354-360. *)
 and parse_arrow (ts : Token.t list) : (Syntax.t * Token.t list, Error.t) result =
   binder_group_attempt ts
-  |> Option.fold ~none:parse_arrow_plain ~some:(fun ((b : Syntax.binder), rest) ->
-         fun (_ts : Token.t list) -> parse_group_op b rest)
+  |> Option.fold ~none:parse_arrow_plain ~some:(fun ((bs : Syntax.binder list), rest) ->
+         fun (_ts : Token.t list) -> parse_group_op bs rest)
   |> fun k -> k ts
 
-(** Speculative "(mark? x : T)".  Any inner failure, and any group that
+(** Speculative "(mark? name+ : T)".  Any inner failure, and any group that
     no operator follows, is [None] and the caller re-reads the same
     tokens as an ordinary term.  mirrors
     kan-lang-tot-pin/surface/parser.ml:316-352. *)
-and binder_group_attempt (ts : Token.t list) : (Syntax.binder * Token.t list) option =
+and binder_group_attempt (ts : Token.t list) : (Syntax.binder list * Token.t list) option =
   match ts with
   | { Token.kind = Token.LParen; loc = _ } :: _rest ->
-      parse_binder ts
+      parse_binder_group ts
       |> Result.fold
-           ~ok:(fun ((b : Syntax.binder), rest) ->
+           ~ok:(fun ((b : Syntax.binder list), rest) ->
              match rest with
              | { Token.kind = Token.Arrow; loc = _ } :: _r -> Some (b, rest)
              | { Token.kind = Token.Star; loc = _ } :: _r -> Some (b, rest)
@@ -335,15 +340,17 @@ and binder_group_attempt (ts : Token.t list) : (Syntax.binder * Token.t list) op
            ~error:(fun (_e : Error.t) -> None)
   | ({ Token.kind = _; loc = _ } :: _ | []) -> None
 
-and parse_group_op (b : Syntax.binder) (ts : Token.t list) :
+and parse_group_op (bs : Syntax.binder list) (ts : Token.t list) :
     (Syntax.t * Token.t list, Error.t) result =
   match ts with
   | { Token.kind = Token.Arrow; loc = _ } :: rest ->
       let* cod, rest2 = parse_term rest in
-      Ok (Syntax.SArrow (b, cod), rest2)
+      Ok (List.fold_right (fun (b : Syntax.binder) (body : Syntax.t) ->
+          Syntax.SArrow (b, body)) bs cod, rest2)
   | { Token.kind = Token.Star; loc = _ } :: rest ->
       let* cod, rest2 = parse_term rest in
-      Ok (Syntax.SStar (b, cod), rest2)
+      Ok (List.fold_right (fun (b : Syntax.binder) (body : Syntax.t) ->
+          Syntax.SStar (b, body)) bs cod, rest2)
   | ({ Token.kind = _; loc = _ } :: _ | []) -> expected "'->' or '*'" ts
 
 (** "A -> B" and "A * B", the binder-free forms.  Both are right
@@ -601,13 +608,12 @@ and parse_decl (ts : Token.t list) : (Syntax.decl * Token.t list, Error.t) resul
   (* R-W2-5: "def NAME (binder)+ : cod := body" desugars, before any
      elaboration, to the arrow-header spelling "def NAME : (binder)+ ->
      cod := fun (binder)+ => body".  The binder group is exactly the
-     one "fun" accepts (parse_binder / parse_binders), so a def with no
+     one "fun" accepts (parse_binders), so a def with no
      parameter list falls through to the row below unchanged. *)
   | { Token.kind = Token.KDef; loc = _ }
     :: { Token.kind = Token.Ident name; loc = _ }
     :: ({ Token.kind = Token.LParen; loc = _ } :: _ as prest) -> (
-      let* first, rest = parse_binder prest in
-      let* binders, rest2 = parse_binders rest [ first ] in
+      let* binders, rest2 = parse_binders prest [] in
       match rest2 with
       | { Token.kind = Token.Colon; loc = _ } :: rest3 -> (
           let* cod, rest4 = parse_term rest3 in
