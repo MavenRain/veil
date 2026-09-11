@@ -26,6 +26,9 @@ handles stay invalid for the rest of the run, as checked by the
 [blob release regressions](dev/BLOB-RELEASE.md).
 The [process signal tests](dev/PROCESS-SIGNALS.md) synchronize with child
 readiness before checking deadline escalation and process cleanup.
+Temporary-directory requests keep empty and dot prefixes inside their root
+and reject path separators, as checked by the
+[directory regressions](dev/TEMP-DIRECTORY.md).
 
 Function parameters can share a type and quantity:
 

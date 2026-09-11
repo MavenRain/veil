@@ -139,3 +139,24 @@ Production sources and gate thresholds are unchanged. No compiler rebuild
 or full milestone/performance ladder was required for this test-only change.
 The method and reproduction commands are in `dev/PROCESS-SIGNALS.md`;
 captures and source hashes are in `dev/validation/2026-09-11-process-signals/`.
+
+## Temporary-directory prefixes, 2026-09-11
+
+Base: `e0a1f7b351c7e5a7b385825fdc15dfbf05d0741d`.
+
+Operation 1 now keeps empty and literal dot prefixes inside the resolved
+root. Previously, joining the prefix before adding the random suffix could
+create a sibling of the root or its parent. Prefixes containing either
+slash form now return status 1 before any filesystem operation.
+
+The original runtime fails both new regressions. The final RUNTIME suite
+passes 65 tests and REACTOR passes 227 checks under their existing
+30-second watchdogs. The new compiled fixture covers successful directory
+creation and error delivery through Wasm and the CLI. HOUSE and
+TRUSTED-LINES pass, with kernel 5246/5250 and encoder 246/600 unchanged.
+
+The [directory note](TEMP-DIRECTORY.md) specifies the behavior and commands;
+the [validation record](validation/2026-09-11-temp-directory/README.md)
+retains the failed control, final outputs, source hashes and a corrected
+macOS path-alias assertion from the first compiled test run. No full
+milestone or performance battery was repeated for this runtime slice.

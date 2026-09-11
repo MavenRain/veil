@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: temporary directories preserve literal prefixes and stay under the resolved root
+not ok 1 - temporary directories preserve literal prefixes and stay under the resolved root
+  ---
+  duration_ms: 20.737125
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:775:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-9vpyTE'
+    - '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-9vpyTE/directories'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-9vpyTE/directories'
+  actual: '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-9vpyTE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:787:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  ...
+# Subtest: temporary directories reject path separators before creating the root
+not ok 2 - temporary directories reject path separators before creating the root
+  ---
+  duration_ms: 5.331459
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:798:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    step 0, operation 1: /var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-rOr5xM/escape-yutFfb
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:712:14)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/runtime/reactor.mjs:370:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:727:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-temp-directory/.gatework/temp-directory-before/dev/runtime-test.mjs:802:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.686625

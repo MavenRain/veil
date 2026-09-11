@@ -165,6 +165,20 @@ line and exit 2, as above, and the count check does not run. Operation 0 termina
 The [request arity regressions](dev/REQUEST-ARITY.md) cover all 18 rows;
 the [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
+Operation 1 resolves the root against the host working directory, creates it
+if needed, and creates a fresh private directory directly inside it. The
+prefix is literal filename text: empty, `.` and `..` prefixes are accepted
+and get the random suffix inside the root. A prefix containing `/` or `\`
+returns status 1 through `resume` with
+`IO: temporary directory prefix must not contain path separators`, before
+creating the root or any temporary directory. The host normalizes the root
+text lexically before any filesystem access, so a `..` segment removes the
+name before it. The host does not follow a symlink and does not test that
+the removed name exists. The OS follows symlinks only for the components
+that stay after the normalization.
+The [temporary-directory regressions](dev/TEMP-DIRECTORY.md)
+cover parent placement, literal prefixes, uniqueness and private permissions.
+
 Operations 10 to 17 are the veil host operations. A blob is a slot that holds
 a flag and a plaintext. The flag holds the instance for the zk operations, the
 level for the fhc operations, and the party flag for the mpc operations. The

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, writeFile, readdir, realpath, rm, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdtemp, readFile, writeFile, readdir, realpath, rm, access, stat } from 'node:fs/promises';
+import { join, dirname, basename, relative, resolve } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
 import { executeProcess, osString, runReactor, spawns } from '../runtime/reactor.mjs';
@@ -726,6 +726,7 @@ const slotScript = async script => {
   try {
     assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
     assert.equal(answers.length, script.length);
+    return answers;
   } finally {
     globalThis.WebAssembly = engine;
   }
@@ -768,6 +769,40 @@ test('request arities reject missing and surplus arguments before host effects',
       assert.equal(await readFile(s.out, 'utf8'), 'original');
       assert.equal(spawns.started, started);
     });
+  }
+});
+
+test('temporary directories preserve literal prefixes and stay under the resolved root', async t => {
+  const s = await sandbox(t);
+  const root = join(s.path, 'directories');
+  const rootArgument = relative(process.cwd(), root) + '/unused/..';
+  const prefixes = ['', '.', '..', 'request-', 'héllo ', ' spaced-'];
+  const answers = await slotScript(prefixes.flatMap(prefix => [
+    { code: 1, args: [rootArgument, prefix], answer: /.+/ },
+    { code: 1, args: [rootArgument, prefix], answer: /.+/ },
+  ]));
+  t.after(() => Promise.all(answers.map(path => rm(path, { recursive: true, force: true }))));
+  assert.equal(new Set(answers).size, answers.length, 'every request creates a fresh directory');
+  for (const [index, path] of answers.entries()) {
+    assert.equal(dirname(path), resolve(root));
+    assert.ok(basename(path).startsWith(prefixes[Math.floor(index / 2)]));
+    assert.ok(basename(path).length > prefixes[Math.floor(index / 2)].length);
+    const info = await stat(path);
+    assert.ok(info.isDirectory());
+    if (process.platform !== 'win32') assert.equal(info.mode & 0o777, 0o700);
+  }
+  assert.deepEqual((await readdir(root)).sort(), answers.map(path => basename(path)).sort());
+  assert.deepEqual(await readdir(s.path), ['directories']);
+});
+
+test('temporary directories reject path separators before creating the root', async t => {
+  const s = await sandbox(t);
+  const root = join(s.path, 'directories');
+  for (const prefix of ['../escape-', '../', 'a/b', 'a/', '/absolute-', '..\\escape-', '\\absolute-', 'a\\b']) {
+    await slotScript([{ code: 1, args: [root, prefix], status: 1,
+      answer: 'IO: temporary directory prefix must not contain path separators' }]);
+    await absent(root);
+    assert.deepEqual(await readdir(s.path), []);
   }
 });
 

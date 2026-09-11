@@ -1,0 +1,21 @@
+node:internal/modules/run_main:104
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-Fh8WdU/directories'
+- '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-Fh8WdU/directories'
+
+    at file:///Users/oobi/Documents/gpt3/veil-temp-directory/dev/reactor-test.mjs:140:25
+    at verify (file:///Users/oobi/Documents/gpt3/veil-temp-directory/dev/reactor-test.mjs:20:24)
+    at file:///Users/oobi/Documents/gpt3/veil-temp-directory/dev/reactor-test.mjs:140:5 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-Fh8WdU/directories',
+  expected: '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-Fh8WdU/directories',
+  operator: 'strictEqual'
+}
+
+Node.js v23.10.0

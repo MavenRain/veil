@@ -1,0 +1,33 @@
+-- Build with runtime/reactor.kan. Forward argv to operation 1, print its
+-- answer and exit with its status, so both success and rejection cross Wasm.
+mu DirectoryState : Type 0 with
+| requested : Words -> DirectoryState
+| reporting : Nat -> Bytes -> DirectoryState
+| finished : Nat -> DirectoryState
+
+def init (argv : Words) : DirectoryState := requested argv
+def resume (state : DirectoryState) (status : Nat) (answer : Bytes) : DirectoryState :=
+  case state as current in DirectoryState return DirectoryState with
+  | requested args => reporting status answer
+  | reporting result body => finished result
+  | finished result => finished result
+def requestCode (state : DirectoryState) : Nat :=
+  case state as current in DirectoryState return Nat with
+  | requested args => 1
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : DirectoryState) : Words :=
+  case state as current in DirectoryState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : DirectoryState) : Bytes :=
+  case state as current in DirectoryState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : DirectoryState) : Nat :=
+  case state as current in DirectoryState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

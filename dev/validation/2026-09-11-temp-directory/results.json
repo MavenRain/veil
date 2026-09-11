@@ -1,0 +1,36 @@
+{
+  "base": "e0a1f7b351c7e5a7b385825fdc15dfbf05d0741d",
+  "source_sha256": {
+    "runtime/reactor.mjs": "122257693944f0ff162a02b57f0a15d5d77f0fb1e2a2ccd1299f37efb342a619",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "84305c0a3b6d5188564657425429b2b9eafdd8a59f00f2bbea37dcf738411cac",
+    "dev/reactor-test.mjs": "97a4a95d9aaf1e9759ba614962ece12d3b340fe0035313ab634daa130586307b",
+    "test/fixtures/reactor/temp-directory.kan": "c82413c22041b69c509eb93a50c4842b4f050e7e78276d84a909eb6901dcfa85",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "control_runtime_sha256": "be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159",
+  "control_test_sha256": "84305c0a3b6d5188564657425429b2b9eafdd8a59f00f2bbea37dcf738411cac",
+  "captures": {
+    "runtime-before": "run-NLBGyZ",
+    "runtime": "run-eIBRo8",
+    "reactor-first": "run-0givIo",
+    "reactor": "run-9g8nvG",
+    "house": "run-Y7oxeD",
+    "trusted-lines": "run-SWOwk3"
+  },
+  "capture_sha256": {
+    "house.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "house.stdout": "bd46e158845b89364346ae38568b2b637534ccd707bfe99fd4c0d267448ac990",
+    "reactor-first.stderr": "516ccd54f0eff8339518edec0f682ee6d3208c19910c416910bfadf64d606cd6",
+    "reactor-first.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reactor.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reactor.stdout": "ca7695c9b9d521bd5b8cfdeb91bdfef973490a692cc634b87836fa3c6143169c",
+    "runtime-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-before.stdout": "c4f4573a6cc380e59517a22e07c07ffbe516f84a586a8cc9913dbcbee8a93de0",
+    "runtime.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime.stdout": "2ababb43d6a47d052ade7b565b397167c8ba27b6a056a1778b339c3761f2ce9b",
+    "trusted-lines.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trusted-lines.stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284"
+  }
+}

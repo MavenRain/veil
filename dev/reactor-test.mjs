@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -119,6 +119,32 @@ try {
   const reactorExports = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail',
     'emptyWords', 'consWords', 'wordsEmpty', 'wordsHead', 'wordsTail',
     'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
+  const directories = join(scratch, 'temp-directory.wasm');
+  const directoryBuild = run(['build', shared, fixture('temp-directory'), '-o', directories,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(directoryBuild.status, 0, directoryBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(directories))).length, 0));
+  const directoryRoot = join(realpathSync(scratch), 'directories');
+  for (const prefix of ['../escape-', 'nested/', '..\\escape-', 'nested\\child']) {
+    const rejected = runModule([directories, 'directories', prefix]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, 'IO: temporary directory prefix must not contain path separators'));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.equal(existsSync(directoryRoot), false));
+    verify(() => assert.equal(readdirSync(scratch).some(name => name.startsWith('escape-')), false));
+  }
+  for (const prefix of ['', '.', '..', 'request-', 'héllo ']) {
+    const created = runModule([directories, 'directories/unused/..', prefix]);
+    verify(() => assert.equal(created.status, 0, created.error ?? created.stderr));
+    verify(() => assert.equal(created.stderr, ''));
+    verify(() => assert.equal(dirname(created.stdout), directoryRoot));
+    verify(() => assert.ok(basename(created.stdout).startsWith(prefix)));
+    verify(() => assert.ok(basename(created.stdout).length > prefix.length));
+    const info = statSync(created.stdout);
+    verify(() => assert.ok(info.isDirectory()));
+    if (process.platform !== 'win32') verify(() => assert.equal(info.mode & 0o777, 0o700));
+  }
+  verify(() => assert.equal(readdirSync(directoryRoot).length, 5));
   const predicates = join(scratch, 'list-predicates.wasm');
   const predicateBuild = run(['build', fixture('list-predicates'), '-o', predicates,
     ...reactorExports.flatMap(name => ['--export', name])]);

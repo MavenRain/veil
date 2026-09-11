@@ -1,7 +1,7 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
 import { readFile, open, mkdir, mkdtemp, chmod, rename, unlink, stat, realpath, writeFile } from 'node:fs/promises';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { constants } from 'node:os';
@@ -229,9 +229,13 @@ async function perform(code, args, body, interrupted, blobs) {
   }
   switch (code) {
     case 1: {
+      const prefix = args[1];
+      if (/[/\\]/.test(prefix)) throw new RangeError('temporary directory prefix must not contain path separators');
       const root = resolve(args[0]);
       await mkdir(root, { recursive: true, mode: 0o700 });
-      const path = await mkdtemp(join(root, args[1]));
+      // Keep the trailing separator and literal dot prefixes until mkdtemp
+      // appends its suffix; joining the prefix first can change its parent.
+      const path = await mkdtemp(join(root, sep) + prefix);
       await chmod(path, 0o700);
       return Buffer.from(path);
     }

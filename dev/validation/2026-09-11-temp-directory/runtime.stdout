@@ -1,0 +1,401 @@
+TAP version 13
+# Subtest: rejects invalid process inputs before opening files or spawning
+ok 1 - rejects invalid process inputs before opening files or spawning
+  ---
+  duration_ms: 23.957084
+  type: 'test'
+  ...
+# Subtest: prior interruption creates empty captures and never starts a command
+ok 2 - prior interruption creates empty captures and never starts a command
+  ---
+  duration_ms: 8.699
+  type: 'test'
+  ...
+# Subtest: interruption delivered while captures open prevents spawning
+ok 3 - interruption delivered while captures open prevents spawning
+  ---
+  duration_ms: 231.548958
+  type: 'test'
+  ...
+# Subtest: captures binary stdout and stderr with exact exit status
+ok 4 - captures binary stdout and stderr with exact exit status
+  ---
+  duration_ms: 538.224042
+  type: 'test'
+  ...
+# Subtest: reports spawn errors through the response and closes captures
+ok 5 - reports spawn errors through the response and closes captures
+  ---
+  duration_ms: 6.371791
+  type: 'test'
+  ...
+# Subtest: timeout escalates for a child that ignores SIGTERM
+ok 6 - timeout escalates for a child that ignores SIGTERM
+  ---
+  duration_ms: 265.343333
+  type: 'test'
+  ...
+# Subtest: signal callback errors reject normally after killing and reaping the child
+ok 7 - signal callback errors reject normally after killing and reaping the child
+  ---
+  duration_ms: 283.619084
+  type: 'test'
+  ...
+# Subtest: active interruption returns signal status and reaps the process
+ok 8 - active interruption returns signal status and reaps the process
+  ---
+  duration_ms: 335.997
+  type: 'test'
+  ...
+# Subtest: escalation callback errors are caught and cleanup retries the kill
+ok 9 - escalation callback errors are caught and cleanup retries the kill
+  ---
+  duration_ms: 364.531791
+  type: 'test'
+  ...
+# Subtest: unexpected descendant wait errors kill the remaining process group
+ok 10 - unexpected descendant wait errors kill the remaining process group
+  ---
+  duration_ms: 1523.532292
+  type: 'test'
+  ...
+# Subtest: a lingering group member cannot hold a deadline of zero open
+ok 11 - a lingering group member cannot hold a deadline of zero open
+  ---
+  duration_ms: 827.182333
+  type: 'test'
+  ...
+# Subtest: a leader that exits before its deadline keeps its own status
+ok 12 - a leader that exits before its deadline keeps its own status
+  ---
+  duration_ms: 590.062333
+  type: 'test'
+  ...
+# Subtest: an OS string argument keeps its bytes or is rejected
+ok 13 - an OS string argument keeps its bytes or is rejected
+  ---
+  duration_ms: 0.314917
+  type: 'test'
+  ...
+# Subtest: list ABI rejects invalid wordsEmpty flags in request arguments
+ok 14 - list ABI rejects invalid wordsEmpty flags in request arguments
+  ---
+  duration_ms: 101.663583
+  type: 'test'
+  ...
+# Subtest: list ABI rejects invalid bytesEmpty flags in request arguments
+ok 15 - list ABI rejects invalid bytesEmpty flags in request arguments
+  ---
+  duration_ms: 72.922292
+  type: 'test'
+  ...
+# Subtest: list ABI rejects invalid bytesEmpty flags in request body
+ok 16 - list ABI rejects invalid bytesEmpty flags in request body
+  ---
+  duration_ms: 59.030709
+  type: 'test'
+  ...
+# Subtest: request traversal bounds cycles in words
+ok 17 - request traversal bounds cycles in words
+  ---
+  duration_ms: 2297.916333
+  type: 'test'
+  ...
+# Subtest: request traversal bounds cycles in argument
+ok 18 - request traversal bounds cycles in argument
+  ---
+  duration_ms: 378.19125
+  type: 'test'
+  ...
+# Subtest: request traversal bounds cycles in body
+ok 19 - request traversal bounds cycles in body
+  ---
+  duration_ms: 429.402708
+  type: 'test'
+  ...
+# Subtest: request traversal permits shared byte lists across arguments, bodies and requests
+ok 20 - request traversal permits shared byte lists across arguments, bodies and requests
+  ---
+  duration_ms: 3.178917
+  type: 'test'
+  ...
+# Subtest: request traversal accepts the exact limit and renews it for each request
+ok 21 - request traversal accepts the exact limit and renews it for each request
+  ---
+  duration_ms: 246.19025
+  type: 'test'
+  ...
+# Subtest: request traversal shares the limit across arguments and bounds fresh nodes
+ok 22 - request traversal shares the limit across arguments and bounds fresh nodes
+  ---
+  duration_ms: 124.499291
+  type: 'test'
+  ...
+# Subtest: list ABI preserves valid flags, empty lists and binary request bodies
+ok 23 - list ABI preserves valid flags, empty lists and binary request bodies
+  ---
+  duration_ms: 6.382542
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 0 without interruption
+ok 24 - a terminal request preserves application exit code 0 without interruption
+  ---
+  duration_ms: 0.576375
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 7 without interruption
+ok 25 - a terminal request preserves application exit code 7 without interruption
+  ---
+  duration_ms: 0.698292
+  type: 'test'
+  ...
+# Subtest: the argument list reaches init in order and unchanged
+ok 26 - the argument list reaches init in order and unchanged
+  ---
+  duration_ms: 1.915333
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGINT status
+ok 27 - a terminal request after operation 4 preserves SIGINT status
+  ---
+  duration_ms: 2.460292
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGTERM status
+ok 28 - a terminal request after operation 4 preserves SIGTERM status
+  ---
+  duration_ms: 1.761917
+  type: 'test'
+  ...
+# Subtest: a signal between requests ends the loop with 128 plus the signal number
+ok 29 - a signal between requests ends the loop with 128 plus the signal number
+  ---
+  duration_ms: 3.828833
+  type: 'test'
+  ...
+# Subtest: an interruption reported by operation 4 earns one shutdown request
+ok 30 - an interruption reported by operation 4 earns one shutdown request
+  ---
+  duration_ms: 416.398875
+  type: 'test'
+  ...
+# Subtest: operation 11 answers the zk verdict of a proof slot
+ok 31 - operation 11 answers the zk verdict of a proof slot
+  ---
+  duration_ms: 2.890625
+  type: 'test'
+  ...
+# Subtest: the fhc and mpc operations keep one slot layout
+ok 32 - the fhc and mpc operations keep one slot layout
+  ---
+  duration_ms: 1.589416
+  type: 'test'
+  ...
+# Subtest: request arities reject missing and surplus arguments before host effects
+    # Subtest: temporary directory
+    ok 1 - temporary directory
+      ---
+      duration_ms: 3.3215
+      type: 'test'
+      ...
+    # Subtest: file read
+    ok 2 - file read
+      ---
+      duration_ms: 1.830125
+      type: 'test'
+      ...
+    # Subtest: atomic write
+    ok 3 - atomic write
+      ---
+      duration_ms: 1.110375
+      type: 'test'
+      ...
+    # Subtest: process
+    ok 4 - process
+      ---
+      duration_ms: 4.133625
+      type: 'test'
+      ...
+    # Subtest: file size
+    ok 5 - file size
+      ---
+      duration_ms: 3.25375
+      type: 'test'
+      ...
+    # Subtest: stdout
+    ok 6 - stdout
+      ---
+      duration_ms: 2.708792
+      type: 'test'
+      ...
+    # Subtest: stderr
+    ok 7 - stderr
+      ---
+      duration_ms: 2.437416
+      type: 'test'
+      ...
+    # Subtest: realpath
+    ok 8 - realpath
+      ---
+      duration_ms: 1.13025
+      type: 'test'
+      ...
+    # Subtest: resolve
+    ok 9 - resolve
+      ---
+      duration_ms: 0.939
+      type: 'test'
+      ...
+    # Subtest: prove
+    ok 10 - prove
+      ---
+      duration_ms: 0.660208
+      type: 'test'
+      ...
+    # Subtest: verify
+    ok 11 - verify
+      ---
+      duration_ms: 1.165667
+      type: 'test'
+      ...
+    # Subtest: encrypt
+    ok 12 - encrypt
+      ---
+      duration_ms: 2.323625
+      type: 'test'
+      ...
+    # Subtest: evaluate
+    ok 13 - evaluate
+      ---
+      duration_ms: 1.06825
+      type: 'test'
+      ...
+    # Subtest: decrypt
+    ok 14 - decrypt
+      ---
+      duration_ms: 1.980375
+      type: 'test'
+      ...
+    # Subtest: input
+    ok 15 - input
+      ---
+      duration_ms: 1.889875
+      type: 'test'
+      ...
+    # Subtest: joint computation
+    ok 16 - joint computation
+      ---
+      duration_ms: 2.190375
+      type: 'test'
+      ...
+    # Subtest: open
+    ok 17 - open
+      ---
+      duration_ms: 6.538375
+      type: 'test'
+      ...
+    # Subtest: release
+    ok 18 - release
+      ---
+      duration_ms: 5.38925
+      type: 'test'
+      ...
+    1..18
+ok 33 - request arities reject missing and surplus arguments before host effects
+  ---
+  duration_ms: 49.657708
+  type: 'test'
+  ...
+# Subtest: temporary directories preserve literal prefixes and stay under the resolved root
+ok 34 - temporary directories preserve literal prefixes and stay under the resolved root
+  ---
+  duration_ms: 13.544583
+  type: 'test'
+  ...
+# Subtest: temporary directories reject path separators before creating the root
+ok 35 - temporary directories reject path separators before creating the root
+  ---
+  duration_ms: 6.708375
+  type: 'test'
+  ...
+# Subtest: well-formed OS requests preserve bytes and accept a process with no argv
+ok 36 - well-formed OS requests preserve bytes and accept a process with no argv
+  ---
+  duration_ms: 101.286625
+  type: 'test'
+  ...
+# Subtest: joint computation accepts one or several shares and unknown requests resume with an error
+ok 37 - joint computation accepts one or several shares and unknown requests resume with an error
+  ---
+  duration_ms: 1.818375
+  type: 'test'
+  ...
+# Subtest: blob release invalidates every reader without reusing handles or disturbing live slots
+ok 38 - blob release invalidates every reader without reusing handles or disturbing live slots
+  ---
+  duration_ms: 1.861041
+  type: 'test'
+  ...
+# Subtest: blob release rejects malformed and unknown indices while preserving live slots
+ok 39 - blob release rejects malformed and unknown indices while preserving live slots
+  ---
+  duration_ms: 5.143292
+  type: 'test'
+  ...
+# Subtest: blob release supports repeated allocation and release within one invocation
+ok 40 - blob release supports repeated allocation and release within one invocation
+  ---
+  duration_ms: 10.080125
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second completes
+ok 41 - veil blob stores isolate overlapping runs when the second completes
+  ---
+  duration_ms: 7.938791
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second fails
+ok 42 - veil blob stores isolate overlapping runs when the second fails
+  ---
+  duration_ms: 9.331833
+  type: 'test'
+  ...
+# Subtest: veil blob stores start empty on sequential runs
+ok 43 - veil blob stores start empty on sequential runs
+  ---
+  duration_ms: 3.515125
+  type: 'test'
+  ...
+# Subtest: veil host naturals roundtrip across i31 and safe-integer boundaries
+ok 44 - veil host naturals roundtrip across i31 and safe-integer boundaries
+  ---
+  duration_ms: 3.744416
+  type: 'test'
+  ...
+# Subtest: veil host naturals compute exact zk, fhc and mpc results
+ok 45 - veil host naturals compute exact zk, fhc and mpc results
+  ---
+  duration_ms: 1.790708
+  type: 'test'
+  ...
+# Subtest: veil host naturals reject malformed decimals without allocating slots
+ok 46 - veil host naturals reject malformed decimals without allocating slots
+  ---
+  duration_ms: 7.474166
+  type: 'test'
+  ...
+# Subtest: veil host naturals keep bounded slot, function and subset indices
+ok 47 - veil host naturals keep bounded slot, function and subset indices
+  ---
+  duration_ms: 1.273959
+  type: 'test'
+  ...
+1..47
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9513.857209
