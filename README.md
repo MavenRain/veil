@@ -21,6 +21,9 @@ as checked by the [list ABI regressions](dev/LIST-ABI.md).
 Request decoding also has a shared limit of 1048576 list nodes, so cyclic
 or endlessly growing request lists cannot keep the host traversing them.
 The [request traversal regressions](dev/REQUEST-BOUNDS.md) cover the limit.
+Long-running reactors can release host blob slots with operation 18. Released
+handles stay invalid for the rest of the run, as checked by the
+[blob release regressions](dev/BLOB-RELEASE.md).
 
 Function parameters can share a type and quantity:
 

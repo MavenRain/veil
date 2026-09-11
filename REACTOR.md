@@ -150,18 +150,20 @@ the left list's length.
 | 15 | plaintext | Write a share slot; return its index |
 | 16 | subset, f, slot... | Write the joint slot; return its index |
 | 17 | slot | Return the plaintext of a share slot |
+| 18 | slot | Release a host blob slot; return an empty answer |
 
-Operations 1 to 17 check argument counts before performing the operation.
+Operations 1 to 18 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
 and at least one share slot. A request whose arguments decode, but whose
 count is missing or surplus, returns status 1 through `resume`, before any
-filesystem operation, output write, process spawn or slot allocation. The
+filesystem operation, output write, process spawn, slot allocation or release. The
 error identifies the operation, expected count and supplied count. An
 argument that the host cannot decode ends the run with the `kanon reactor:`
 line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
-The [request arity regressions](dev/REQUEST-ARITY.md) exercise all 17 rows.
+The [request arity regressions](dev/REQUEST-ARITY.md) cover all 18 rows;
+the [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 10 to 17 are the veil host operations. A blob is a slot that holds
 a flag and a plaintext. The flag holds the instance for the zk operations, the
@@ -213,13 +215,29 @@ operation 16 still use safe integers. The direct numeric WebAssembly export
 ABI still requires i31 values; large slot data crosses the host request
 boundary as bytes. [Validation](dev/HOST-NAT.md) exercises both paths.
 
-Each `runReactor` invocation owns a fresh slot store. Slot indices start at 1
-and refer only to that invocation, even when multiple runs overlap in one
-JavaScript process. Starting, completing or failing another run cannot clear
-or overwrite its slots. The module no longer exports the former global `blobs`
+Each `runReactor` invocation owns a fresh slot store. Slot indices start at 1,
+increase with each allocation, and refer only to that invocation, even when
+multiple runs overlap in one JavaScript process. Starting, completing or
+failing another run cannot clear or overwrite its slots. The module no longer exports the former global `blobs`
 map, and no run can read or clear the slots of another run.
 The [isolation regressions](dev/BLOB-ISOLATION.md) cover proof verification,
 ciphertext evaluation and joint share computation across overlapping runs.
+
+Operation 18 releases a live slot from the JavaScript host store. It takes
+exactly one safe-integer decimal slot index and answers status 0 with empty
+bytes on success. An unknown or previously released index answers status 1
+with `IO: unknown blob slot INDEX`. Releasing a slot leaves other live slots
+and already computed results intact. Future allocations never reuse released
+indices within that invocation, including after the store becomes empty.
+Allocation beyond index 9007199254740991 answers status 1 with
+`IO: blob slot index exhausted` and creates no slot. Release remains available.
+
+A program can release proofs, ciphertexts and shares once it no longer needs
+them. Retaining a copy of the index does not keep the slot alive. Release
+removes the host's reference so its stored data can be garbage collected;
+it does not promise memory wiping or immediate memory reclamation. This
+operation manages the JavaScript host store. The Wasm twin uses ordinary
+`Slot` values whose lifetime is managed by WasmGC. See [BLOB-RELEASE.md](dev/BLOB-RELEASE.md).
 
 OS numeric arguments use decimal byte strings and must fit a JavaScript safe
 integer. Timeouts additionally fit `0..2147483647`. A timeout of 0 sets no

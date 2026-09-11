@@ -683,7 +683,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['prove', 10, ['9', '3']], ['verify', 11, ['1', '9', '2']],
     ['encrypt', 12, ['0', '3']], ['evaluate', 13, ['1', '3', '1']],
     ['decrypt', 14, ['1']], ['input', 15, ['3']],
-    ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']],
+    ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']], ['release', 18, ['1']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -694,6 +694,7 @@ test('request arities reject missing and surplus arguments before host effects',
         { code: 10, args: ['9', '3'], answer: '1' },
         ...malformed.map(invalid => ({ code, args: invalid, status: 1,
           answer: `IO: OS request ${code} expects ${variadic ? 'at least ' : ''}${args.length} argument${args.length === 1 ? '' : 's'}, got ${invalid.length}` })),
+        { code: 17, args: ['1'], answer: '3' },
         { code: 15, args: ['7'], answer: '2' },
         { code: 17, args: ['2'], answer: '7' },
       ]);
@@ -735,9 +736,58 @@ test('joint computation accepts one or several shares and unknown requests resum
     { code: 17, args: ['2'], answer: '4' },
     { code: 16, args: ['3', '0', '1', '2', '1'], answer: '3' },
     { code: 17, args: ['3'], answer: '10' },
-    { code: 18, args: [], status: 1, answer: 'IO: unknown OS request 18' },
+    { code: 19, args: [], status: 1, answer: 'IO: unknown OS request 19' },
     { code: 15, args: ['5'], answer: '4' },
   ]);
+});
+
+test('blob release invalidates every reader without reusing handles or disturbing live slots', async () => {
+  await slotScript([
+    { code: 10, args: ['9', '3'], answer: '1' },
+    { code: 12, args: ['2', '5'], answer: '2' },
+    { code: 15, args: ['7'], answer: '3' },
+    { code: 13, args: ['3', '3', '2'], answer: '4' },
+    { code: 16, args: ['2', '0', '2', '3'], answer: '5' },
+    { code: 18, args: ['0002'], answer: '' },
+    { code: 15, args: ['11'], answer: '6' },
+    { code: 11, args: ['1', '9', '2'], answer: '1' },
+    { code: 17, args: ['3'], answer: '7' },
+    { code: 14, args: ['4'], answer: '6' },
+    { code: 17, args: ['5'], answer: '12' },
+    ...[[11, ['2', '25', '2']], [13, ['3', '0', '2']], [14, ['2']],
+      [16, ['2', '0', '3', '2']], [17, ['2']], [18, ['2']]].map(([code, args]) =>
+      ({ code, args, status: 1, answer: 'IO: unknown blob slot 2' })),
+    { code: 15, args: ['13'], answer: '7' },
+    ...['1', '3', '4', '5', '6', '7'].map(slot => ({ code: 18, args: [slot], answer: '' })),
+    { code: 10, args: ['16', '4'], answer: '8' },
+    { code: 11, args: ['8', '16', '2'], answer: '1' },
+    { code: 18, args: ['8'], answer: '' },
+    { code: 18, args: ['8'], status: 1, answer: 'IO: unknown blob slot 8' },
+  ]);
+});
+
+test('blob release rejects malformed and unknown indices while preserving live slots', async () => {
+  await slotScript([
+    { code: 15, args: ['7'], answer: '1' },
+    ...['', '-1', '+1', '1.0', '1e0', ' 1', '1 ', '1\n', '\u0661', '9007199254740992'].map(slot =>
+      ({ code: 18, args: [slot], status: 1, answer: 'IO: invalid OS numeric argument' })),
+    ...['0', '2', '9007199254740991'].map(slot =>
+      ({ code: 18, args: [slot], status: 1, answer: `IO: unknown blob slot ${slot}` })),
+    { code: 17, args: ['1'], answer: '7' },
+    { code: 15, args: ['8'], answer: '2' },
+    { code: 18, args: ['1'], answer: '' },
+    { code: 17, args: ['2'], answer: '8' },
+  ]);
+});
+
+test('blob release supports repeated allocation and release within one invocation', async () => {
+  const script = [];
+  for (let index = 1; index <= 128; index += 1) {
+    script.push({ code: 15, args: [String(index)], answer: String(index) },
+      { code: 18, args: [String(index)], answer: '' },
+      { code: 17, args: [String(index)], status: 1, answer: `IO: unknown blob slot ${index}` });
+  }
+  await slotScript(script);
 });
 
 for (const failure of [false, true]) {
@@ -757,7 +807,7 @@ for (const failure of [false, true]) {
       { code: 17, args: ['6'], answer: '15' },
     ];
     const secondScript = [
-      ...[11, 14, 17].map(code => ({ code, args: code === 11 ? ['1', '9', '2'] : ['1'],
+      ...[11, 14, 17, 18].map(code => ({ code, args: code === 11 ? ['1', '9', '2'] : ['1'],
         status: 1, answer: /unknown blob slot 1/ })),
       { code: 10, args: ['25', '5'], answer: '1' },
       { code: 12, args: ['2', '42'], answer: '2' },
@@ -765,6 +815,10 @@ for (const failure of [false, true]) {
       { code: 11, args: ['1', '25', '2'], answer: '1' },
       { code: 14, args: ['2'], answer: '42' },
       { code: 17, args: ['3'], answer: '10' },
+      ...['1', '2', '3'].map(slot => ({ code: 18, args: [slot], answer: '' })),
+      { code: 15, args: ['11'], answer: '4' },
+      { code: 17, args: ['1'], status: 1, answer: 'IO: unknown blob slot 1' },
+      { code: 17, args: ['4'], answer: '11' },
     ];
     const first = slotScriptApi(firstScript);
     const second = slotScriptApi(secondScript);

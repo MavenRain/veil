@@ -1,0 +1,167 @@
+TAP version 13
+# Subtest: request arities reject missing and surplus arguments before host effects
+    # Subtest: temporary directory
+    ok 1 - temporary directory
+      ---
+      duration_ms: 24.419209
+      type: 'test'
+      ...
+    # Subtest: file read
+    ok 2 - file read
+      ---
+      duration_ms: 6.681
+      type: 'test'
+      ...
+    # Subtest: atomic write
+    ok 3 - atomic write
+      ---
+      duration_ms: 18.114041
+      type: 'test'
+      ...
+    # Subtest: process
+    ok 4 - process
+      ---
+      duration_ms: 6.366291
+      type: 'test'
+      ...
+    # Subtest: file size
+    ok 5 - file size
+      ---
+      duration_ms: 18.858708
+      type: 'test'
+      ...
+    # Subtest: stdout
+    ok 6 - stdout
+      ---
+      duration_ms: 12.992458
+      type: 'test'
+      ...
+    # Subtest: stderr
+    ok 7 - stderr
+      ---
+      duration_ms: 3.983667
+      type: 'test'
+      ...
+    # Subtest: realpath
+    ok 8 - realpath
+      ---
+      duration_ms: 3.975541
+      type: 'test'
+      ...
+    # Subtest: resolve
+    ok 9 - resolve
+      ---
+      duration_ms: 13.984292
+      type: 'test'
+      ...
+    # Subtest: prove
+    ok 10 - prove
+      ---
+      duration_ms: 3.869625
+      type: 'test'
+      ...
+    # Subtest: verify
+    ok 11 - verify
+      ---
+      duration_ms: 6.978333
+      type: 'test'
+      ...
+    # Subtest: encrypt
+    ok 12 - encrypt
+      ---
+      duration_ms: 3.230166
+      type: 'test'
+      ...
+    # Subtest: evaluate
+    ok 13 - evaluate
+      ---
+      duration_ms: 10.772084
+      type: 'test'
+      ...
+    # Subtest: decrypt
+    ok 14 - decrypt
+      ---
+      duration_ms: 2.748625
+      type: 'test'
+      ...
+    # Subtest: input
+    ok 15 - input
+      ---
+      duration_ms: 5.445625
+      type: 'test'
+      ...
+    # Subtest: joint computation
+    ok 16 - joint computation
+      ---
+      duration_ms: 3.52025
+      type: 'test'
+      ...
+    # Subtest: open
+    ok 17 - open
+      ---
+      duration_ms: 3.103166
+      type: 'test'
+      ...
+    # Subtest: release
+    ok 18 - release
+      ---
+      duration_ms: 48.235208
+      type: 'test'
+      ...
+    1..18
+ok 1 - request arities reject missing and surplus arguments before host effects
+  ---
+  duration_ms: 346.968875
+  type: 'test'
+  ...
+# Subtest: joint computation accepts one or several shares and unknown requests resume with an error
+ok 2 - joint computation accepts one or several shares and unknown requests resume with an error
+  ---
+  duration_ms: 17.053917
+  type: 'test'
+  ...
+# Subtest: blob release invalidates every reader without reusing handles or disturbing live slots
+ok 3 - blob release invalidates every reader without reusing handles or disturbing live slots
+  ---
+  duration_ms: 5.772875
+  type: 'test'
+  ...
+# Subtest: blob release rejects malformed and unknown indices while preserving live slots
+ok 4 - blob release rejects malformed and unknown indices while preserving live slots
+  ---
+  duration_ms: 4.262791
+  type: 'test'
+  ...
+# Subtest: blob release supports repeated allocation and release within one invocation
+ok 5 - blob release supports repeated allocation and release within one invocation
+  ---
+  duration_ms: 392.227084
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second completes
+ok 6 - veil blob stores isolate overlapping runs when the second completes
+  ---
+  duration_ms: 29.951292
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second fails
+ok 7 - veil blob stores isolate overlapping runs when the second fails
+  ---
+  duration_ms: 14.939542
+  type: 'test'
+  ...
+# Subtest: veil blob stores start empty on sequential runs
+ok 8 - veil blob stores start empty on sequential runs
+  ---
+  duration_ms: 16.805333
+  type: 'test'
+  ...
+1..8
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1504.077166

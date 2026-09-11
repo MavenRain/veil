@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: blob release invalidates every reader without reusing handles or disturbing live slots
+not ok 1 - blob release invalidates every reader without reusing handles or disturbing live slots
+  ---
+  duration_ms: 19.037
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:744:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    step 6, operation 15
+
+    '5' !== '6'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '6'
+  actual: '5'
+  operator: 'strictEqual'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:650:19)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/runtime/reactor.mjs:370:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:663:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:745:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  ...
+# Subtest: blob release rejects malformed and unknown indices while preserving live slots
+ok 2 - blob release rejects malformed and unknown indices while preserving live slots
+  ---
+  duration_ms: 261.349208
+  type: 'test'
+  ...
+# Subtest: blob release supports repeated allocation and release within one invocation
+not ok 3 - blob release supports repeated allocation and release within one invocation
+  ---
+  duration_ms: 3.301666
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:783:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    step 3, operation 15
+
+    '1' !== '2'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2'
+  actual: '1'
+  operator: 'strictEqual'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:650:19)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/runtime/reactor.mjs:370:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:663:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs:790:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 1
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1249.444042

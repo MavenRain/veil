@@ -1,0 +1,56 @@
+-- Build with runtime/reactor.kan. Allocate slot 1, release it, allocate
+-- slot 2, then run the one-byte opcode and argument words supplied by argv.
+mu ReleaseState : Type 0 with
+| seeding : Nat -> Words -> ReleaseState
+| releasing : Nat -> Words -> ReleaseState
+| allocating : Nat -> Words -> ReleaseState
+| requested : Nat -> Words -> ReleaseState
+| reporting : Nat -> Bytes -> ReleaseState
+| finished : Nat -> ReleaseState
+
+def continueWith (next : ReleaseState) (status : Nat) (answer : Bytes) : ReleaseState :=
+  case (natEq status 0) with
+  | 0 (no : prod ()) => reporting status answer
+  | 1 (yes : prod ()) => next
+def init (argv : Words) : ReleaseState :=
+  seeding (bytesHead (wordsHead argv)) (wordsTail argv)
+def resume (state : ReleaseState) (status : Nat) (answer : Bytes) : ReleaseState :=
+  case state as current in ReleaseState return ReleaseState with
+  | seeding code args => continueWith (releasing code args) status answer
+  | releasing code args => continueWith (allocating code args) status answer
+  | allocating code args => continueWith (requested code args) status answer
+  | requested code args => reporting status answer
+  | reporting result body => finished result
+  | finished result => finished result
+def requestCode (state : ReleaseState) : Nat :=
+  case state as current in ReleaseState return Nat with
+  | seeding code args => 10
+  | releasing code args => 18
+  | allocating code args => 15
+  | requested code args => code
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : ReleaseState) : Words :=
+  case state as current in ReleaseState return Words with
+  | seeding code args => wordsCons b"9" (wordsCons b"3" wordsNil)
+  | releasing code args => wordsCons b"1" wordsNil
+  | allocating code args => wordsCons b"7" wordsNil
+  | requested code args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : ReleaseState) : Bytes :=
+  case state as current in ReleaseState return Bytes with
+  | seeding code args => bytesNil
+  | releasing code args => bytesNil
+  | allocating code args => bytesNil
+  | requested code args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : ReleaseState) : Nat :=
+  case state as current in ReleaseState return Nat with
+  | seeding code args => 1
+  | releasing code args => 1
+  | allocating code args => 1
+  | requested code args => 1
+  | reporting result body => result
+  | finished result => result

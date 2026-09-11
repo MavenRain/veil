@@ -1,0 +1,158 @@
+{
+  "base": "d169af3bd8a1dec8e551c564cba4561db1cbd4a1",
+  "captures": {
+    "before": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "blob release",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 1,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-RCyJet",
+      "raw_sha256": {
+        "stdout": "ac0666832f577915bf6e3f2c7abde32ba9c7ed970df9ef4aee2b3ba36eb76c19",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "runtime-first": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 1,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-YzuVHA",
+      "raw_sha256": {
+        "stdout": "382af41e6326674b8cf3080813ebec9ee492ab750b9b69f925e504389a46ca17",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "focused": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "blob|request arities|joint computation",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 0,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-8SNaSz",
+      "raw_sha256": {
+        "stdout": "4c039fad54a25166df6eabf789f717cab13901afcced0c180f9cc9f0b91f7cfe",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "compiled": {
+      "argv": [
+        "node",
+        "/Users/oobi/Documents/gpt3/veil-release-compiled.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 0,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-l4rPkZ",
+      "raw_sha256": {
+        "stdout": "71f8ae92e4829fcf40d3b9397060cf6fc466022a12c3853436737a6ba1500a52",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "mutant-reuse": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "blob release",
+        "/Users/oobi/Documents/gpt3/veil-release-mutants/reuse/dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 1,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-AUVyzl",
+      "raw_sha256": {
+        "stdout": "f6ee48f71af3aed61fcb8169fa98234747e51a0ee5e12df1b96311cc738a53f1",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "mutant-retain": {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "blob release",
+        "/Users/oobi/Documents/gpt3/veil-release-mutants/retain/dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 1,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-jvJZ6k",
+      "raw_sha256": {
+        "stdout": "73a76067e2c4d289c727d0e03b36bd8435e9dc276f0ec4cafa9945486f13d0bb",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "gates": {
+      "argv": [
+        "zsh",
+        "dev/gates.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 1,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-ruIcMO",
+      "raw_sha256": {
+        "stdout": "869e07456593a31591201c14484adc9a4f6654c7b8d06e339169ff0f2bce936e",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-blob-release",
+      "exit_code": 0,
+      "artifact": "/Users/oobi/Documents/gpt3/veil-blob-release/.kanon-exec/run-iKqyOM",
+      "raw_sha256": {
+        "stdout": "4af8a07d6fd36a8c3f31ae8f5febca8e5de37d5cf24839c9c783973dd14d5c88",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "sha256": {
+    "runtime/reactor.mjs": "be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159",
+    "dev/runtime-test.mjs": "a15d60025aed12c0dbbec6026853edc879dcf224c5df2543f4b1f349666e2779",
+    "dev/reactor-test.mjs": "7611e866a15bf2f021b0ccd569705ec1ff2db8556b7b7b7474985a024a94cc3c",
+    "test/fixtures/reactor/blob-release.kan": "c2873f7c64e7f12e11c0f678bb7d65404aef48366b39345308c69659b66fa88c",
+    "README.md": "9414175fdb4ed9f43cffa949a556ad3585e8e542dab1aa3f35ee1ea7d86c5e1b",
+    "REACTOR.md": "b24916d9bc2d87edc1f6d78e38723e1ccdde056f4e34f79c1ec09b911f92992a",
+    "dev/BLOB-RELEASE.md": "2dbee86aff9c1768d08ff09b9862569ca4791a745dc19f37a2a3d02d8477d0db",
+    "dev/validation/2026-09-11-blob-release/README.md": "b6bb96bac092b7258562593646f8f20744b018f665f9861fb22ce9e472ba461a",
+    "dev/validation/2026-09-11-blob-release/before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/before.stdout": "0b23083fecbe7b2848505fbeba575fcf507fc23b0cee541d5240eff6daf3c1a7",
+    "dev/validation/2026-09-11-blob-release/compiled.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/compiled.stdout": "71f8ae92e4829fcf40d3b9397060cf6fc466022a12c3853436737a6ba1500a52",
+    "dev/validation/2026-09-11-blob-release/focused.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/focused.stdout": "4c039fad54a25166df6eabf789f717cab13901afcced0c180f9cc9f0b91f7cfe",
+    "dev/validation/2026-09-11-blob-release/gates.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/gates.stdout": "869e07456593a31591201c14484adc9a4f6654c7b8d06e339169ff0f2bce936e",
+    "dev/validation/2026-09-11-blob-release/house.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/house.stdout": "4af8a07d6fd36a8c3f31ae8f5febca8e5de37d5cf24839c9c783973dd14d5c88",
+    "dev/validation/2026-09-11-blob-release/mutant-retain.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/mutant-retain.stdout": "ac58f6a659861448dd116d6c6f2e782cd44d958bc504422584e66ce871c7d29e",
+    "dev/validation/2026-09-11-blob-release/mutant-reuse.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/mutant-reuse.stdout": "ac95fda796575fd14dcb3684ac888a5ebb8b34d2be2a3bb5f8062c9a5df4fae9",
+    "dev/validation/2026-09-11-blob-release/runtime-first.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/validation/2026-09-11-blob-release/runtime-first.stdout": "382af41e6326674b8cf3080813ebec9ee492ab750b9b69f925e504389a46ca17"
+  },
+  "capture_normalization": "Trailing spaces and tabs removed at line ends. Original bytes remain in artifacts; raw_sha256 pins them.",
+  "mutations": {
+    "reuse": "Allocate with live map size + 1 instead of the independent next index.",
+    "retain": "Replace Map.delete with Map.has so release retains the live entry."
+  }
+}

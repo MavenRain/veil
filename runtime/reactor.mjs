@@ -204,19 +204,22 @@ const hostFunction = argument => {
 };
 const readSlot = (blobs, argument) => {
   const index = numeric(argument);
-  const slot = blobs.get(index);
+  const slot = blobs.slots.get(index);
   if (!slot) throw new Error(`unknown blob slot ${index}`);
   return slot;
 };
 const writeSlot = (blobs, flag, plain) => {
-  const index = blobs.size + 1;
-  blobs.set(index, { flag, plain });
+  // Released indices stay retired so an old handle cannot name a new blob.
+  const index = blobs.nextIndex;
+  if (!Number.isSafeInteger(index)) throw new RangeError('blob slot index exhausted');
+  blobs.slots.set(index, { flag, plain });
+  blobs.nextIndex += 1;
   return Buffer.from(String(index));
 };
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1];
 
 async function perform(code, args, body, interrupted, blobs) {
   const expected = requestArities[code];
@@ -278,6 +281,11 @@ async function perform(code, args, body, interrupted, blobs) {
       return writeSlot(blobs, 0n, joint(slots.map(slot => slot.plain)));
     }
     case 17: return Buffer.from(String(readSlot(blobs, args[0]).plain));
+    case 18: {
+      const index = numeric(args[0]);
+      if (!blobs.slots.delete(index)) throw new Error(`unknown blob slot ${index}`);
+      return Buffer.alloc(0);
+    }
     default: throw new Error(`unknown OS request ${code}`);
   }
 }
@@ -287,7 +295,7 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
   const api = instance.exports;
   // Slots belong to this invocation, including while an OS request yields
   // to another reactor run. Completion or failure releases this store.
-  const blobs = new Map();
+  const blobs = { slots: new Map(), nextIndex: 1 };
   const required = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail', 'emptyWords', 'consWords',
     'wordsEmpty', 'wordsHead', 'wordsTail', 'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
   for (const name of required) if (typeof api[name] !== 'function') throw new Error(`missing reactor export ${name}`);

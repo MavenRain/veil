@@ -151,6 +151,33 @@ try {
   verify(() => assert.equal(validCycles.status, 0, String(validCycles.stderr)));
   verify(() => assert.deepEqual(validCycles.stdout, Buffer.from([65, 0, 255])));
   verify(() => assert.equal(validCycles.stderr.length, 0));
+  const release = join(scratch, 'blob-release.wasm');
+  const releaseBuild = run(['build', shared, fixture('blob-release'), '-o', release,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(releaseBuild.status, 0, releaseBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(release))).length, 0));
+  for (const [code, args] of [[11, ['1', '9', '2']], [13, ['1', '0', '1']], [14, ['1']],
+    [16, ['2', '0', '2', '1']], [17, ['1']], [18, ['1']]]) {
+    const retired = runModule([release, String.fromCharCode(code), ...args]);
+    verify(() => assert.equal(retired.status, 1, `operation ${code}: ${retired.error ?? retired.stderr}`));
+    verify(() => assert.equal(retired.stdout, 'IO: unknown blob slot 1'));
+    verify(() => assert.equal(retired.stderr, ''));
+  }
+  for (const [args, answer] of [[[], 'IO: OS request 18 expects 1 argument, got 0'],
+    [['2', '2'], 'IO: OS request 18 expects 1 argument, got 2'],
+    [['2\n'], 'IO: invalid OS numeric argument']]) {
+    const invalid = runModule([release, String.fromCharCode(18), ...args]);
+    verify(() => assert.equal(invalid.status, 1, invalid.stderr));
+    verify(() => assert.equal(invalid.stdout, answer));
+    verify(() => assert.equal(invalid.stderr, ''));
+  }
+  for (const [code, args, answer] of [[17, ['2'], '7'], [11, ['2', '7', '0'], '0'],
+    [18, ['0002'], '']]) {
+    const live = runModule([release, String.fromCharCode(code), ...args]);
+    verify(() => assert.equal(live.status, 0, live.stderr));
+    verify(() => assert.equal(live.stdout, answer));
+    verify(() => assert.equal(live.stderr, ''));
+  }
   const application = join(scratch, 'realpath.wasm');
   const applicationBuild = run(['build', shared,
     join(root, 'examples/reactor-realpath.kan'), '-o', application,
