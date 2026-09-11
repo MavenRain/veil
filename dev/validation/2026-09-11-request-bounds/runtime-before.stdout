@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: request traversal bounds cycles in words
+not ok 1 - request traversal bounds cycles in words
+  ---
+  duration_ms: 15718.324917
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:273:3'
+  failureType: 'testCodeFailure'
+  error: 'words: [0]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'reactor request exceeds 1048576 list nodes'
+  actual:
+  error: 'cycle traversal exceeded the test guard'
+  stack: |-
+    Object.wordsEmpty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:292:53)
+    empty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:294:27)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:339:15)
+    async waitForActual (node:assert:875:5)
+    async Function.rejects (node:assert:996:25)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  ...
+# Subtest: request traversal bounds cycles in argument
+not ok 2 - request traversal bounds cycles in argument
+  ---
+  duration_ms: 86.573542
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:273:3'
+  failureType: 'testCodeFailure'
+  error: 'argument: [0]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'reactor request exceeds 1048576 list nodes'
+  actual:
+  error: 'cycle traversal exceeded the test guard'
+  stack: |-
+    Object.bytesEmpty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:292:53)
+    empty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:294:27)
+    fromBytes (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:305:13)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:340:28)
+    async waitForActual (node:assert:875:5)
+    async Function.rejects (node:assert:996:25)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: request traversal bounds cycles in body
+not ok 3 - request traversal bounds cycles in body
+  ---
+  duration_ms: 82.493417
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:273:3'
+  failureType: 'testCodeFailure'
+  error: 'body: [0]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'reactor request exceeds 1048576 list nodes'
+  actual:
+  error: 'cycle traversal exceeded the test guard'
+  stack: |-
+    Object.bytesEmpty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:292:53)
+    empty (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:294:27)
+    fromBytes (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:305:13)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:343:20)
+    async waitForActual (node:assert:875:5)
+    async Function.rejects (node:assert:996:25)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:309:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: request traversal permits shared byte lists across arguments, bodies and requests
+ok 4 - request traversal permits shared byte lists across arguments, bodies and requests
+  ---
+  duration_ms: 6.8655
+  type: 'test'
+  ...
+# Subtest: request traversal accepts the exact limit and renews it for each request
+not ok 5 - request traversal accepts the exact limit and renews it for each request
+  ---
+  duration_ms: 308.601291
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:344:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection (RangeError).'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'reactor request exceeds 1048576 list nodes'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:375:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: request traversal shares the limit across arguments and bounds fresh nodes
+not ok 6 - request traversal shares the limit across arguments and bounds fresh nodes
+  ---
+  duration_ms: 65.027542
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:380:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      Comparison {
+    +   message: 'overlong arguments must be rejected before the body',
+    +   name: 'AssertionError'
+    -   message: 'reactor request exceeds 1048576 list nodes',
+    -   name: 'RangeError'
+      }
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    name: 'RangeError'
+    message: 'reactor request exceeds 1048576 list nodes'
+  actual:
+  error: 'overlong arguments must be rejected before the body'
+  stack: |-
+    Object.requestBody (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:396:33)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/runtime/reactor.mjs:343:34)
+    async waitForActual (node:assert:875:5)
+    async Function.rejects (node:assert:996:25)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:401:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-bounds-baseline/dev/runtime-test.mjs:401:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16436.060083

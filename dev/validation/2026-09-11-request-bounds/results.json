@@ -1,0 +1,209 @@
+{
+  "base": "5af55b7eb588636436ad12c72b49c53cf4d2cde8",
+  "validated_in": "/Users/oobi/Documents/gpt3/veil-numeric-abi",
+  "node_version": "v23.10.0",
+  "baseline_runtime_sha256": "5f9b71e74ed21d461572b86b3a53b8572d28014261e0d4ac3e2903bb66097091",
+  "baseline_test_sha256": "0674d74ba1192631174b7dc83ba3a76b374f03586e8f50bf7223038c77c4405e",
+  "compilers_sha256": {
+    "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "/Users/oobi/Documents/gpt3/veil-numeric-abi/_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "compiler_bytes_identical": true,
+  "sha256": {
+    "runtime/reactor.mjs": "a213e87d5e3f383f75bb2846fc9a96be418eb07c27117beb0712c84192c1babc",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "3ff2ad53d24e2c0557c0801298726a8c10f89b91583be37c3eeeab2146d83075",
+    "dev/reactor-test.mjs": "638b2958062e409a58327e97e3ebff2de4f028a2402818ed8dfe6e7cff8c85df",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "test/fixtures/reactor/list-cycles.kan": "b0f90f4386efcc086405d10921e11aeac04977e8d8b245e1e4d0ca4f6ff48975",
+    "dev/REQUEST-BOUNDS.md": "4a7c0b761d8cafe77d488e747baee927b79701d457dbfdaa431e895cf8bd7c84",
+    "REACTOR.md": "57cda1aef562b64674662c1fc955c3fd8dd9dd56ebea26d8cfaeb3f654308669",
+    "README.md": "299e498505931b7f9253e9e73255f1ee320b9c9f460c8b747b12e95dc821417a"
+  },
+  "retained_capture_format": "Trailing whitespace removed from each output line; original capture manifests retained.",
+  "gate_pass_count": 25,
+  "gate_failures": [
+    "FAIL M0-TIME median_ms=153.194 bound_ms=150 load1=24.042 samples=3x5",
+    "FAIL M1-CORPUS elapsed_ms=801.682 bound_ms=713 lines=1000 main=814 load1=24.539"
+  ],
+  "checks": [
+    {
+      "name": "runtime-before",
+      "expected_exit_code": 1,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-bounds-baseline/.kanon-exec/run-K13jJ3",
+        "status": "complete",
+        "exitCode": 1,
+        "counts": {
+          "stdout_bytes": 7460,
+          "stderr_bytes": 0,
+          "stdout_lines": 166,
+          "stderr_lines": 0,
+          "error_lines": 21,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "--test-name-pattern",
+              "request traversal",
+              "dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-bounds-baseline",
+            "exitCode": 1,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-bounds-baseline/.kanon-exec/run-K13jJ3/command-0001.stdout",
+              "bytes": 7460,
+              "lines": 166
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-bounds-baseline/.kanon-exec/run-K13jJ3/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "runtime-targeted",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-SZgEUX",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 1253,
+          "stderr_bytes": 0,
+          "stdout_lines": 46,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "--test-name-pattern",
+              "request traversal",
+              "dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-numeric-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-SZgEUX/command-0001.stdout",
+              "bytes": 1253,
+              "lines": 46
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-SZgEUX/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "reactor",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-l7xVok",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 27,
+          "stderr_bytes": 0,
+          "stdout_lines": 1,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "dev/reactor-test.mjs",
+              "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-numeric-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-l7xVok/command-0001.stdout",
+              "bytes": 27,
+              "lines": 1
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-l7xVok/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "gates",
+      "expected_exit_code": 1,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-XchonZ",
+        "status": "complete",
+        "exitCode": 1,
+        "counts": {
+          "stdout_bytes": 11279,
+          "stderr_bytes": 0,
+          "stdout_lines": 201,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "zsh",
+              "dev/gates.sh"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-numeric-abi",
+            "exitCode": 1,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-XchonZ/command-0001.stdout",
+              "bytes": 11279,
+              "lines": 201
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-numeric-abi/.kanon-exec/run-XchonZ/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const MAX_IO = 65536;
+const MAX_REQUEST_NODES = 1048576;
 const nat = value => {
   if (!Number.isInteger(value) || value < 0 || value > 1073741823) throw new RangeError('invalid ABI natural');
   return value;
@@ -300,9 +301,14 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
     for (let i = buffer.length - 1; i >= 0; i--) list = api.consBytes(buffer[i], list);
     return list;
   };
-  const fromBytes = list => {
+  const consumeNode = budget => {
+    if (budget.remaining === 0) throw new RangeError(`reactor request exceeds ${MAX_REQUEST_NODES} list nodes`);
+    budget.remaining -= 1;
+  };
+  const fromBytes = (list, budget) => {
     const bytes = [];
     while (!empty('bytesEmpty', list)) {
+      consumeNode(budget);
       const byte = nat(api.bytesHead(list));
       if (byte > 255) throw new RangeError('invalid byte in reactor request');
       bytes.push(byte);
@@ -335,12 +341,16 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
         return interrupted.signal ? signalCode(interrupted.signal) : nat(api.exitCode(state));
       }
       const args = [];
+      // Share one budget across the word list, every argument and the body.
+      // Export wrappers may allocate a fresh handle even for a repeated node.
+      const budget = { remaining: MAX_REQUEST_NODES };
       let values = api.requestArgs(state);
       while (!empty('wordsEmpty', values)) {
-        args.push(osString(fromBytes(api.wordsHead(values))));
+        consumeNode(budget);
+        args.push(osString(fromBytes(api.wordsHead(values), budget)));
         values = api.wordsTail(values);
       }
-      const body = fromBytes(api.requestBody(state));
+      const body = fromBytes(api.requestBody(state), budget);
       // Only an operation 4 that began without a latched signal can be the
       // one that reports a fresh interruption to the program.
       const armed = code === 4 && !interrupted.signal;

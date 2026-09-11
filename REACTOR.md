@@ -102,6 +102,19 @@ call. This check also applies after reading earlier elements of a list;
 operation 0 still terminates without reading either list. See the
 [list predicate regressions](dev/LIST-ABI.md).
 
+Each nonterminal request may traverse at most 1048576 nonempty list nodes.
+The count includes one node per argument and one per byte in all arguments
+and the payload, sharing one budget across the complete request. Empty-list
+checks do not consume nodes. The budget resets for each request, and repeated
+references count on every visit. A request exactly at the limit is accepted.
+The next nonempty node ends the run with
+`kanon reactor: reactor request exceeds 1048576 list nodes` and exit 2,
+before dispatch or `resume`. This bounds cycles and accessors that keep
+returning fresh nodes, provided each accessor call returns. It does not bound
+execution inside a Wasm export or the number of requests in a run. The host
+does not depend on handle identity, which export wrappers need not preserve.
+See the [request traversal regressions](dev/REQUEST-BOUNDS.md).
+
 `runtime/reactor.kan` supplies the ordinary `Bytes` and `Words` inductive
 types and the ten list exports above. `Bytes` is a list of naturals used
 for bytes, and `Words` is a list of `Bytes`. Every element of a `Bytes`

@@ -1,0 +1,61 @@
+-- Deliberately cyclic tail accessors for the reactor boundary tests.
+-- Byte 253 repeats its byte node; a word starting with 119 repeats its word node.
+mu Bytes : Type 0 with
+| bytesNil : Bytes
+| bytesCons : Nat -> Bytes -> Bytes
+
+mu Words : Type 0 with
+| wordsNil : Words
+| wordsCons : Bytes -> Words -> Words
+
+def emptyBytes : Bytes := bytesNil
+def consBytes (head : Nat) (tail : Bytes) : Bytes := bytesCons head tail
+def bytesHead (list : Bytes) : Nat :=
+  case list as xs in Bytes return Nat with | bytesNil => 0 | bytesCons h t => h
+def bytesTail (list : Bytes) : Bytes :=
+  case list as xs in Bytes return Bytes with
+  | bytesNil => bytesNil
+  | bytesCons h t =>
+    case (natEq h 253) with | 0 (no : prod ()) => t | 1 (yes : prod ()) => list
+def bytesEmpty (list : Bytes) : Nat :=
+  case list as xs in Bytes return Nat with | bytesNil => 1 | bytesCons h t => 0
+
+def emptyWords : Words := wordsNil
+def consWords (head : Bytes) (tail : Words) : Words := wordsCons head tail
+def wordsHead (list : Words) : Bytes :=
+  case list as xs in Words return Bytes with | wordsNil => bytesNil | wordsCons h t => h
+def wordsTail (list : Words) : Words :=
+  case list as xs in Words return Words with
+  | wordsNil => wordsNil
+  | wordsCons h t =>
+    case (natEq (bytesHead h) 119) with | 0 (no : prod ()) => t | 1 (yes : prod ()) => list
+def wordsEmpty (list : Words) : Nat :=
+  case list as xs in Words return Nat with | wordsNil => 1 | wordsCons h t => 0
+
+mu CycleState : Type 0 with
+| pending : Nat -> CycleState
+| done : Nat -> CycleState
+
+def init (argv : Words) : CycleState := pending (bytesHead (wordsHead argv))
+def resume (state : CycleState) (status : Nat) (answer : Bytes) : CycleState := done status
+def requestCode (state : CycleState) : Nat :=
+  case state as current in CycleState return Nat with | pending mode => 6 | done status => 0
+def requestArgs (state : CycleState) : Words :=
+  case state as current in CycleState return Words with
+  | done status => wordsNil
+  | pending mode =>
+    case (natEq mode 119) with
+    | 1 (yes : prod ()) => wordsCons b"w" wordsNil
+    | 0 (no : prod ()) =>
+      case (natEq mode 97) with
+      | 1 (yes : prod ()) => wordsCons b"\xfd" wordsNil
+      | 0 (no : prod ()) => wordsNil
+def requestBody (state : CycleState) : Bytes :=
+  case state as current in CycleState return Bytes with
+  | done status => bytesNil
+  | pending mode =>
+    case (natEq mode 98) with
+    | 1 (yes : prod ()) => b"A\xfd"
+    | 0 (no : prod ()) => b"A\x00\xff"
+def exitCode (state : CycleState) : Nat :=
+  case state as current in CycleState return Nat with | pending mode => 1 | done status => status

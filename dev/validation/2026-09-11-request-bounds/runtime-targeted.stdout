@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: request traversal bounds cycles in words
+ok 1 - request traversal bounds cycles in words
+  ---
+  duration_ms: 317.948541
+  type: 'test'
+  ...
+# Subtest: request traversal bounds cycles in argument
+ok 2 - request traversal bounds cycles in argument
+  ---
+  duration_ms: 259.933542
+  type: 'test'
+  ...
+# Subtest: request traversal bounds cycles in body
+ok 3 - request traversal bounds cycles in body
+  ---
+  duration_ms: 241.930375
+  type: 'test'
+  ...
+# Subtest: request traversal permits shared byte lists across arguments, bodies and requests
+ok 4 - request traversal permits shared byte lists across arguments, bodies and requests
+  ---
+  duration_ms: 2.420834
+  type: 'test'
+  ...
+# Subtest: request traversal accepts the exact limit and renews it for each request
+ok 5 - request traversal accepts the exact limit and renews it for each request
+  ---
+  duration_ms: 163.605125
+  type: 'test'
+  ...
+# Subtest: request traversal shares the limit across arguments and bounds fresh nodes
+ok 6 - request traversal shares the limit across arguments and bounds fresh nodes
+  ---
+  duration_ms: 89.193958
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1160.370875

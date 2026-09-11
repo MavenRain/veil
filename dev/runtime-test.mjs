@@ -266,6 +266,146 @@ for (const [predicate, region] of [['wordsEmpty', 'arguments'], ['bytesEmpty', '
   });
 }
 
+const maxRequestNodes = 1048576;
+const requestLimitError = { name: 'RangeError', message: `reactor request exceeds ${maxRequestNodes} list nodes` };
+
+for (const region of ['words', 'argument', 'body']) {
+  test(`request traversal bounds cycles in ${region}`, async t => {
+    const s = await sandbox(t);
+    const engine = globalThis.WebAssembly;
+    t.after(() => { globalThis.WebAssembly = engine; });
+    const signals = ['SIGINT', 'SIGTERM'];
+    const listeners = signals.map(signal => process.listeners(signal));
+    const word = [...Buffer.from(s.out)];
+    // An empty word holds no byte node, so only the word-list budget stops a
+    // cycle of empty words.
+    const heads = region === 'words' ? [word, []] : [65];
+    const shapes = [[0], [1, 1], [1, 0], [1, 2, 1]];
+    const cases = shapes.flatMap(links => heads.map(head => ({ links, head })));
+    for (const { links, head } of cases) {
+      await writeFile(s.out, 'original');
+      const nodes = links.map(() => ({}));
+      const nodeSet = new Set(nodes);
+      const prefix = region === 'words' ? 'words' : 'bytes';
+      let visits = 0;
+      let resumes = 0;
+      const api = {
+        ...lists,
+        [`${prefix}Empty`]: list => {
+          if (!nodeSet.has(list)) return lists[`${prefix}Empty`](list);
+          // Bound the baseline regression without a timeout or an infinite loop.
+          if (++visits > maxRequestNodes + 1) throw new Error('cycle traversal exceeded the test guard');
+          return 0;
+        },
+        [`${prefix}Head`]: list => nodeSet.has(list) ? head : lists[`${prefix}Head`](list),
+        [`${prefix}Tail`]: list => nodeSet.has(list)
+          ? nodes[links[nodes.indexOf(list)]] : lists[`${prefix}Tail`](list),
+        init: () => 0,
+        requestCode: () => 3,
+        requestArgs: () => region === 'words' ? nodes[0] : [region === 'argument' ? nodes[0] : word],
+        requestBody: () => region === 'body' ? nodes[0] : [65, 0, 255],
+        resume: () => { resumes += 1; assert.fail('a cyclic request must not resume'); },
+        exitCode: () => 0,
+      };
+      globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+      await assert.rejects(runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []),
+        requestLimitError,
+        `${region}: ${JSON.stringify(links)}, head size ${Array.isArray(head) ? head.length : 1}`);
+      assert.equal(resumes, 0);
+      assert.equal(await readFile(s.out, 'utf8'), 'original');
+      assert.deepEqual(signals.map(signal => process.listeners(signal)), listeners);
+    }
+  });
+}
+
+test('request traversal permits shared byte lists across arguments, bodies and requests', async t => {
+  const s = await sandbox(t);
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  const word = [...Buffer.from(s.path)];
+  const words = [word, word];
+  let resumes = 0;
+  const api = {
+    ...lists,
+    init: () => 0,
+    requestCode: state => state < 2 ? 9 : 0,
+    requestArgs: () => words,
+    requestBody: () => word,
+    resume: (state, status, answer) => {
+      assert.equal(status, 0);
+      assert.equal(Buffer.from(answer).toString(), s.path);
+      resumes += 1;
+      return state + 1;
+    },
+    exitCode: () => 0,
+  };
+  globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+  assert.equal(resumes, 2);
+});
+
+test('request traversal accepts the exact limit and renews it for each request', async t => {
+  const s = await sandbox(t);
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  const word = [...Buffer.from(s.out)];
+  const bodyLength = maxRequestNodes - 1 - word.length;
+  let resumes = 0;
+  const api = {
+    ...lists,
+    bytesEmpty: list => Array.isArray(list) ? lists.bytesEmpty(list) : Number(list.left === 0),
+    bytesHead: list => Array.isArray(list) ? lists.bytesHead(list) : 65,
+    bytesTail: list => Array.isArray(list) ? lists.bytesTail(list) : { left: list.left - 1 },
+    init: () => 0,
+    requestCode: state => state < 2 ? 3 : 0,
+    requestArgs: () => [word],
+    requestBody: () => ({ left: bodyLength }),
+    resume: (state, status, answer) => {
+      assert.equal(status, 0, Buffer.from(answer).toString());
+      resumes += 1;
+      return state + 1;
+    },
+    exitCode: () => 0,
+  };
+  globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+  assert.equal(resumes, 2);
+  assert.deepEqual(await readFile(s.out), Buffer.alloc(bodyLength, 65));
+  // One surplus node must fail before it overwrites an existing file.
+  await writeFile(s.out, 'original');
+  api.requestBody = () => ({ left: bodyLength + 1 });
+  resumes = 0;
+  await assert.rejects(runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), requestLimitError);
+  assert.equal(resumes, 0);
+  assert.equal(await readFile(s.out, 'utf8'), 'original');
+});
+
+test('request traversal shares the limit across arguments and bounds fresh nodes', async t => {
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  for (const fresh of [false, true]) {
+    let heads = 0;
+    const api = {
+      ...lists,
+      bytesEmpty: list => Number(list.left === 0),
+      bytesHead: () => {
+        if (++heads > maxRequestNodes) throw new Error('fresh traversal exceeded the test guard');
+        return 65;
+      },
+      bytesTail: list => ({ left: fresh ? list.left : list.left - 1 }),
+      init: () => 0,
+      requestCode: () => 9,
+      requestArgs: () => [{ left: maxRequestNodes / 2 }, { left: maxRequestNodes / 2 }],
+      requestBody: () => assert.fail('overlong arguments must be rejected before the body'),
+      resume: () => assert.fail('an overlong request must not resume'),
+      exitCode: () => 0,
+    };
+    globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+    await assert.rejects(runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), requestLimitError);
+    assert.equal(heads, maxRequestNodes - (fresh ? 1 : 2));
+  }
+});
+
 test('list ABI preserves valid flags, empty lists and binary request bodies', async t => {
   const s = await sandbox(t);
   const engine = globalThis.WebAssembly;

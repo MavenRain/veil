@@ -18,6 +18,9 @@ The reactor rejects missing or surplus request arguments before host effects,
 as checked by the [request arity regressions](dev/REQUEST-ARITY.md).
 It also validates the 0-or-1 list predicates while decoding each request,
 as checked by the [list ABI regressions](dev/LIST-ABI.md).
+Request decoding also has a shared limit of 1048576 list nodes, so cyclic
+or endlessly growing request lists cannot keep the host traversing them.
+The [request traversal regressions](dev/REQUEST-BOUNDS.md) cover the limit.
 
 Function parameters can share a type and quantity:
 

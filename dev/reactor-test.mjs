@@ -135,6 +135,22 @@ try {
   verify(() => assert.equal(validPredicates.status, 0, String(validPredicates.stderr)));
   verify(() => assert.deepEqual(validPredicates.stdout, Buffer.from([65, 0, 255])));
   verify(() => assert.equal(validPredicates.stderr.length, 0));
+  const cycles = join(scratch, 'list-cycles.wasm');
+  const cycleBuild = run(['build', fixture('list-cycles'), '-o', cycles,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(cycleBuild.status, 0, cycleBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(cycles))).length, 0));
+  for (const mode of ['words', 'argument', 'body']) {
+    const rejected = runModule([cycles, mode]);
+    verify(() => assert.equal(rejected.status, 2, `${mode}: ${rejected.error ?? rejected.stderr}`));
+    verify(() => assert.equal(rejected.stdout, ''));
+    verify(() => assert.equal(rejected.stderr, 'kanon reactor: reactor request exceeds 1048576 list nodes\n'));
+  }
+  const validCycles = spawnSync(process.execPath, [join(root, 'runtime/run.mjs'), cycles, 'valid'],
+    { cwd: scratch, timeout: 20000 });
+  verify(() => assert.equal(validCycles.status, 0, String(validCycles.stderr)));
+  verify(() => assert.deepEqual(validCycles.stdout, Buffer.from([65, 0, 255])));
+  verify(() => assert.equal(validCycles.stderr.length, 0));
   const application = join(scratch, 'realpath.wasm');
   const applicationBuild = run(['build', shared,
     join(root, 'examples/reactor-realpath.kan'), '-o', application,

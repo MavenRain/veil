@@ -71,7 +71,8 @@ Validation captures and source hashes are retained in
 `dev/validation/2026-09-10-list-abi/`. The new runtime regressions fail in all
 three rejection groups against the base runtime; the valid-payload control
 already passes. The fixed targeted run passes all six tests, including the
-two terminal-request cases, and the compiled suite passes 117 checks.
+two terminal-request cases. At that revision the compiled suite passed 117
+checks. Later slices add checks, so a fresh run reports a larger count.
 The complete gate battery passes all 27 legs with `GATES-OK`, including
 RUNTIME, REACTOR, HOST-NAT, the compiler suites and the three timing legs.
 No gate thresholds or compiler sources changed.
