@@ -119,6 +119,22 @@ try {
   const reactorExports = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail',
     'emptyWords', 'consWords', 'wordsEmpty', 'wordsHead', 'wordsTail',
     'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
+  const predicates = join(scratch, 'list-predicates.wasm');
+  const predicateBuild = run(['build', fixture('list-predicates'), '-o', predicates,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(predicateBuild.status, 0, predicateBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(predicates))).length, 0));
+  for (const [mode, predicate] of [['words', 'wordsEmpty'], ['argument', 'bytesEmpty'], ['body', 'bytesEmpty']]) {
+    const rejected = runModule([predicates, mode]);
+    verify(() => assert.equal(rejected.status, 2, rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, ''));
+    verify(() => assert.equal(rejected.stderr, `kanon reactor: invalid ABI predicate ${predicate}: expected 0 or 1\n`));
+  }
+  const validPredicates = spawnSync(process.execPath, [join(root, 'runtime/run.mjs'), predicates, 'valid'],
+    { cwd: scratch, timeout: 20000 });
+  verify(() => assert.equal(validPredicates.status, 0, String(validPredicates.stderr)));
+  verify(() => assert.deepEqual(validPredicates.stdout, Buffer.from([65, 0, 255])));
+  verify(() => assert.equal(validPredicates.stderr.length, 0));
   const application = join(scratch, 'realpath.wasm');
   const applicationBuild = run(['build', shared,
     join(root, 'examples/reactor-realpath.kan'), '-o', application,

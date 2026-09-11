@@ -290,6 +290,11 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
   const required = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail', 'emptyWords', 'consWords',
     'wordsEmpty', 'wordsHead', 'wordsTail', 'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
   for (const name of required) if (typeof api[name] !== 'function') throw new Error(`missing reactor export ${name}`);
+  const empty = (name, list) => {
+    const flag = api[name](list);
+    if (flag !== 0 && flag !== 1) throw new RangeError(`invalid ABI predicate ${name}: expected 0 or 1`);
+    return flag === 1;
+  };
   const toBytes = buffer => {
     let list = api.emptyBytes();
     for (let i = buffer.length - 1; i >= 0; i--) list = api.consBytes(buffer[i], list);
@@ -297,7 +302,7 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
   };
   const fromBytes = list => {
     const bytes = [];
-    while (!api.bytesEmpty(list)) {
+    while (!empty('bytesEmpty', list)) {
       const byte = nat(api.bytesHead(list));
       if (byte > 255) throw new RangeError('invalid byte in reactor request');
       bytes.push(byte);
@@ -331,7 +336,7 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
       }
       const args = [];
       let values = api.requestArgs(state);
-      while (!api.wordsEmpty(values)) {
+      while (!empty('wordsEmpty', values)) {
         args.push(osString(fromBytes(api.wordsHead(values))));
         values = api.wordsTail(values);
       }

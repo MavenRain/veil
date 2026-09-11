@@ -1,0 +1,61 @@
+-- Deliberately malformed list predicates for the host ABI rejection tests.
+-- Byte 253 and an argument starting with byte 254 return the invalid flag 2.
+mu Bytes : Type 0 with
+| bytesNil : Bytes
+| bytesCons : Nat -> Bytes -> Bytes
+
+mu Words : Type 0 with
+| wordsNil : Words
+| wordsCons : Bytes -> Words -> Words
+
+def emptyBytes : Bytes := bytesNil
+def consBytes (head : Nat) (tail : Bytes) : Bytes := bytesCons head tail
+def bytesHead (list : Bytes) : Nat :=
+  case list as xs in Bytes return Nat with | bytesNil => 0 | bytesCons h t => h
+def bytesTail (list : Bytes) : Bytes :=
+  case list as xs in Bytes return Bytes with | bytesNil => bytesNil | bytesCons h t => t
+def bytesEmpty (list : Bytes) : Nat :=
+  case list as xs in Bytes return Nat with
+  | bytesNil => 1
+  | bytesCons h t =>
+    case (natEq h 253) with | 0 (no : prod ()) => 0 | 1 (yes : prod ()) => 2
+
+def emptyWords : Words := wordsNil
+def consWords (head : Bytes) (tail : Words) : Words := wordsCons head tail
+def wordsHead (list : Words) : Bytes :=
+  case list as xs in Words return Bytes with | wordsNil => bytesNil | wordsCons h t => h
+def wordsTail (list : Words) : Words :=
+  case list as xs in Words return Words with | wordsNil => wordsNil | wordsCons h t => t
+def wordsEmpty (list : Words) : Nat :=
+  case list as xs in Words return Nat with
+  | wordsNil => 1
+  | wordsCons h t =>
+    case (natEq (bytesHead h) 254) with | 0 (no : prod ()) => 0 | 1 (yes : prod ()) => 2
+
+mu FlagState : Type 0 with
+| pending : Nat -> FlagState
+| done : Nat -> FlagState
+
+def init (argv : Words) : FlagState := pending (bytesHead (wordsHead argv))
+def resume (state : FlagState) (status : Nat) (answer : Bytes) : FlagState := done status
+def requestCode (state : FlagState) : Nat :=
+  case state as current in FlagState return Nat with | pending mode => 6 | done status => 0
+def requestArgs (state : FlagState) : Words :=
+  case state as current in FlagState return Words with
+  | done status => wordsNil
+  | pending mode =>
+    case (natEq mode 119) with
+    | 1 (yes : prod ()) => wordsCons b"\xfe" wordsNil
+    | 0 (no : prod ()) =>
+      case (natEq mode 97) with
+      | 1 (yes : prod ()) => wordsCons b"\xfd" wordsNil
+      | 0 (no : prod ()) => wordsNil
+def requestBody (state : FlagState) : Bytes :=
+  case state as current in FlagState return Bytes with
+  | done status => bytesNil
+  | pending mode =>
+    case (natEq mode 98) with
+    | 1 (yes : prod ()) => b"A\xfd"
+    | 0 (no : prod ()) => b"A\x00\xff"
+def exitCode (state : FlagState) : Nat :=
+  case state as current in FlagState return Nat with | pending mode => 1 | done status => status

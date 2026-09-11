@@ -1,0 +1,246 @@
+{
+  "base": "78a921ab8ef02395fe63e0dfa30b9e153803cd0e",
+  "validated_in": "/Users/oobi/Documents/gpt3/veil-list-abi",
+  "node_version": "v23.10.0",
+  "baseline_runtime_sha256": "7c0fd0b91de152a0ad504dc5db6b6785672eff5691ff6f817d8ade0d4e7270a5",
+  "validation_test_sha256": "03d4d0f0e578ba999c15978152b2fd33bb572939d77282d010af8cd0d0d26d22",
+  "compilers_sha256": {
+    "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "/Users/oobi/Documents/gpt3/veil-list-abi/_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "sha256": {
+    "runtime/reactor.mjs": "5f9b71e74ed21d461572b86b3a53b8572d28014261e0d4ac3e2903bb66097091",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "a7307c40a806955b3bfc789f8836357b1c0509389d3669a69ce3479924f78a3f",
+    "dev/reactor-test.mjs": "97846da432b39a6073456c09698cf686fd25f9c595813727c868afb0a71f616d",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "test/fixtures/reactor/list-predicates.kan": "4b50d7200b5e94c2eef02daaff4ea95e442650a2942465d4c9af710d564012be",
+    "dev/LIST-ABI.md": "51929041af81b59169f768b399fbbd94fdf696236e95c41e5f2569d5063b22aa",
+    "REACTOR.md": "d0a9cd866ccbe993f2fc24fbe155bd87af541ab221d14b12da5bee140bbcd67e",
+    "README.md": "d3d6f76346300d8463b0379b302f29a71d06deb354b954b86410f12d2884e6ec"
+  },
+  "retained_capture_format": "Trailing whitespace removed from each output line; original capture manifests retained.",
+  "checks": [
+    {
+      "name": "runtime-before",
+      "expected_exit_code": 1,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-w08404",
+        "status": "complete",
+        "exitCode": 1,
+        "counts": {
+          "stdout_bytes": 2831,
+          "stderr_bytes": 0,
+          "stdout_lines": 73,
+          "stderr_lines": 0,
+          "error_lines": 9,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "--test-name-pattern",
+              "list ABI",
+              "dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-list-abi",
+            "exitCode": 1,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-w08404/command-0001.stdout",
+              "bytes": 2831,
+              "lines": 73
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-w08404/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "runtime-targeted",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Y7yACI",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 1341,
+          "stderr_bytes": 0,
+          "stdout_lines": 46,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "--test-name-pattern",
+              "list ABI|a terminal request preserves",
+              "dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-list-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Y7yACI/command-0001.stdout",
+              "bytes": 1341,
+              "lines": 46
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Y7yACI/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "compiled-before",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-118uy1",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 352,
+          "stderr_bytes": 0,
+          "stdout_lines": 5,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "python3",
+              "-P",
+              "/Users/oobi/Documents/gpt3/veil-list-baseline.py"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-list-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-118uy1/command-0001.stdout",
+              "bytes": 352,
+              "lines": 5
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-118uy1/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "reactor",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Owv2yH",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 27,
+          "stderr_bytes": 0,
+          "stdout_lines": 1,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "dev/reactor-test.mjs",
+              "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-list-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Owv2yH/command-0001.stdout",
+              "bytes": 27,
+              "lines": 1
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-Owv2yH/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "gates",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-wA6jtH",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 11267,
+          "stderr_bytes": 0,
+          "stdout_lines": 201,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "zsh",
+              "dev/gates.sh"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3/veil-list-abi",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-wA6jtH/command-0001.stdout",
+              "bytes": 11267,
+              "lines": 201
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/veil-list-abi/.kanon-exec/run-wA6jtH/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

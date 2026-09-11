@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: list ABI rejects invalid wordsEmpty flags in request arguments
+ok 1 - list ABI rejects invalid wordsEmpty flags in request arguments
+  ---
+  duration_ms: 48.962791
+  type: 'test'
+  ...
+# Subtest: list ABI rejects invalid bytesEmpty flags in request arguments
+ok 2 - list ABI rejects invalid bytesEmpty flags in request arguments
+  ---
+  duration_ms: 261.871416
+  type: 'test'
+  ...
+# Subtest: list ABI rejects invalid bytesEmpty flags in request body
+ok 3 - list ABI rejects invalid bytesEmpty flags in request body
+  ---
+  duration_ms: 101.953084
+  type: 'test'
+  ...
+# Subtest: list ABI preserves valid flags, empty lists and binary request bodies
+ok 4 - list ABI preserves valid flags, empty lists and binary request bodies
+  ---
+  duration_ms: 8.050542
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 0 without interruption
+ok 5 - a terminal request preserves application exit code 0 without interruption
+  ---
+  duration_ms: 1.204041
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 7 without interruption
+ok 6 - a terminal request preserves application exit code 7 without interruption
+  ---
+  duration_ms: 1.83225
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 571.715917

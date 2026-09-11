@@ -223,6 +223,67 @@ const lists = {
   wordsEmpty: l => Number(l.length === 0), wordsHead: l => l[0], wordsTail: l => l.slice(1),
 };
 
+for (const [predicate, region] of [['wordsEmpty', 'arguments'], ['bytesEmpty', 'arguments'], ['bytesEmpty', 'body']]) {
+  test(`list ABI rejects invalid ${predicate} flags in request ${region}`, async t => {
+    const s = await sandbox(t);
+    const engine = globalThis.WebAssembly;
+    t.after(() => { globalThis.WebAssembly = engine; });
+    const signals = ['SIGINT', 'SIGTERM'];
+    const listeners = signals.map(signal => process.listeners(signal));
+    const word = [...Buffer.from(s.out)];
+    const payload = [65, 0, 255];
+    // A list of length N answers its predicate N + 1 times, so index N is the
+    // end-of-list call. Cover that call as well as the first two.
+    const traversed = { 'wordsEmpty:arguments': [word], 'bytesEmpty:arguments': word, 'bytesEmpty:body': payload };
+    const positions = [...new Set([0, 1, traversed[`${predicate}:${region}`].length])];
+    // Include truthy and falsy values, plus values with a non-number type.
+    const invalidFlags = [2, -1, 1073741823, 0.5, NaN, Infinity, '0', '1', false, true, null, undefined, 0n, 1n, {}];
+    for (const flag of invalidFlags) {
+      for (const position of positions) {
+        await writeFile(s.out, 'original');
+        let activeRegion = null;
+        let calls = 0;
+        let resumes = 0;
+        const api = {
+          ...lists,
+          [predicate]: list => activeRegion === region && calls++ === position ? flag : lists[predicate](list),
+          init: () => 0,
+          requestCode: state => state === 0 ? 3 : 0,
+          requestArgs: () => { activeRegion = 'arguments'; return [word]; },
+          requestBody: () => { activeRegion = 'body'; return payload; },
+          resume: () => { resumes += 1; return 1; },
+          exitCode: () => 0,
+        };
+        globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+        await assert.rejects(runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), {
+          name: 'RangeError', message: `invalid ABI predicate ${predicate}: expected 0 or 1`,
+        }, `${region}, ${predicate}, flag ${String(flag)}, position ${position}`);
+        assert.equal(resumes, 0, 'malformed lists must not reach resume');
+        assert.equal(await readFile(s.out, 'utf8'), 'original', 'malformed lists must not reach atomicWrite');
+        assert.deepEqual(signals.map(signal => process.listeners(signal)), listeners);
+      }
+    }
+  });
+}
+
+test('list ABI preserves valid flags, empty lists and binary request bodies', async t => {
+  const s = await sandbox(t);
+  const engine = globalThis.WebAssembly;
+  t.after(() => { globalThis.WebAssembly = engine; });
+  for (const body of [[], [0, 255, 65, 0]]) {
+    const seen = { bytesEmpty: new Set(), wordsEmpty: new Set() };
+    const { api, answers } = slotScriptApi([{ code: 3, args: [s.out], body: Buffer.from(body), answer: '' }]);
+    for (const name of Object.keys(seen)) {
+      api[name] = list => { const flag = lists[name](list); seen[name].add(flag); return flag; };
+    }
+    globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
+    assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+    assert.deepEqual(answers, ['']);
+    assert.deepEqual(await readFile(s.out), Buffer.from(body));
+    for (const flags of Object.values(seen)) assert.deepEqual([...flags].sort(), [0, 1]);
+  }
+});
+
 for (const exitCode of [0, 7]) {
   test(`a terminal request preserves application exit code ${exitCode} without interruption`, async t => {
     const engine = globalThis.WebAssembly;
@@ -231,8 +292,8 @@ for (const exitCode of [0, 7]) {
       ...lists,
       init: () => 0,
       requestCode: () => 0,
-      requestArgs: () => [],
-      requestBody: () => [],
+      requestArgs: () => assert.fail('a terminal request must not read arguments'),
+      requestBody: () => assert.fail('a terminal request must not read its body'),
       resume: () => assert.fail('a terminal request must not resume'),
       exitCode: () => exitCode,
     };

@@ -16,6 +16,8 @@ Concurrent reactor runs keep separate proof, ciphertext and share slots,
 as checked by the [blob store isolation regressions](dev/BLOB-ISOLATION.md).
 The reactor rejects missing or surplus request arguments before host effects,
 as checked by the [request arity regressions](dev/REQUEST-ARITY.md).
+It also validates the 0-or-1 list predicates while decoding each request,
+as checked by the [list ABI regressions](dev/LIST-ABI.md).
 
 Function parameters can share a type and quantity:
 

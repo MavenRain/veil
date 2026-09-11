@@ -1,0 +1,5 @@
+BASELINE mode=words exit=0 stdout_hex=4100ff stderr_bytes=0
+BASELINE mode=argument exit=1 stdout_hex= stderr_bytes=0
+BASELINE mode=body exit=0 stdout_hex=41 stderr_bytes=0
+BASELINE mode=valid exit=0 stdout_hex=4100ff stderr_bytes=0
+BASELINE 4/4 reproduced: word arguments hidden, byte argument truncated, partial body written, valid control preserved.

@@ -39,9 +39,11 @@ the test file of the validation run (prefix `244a32ae`), which ran against the
 baseline runtime. The base-commit blob of `dev/runtime-test.mjs` starts with
 `4c25bc7c`. The review fix D-2 changed the test file after that run, so
 `sha256["dev/runtime-test.mjs"]` records the later staged file.
-The final runtime suite passes 49 tests, including the 17 request-row
-subtests. The existing compiled host-natural and reactor fixtures pass
-16/16 and 103 checks respectively. These checks reuse the existing compiler
+At that revision the final runtime suite passed 49 tests, including the 17
+request-row subtests, and the existing compiled host-natural and reactor
+fixtures passed 16/16 and 103 checks respectively. Later slices add runtime
+tests and reactor checks, so a fresh run reports larger counts. These checks
+reuse the existing compiler
 executable; this slice does not change compiler sources or run the full
 compiler gate ladder.
 

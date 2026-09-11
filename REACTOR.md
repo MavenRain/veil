@@ -94,6 +94,13 @@ or 1 with an error string and returns the next state. Operation 0 ends the
 loop with `exitCode(state)` unless an interruption is latched, in which
 case it preserves the signal status. The runtime never interprets
 application state. Empty-list predicates return 1 for empty and 0 otherwise.
+The host validates each `bytesEmpty` and `wordsEmpty` result before using it
+to traverse request arguments or payload bytes. Any other result ends the run
+with `kanon reactor: invalid ABI predicate NAME: expected 0 or 1` and exit 2.
+The malformed request performs no host operation and receives no `resume`
+call. This check also applies after reading earlier elements of a list;
+operation 0 still terminates without reading either list. See the
+[list predicate regressions](dev/LIST-ABI.md).
 
 `runtime/reactor.kan` supplies the ordinary `Bytes` and `Words` inductive
 types and the ten list exports above. `Bytes` is a list of naturals used
