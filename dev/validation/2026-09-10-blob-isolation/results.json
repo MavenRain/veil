@@ -1,0 +1,196 @@
+{
+  "base": "c122c642ad27bb79d6617d846d95498ca57f8d4c",
+  "validated_in": "/Users/oobi/Documents/gpt3/veil-isolation",
+  "node_version": "v23.10.0",
+  "compiler": "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe",
+  "compiler_sha256": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+  "retained_capture_format": "Each line has trailing whitespace removed; original counts and capture paths are retained in the command metadata.",
+  "sha256": {
+    "runtime/reactor.mjs": "934fea8cd73c442ca0136147c59d4ab62dce8d049006d4ff15341b74e09a21fd",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "4c25bc7c8d14edbe19024939b017f57768ec1e5204960dccd711659915934e40",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "dev/reactor-test.mjs": "d52272c529045a9157af78faad6efa5ebf227d7f380307ceb88ac7a03d3da316",
+    "test/host/host-nat.kan": "6e1a69e1afe5f1d4ac77389930aad054c3259c117c37bd0e1350826163f085d7",
+    "test/host/nat-bytes.kan": "72f1370639b5bc86da81e89144a9f4c18584cf1f2abef990b9a48b17080c3978"
+  },
+  "checks": [
+    {
+      "name": "regressions-before",
+      "expected_exit_code": 1,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-XpA7pE",
+        "status": "complete",
+        "exitCode": 1,
+        "counts": {
+          "stdout_bytes": 1686,
+          "stderr_bytes": 0,
+          "stdout_lines": 58,
+          "stderr_lines": 0,
+          "error_lines": 4,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "--test-name-pattern",
+              "veil blob stores",
+              "/Users/oobi/Documents/gpt3/veil-isolation/dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3",
+            "exitCode": 1,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-XpA7pE/command-0001.stdout",
+              "bytes": 1686,
+              "lines": 58
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-XpA7pE/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "runtime",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-POizFp",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 5806,
+          "stderr_bytes": 0,
+          "stdout_lines": 184,
+          "stderr_lines": 0,
+          "error_lines": 4,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "--test",
+              "--test-reporter=tap",
+              "/Users/oobi/Documents/gpt3/veil-isolation/dev/runtime-test.mjs"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-POizFp/command-0001.stdout",
+              "bytes": 5806,
+              "lines": 184
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-POizFp/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "host-nat",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-KSihvP",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 15,
+          "stderr_bytes": 0,
+          "stdout_lines": 1,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "/Users/oobi/Documents/gpt3/veil-isolation/dev/host-nat-test.mjs",
+              "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-KSihvP/command-0001.stdout",
+              "bytes": 15,
+              "lines": 1
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-KSihvP/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "reactor",
+      "expected_exit_code": 0,
+      "capture": {
+        "schemaVersion": 2,
+        "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-i8a4vT",
+        "status": "complete",
+        "exitCode": 0,
+        "counts": {
+          "stdout_bytes": 27,
+          "stderr_bytes": 0,
+          "stdout_lines": 1,
+          "stderr_lines": 0,
+          "error_lines": 0,
+          "warning_lines": 0
+        },
+        "commands": [
+          {
+            "index": 1,
+            "argv": [
+              "node",
+              "/Users/oobi/Documents/gpt3/veil-isolation/dev/reactor-test.mjs",
+              "/Users/oobi/Documents/veil/_build/default/bin/kanon.exe"
+            ],
+            "cwd": "/Users/oobi/Documents/gpt3",
+            "exitCode": 0,
+            "signal": 0,
+            "timedOut": false,
+            "spawnError": "",
+            "stdout": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-i8a4vT/command-0001.stdout",
+              "bytes": 27,
+              "lines": 1
+            },
+            "stderr": {
+              "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-i8a4vT/command-0001.stderr",
+              "bytes": 0,
+              "lines": 0
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

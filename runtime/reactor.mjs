@@ -185,7 +185,6 @@ async function atomicWrite(path, body) {
 // flag is the constant 0 in version one. A slot index and a plaintext
 // cross the request boundary as decimal byte strings, like every other
 // numeric argument. This twin has no security.
-export const blobs = new Map();
 // The request boundary carries byte strings, so a function value cannot
 // cross it, and the runtime adds no export for one. The host twin names
 // a function with a code into this table. The Wasm twin
@@ -202,19 +201,19 @@ const hostFunction = argument => {
   if (!chosen || code >= hostFunctions.length) throw new RangeError(`unknown host function ${code}`);
   return chosen;
 };
-const readSlot = argument => {
+const readSlot = (blobs, argument) => {
   const index = numeric(argument);
   const slot = blobs.get(index);
   if (!slot) throw new Error(`unknown blob slot ${index}`);
   return slot;
 };
-const writeSlot = (flag, plain) => {
+const writeSlot = (blobs, flag, plain) => {
   const index = blobs.size + 1;
   blobs.set(index, { flag, plain });
   return Buffer.from(String(index));
 };
 
-async function perform(code, args, body, interrupted) {
+async function perform(code, args, body, interrupted, blobs) {
   switch (code) {
     case 1: {
       const root = resolve(args[0]);
@@ -245,31 +244,31 @@ async function perform(code, args, body, interrupted) {
     case 7: await writeStream(process.stderr, body); return Buffer.alloc(0);
     case 8: return Buffer.from(await realpath(args[0]));
     case 9: return Buffer.from(resolve(args[0], args[1]));
-    case 10: return writeSlot(veilNatural(args[0]), veilNatural(args[1]));
+    case 10: return writeSlot(blobs, veilNatural(args[0]), veilNatural(args[1]));
     case 11: {
-      const slot = readSlot(args[0]);
+      const slot = readSlot(blobs, args[0]);
       const instance = veilNatural(args[1]);
       const relation = hostFunction(args[2]);
       return Buffer.from(String(Number(slot.flag === instance && relation([slot.plain]) === instance)));
     }
-    case 12: return writeSlot(veilNatural(args[0]), veilNatural(args[1]));
+    case 12: return writeSlot(blobs, veilNatural(args[0]), veilNatural(args[1]));
     case 13: {
       const level = veilNatural(args[0]);
       const evaluated = hostFunction(args[1]);
-      const slot = readSlot(args[2]);
-      return writeSlot(level, evaluated([slot.plain]));
+      const slot = readSlot(blobs, args[2]);
+      return writeSlot(blobs, level, evaluated([slot.plain]));
     }
-    case 14: return Buffer.from(String(readSlot(args[0]).plain));
-    case 15: return writeSlot(0n, veilNatural(args[0]));
+    case 14: return Buffer.from(String(readSlot(blobs, args[0]).plain));
+    case 15: return writeSlot(blobs, 0n, veilNatural(args[0]));
     case 16: {
       const subset = numeric(args[0]);
       const joint = hostFunction(args[1]);
-      const slots = args.slice(2).map(readSlot);
+      const slots = args.slice(2).map(argument => readSlot(blobs, argument));
       if (!slots.length) throw new RangeError('a joint computation needs one share or more');
       if (subset < slots.length) throw new RangeError('the subset holds fewer parties than the joint computation has shares');
-      return writeSlot(0n, joint(slots.map(slot => slot.plain)));
+      return writeSlot(blobs, 0n, joint(slots.map(slot => slot.plain)));
     }
-    case 17: return Buffer.from(String(readSlot(args[0]).plain));
+    case 17: return Buffer.from(String(readSlot(blobs, args[0]).plain));
     default: throw new Error(`unknown OS request ${code}`);
   }
 }
@@ -277,9 +276,9 @@ async function perform(code, args, body, interrupted) {
 export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
   const { instance } = await WebAssembly.instantiate(await readFile(wasmPath));
   const api = instance.exports;
-  // Each run starts with an empty slot store, so a slot index of one run
-  // never reaches another run.
-  blobs.clear();
+  // Slots belong to this invocation, including while an OS request yields
+  // to another reactor run. Completion or failure releases this store.
+  const blobs = new Map();
   const required = ['emptyBytes', 'consBytes', 'bytesEmpty', 'bytesHead', 'bytesTail', 'emptyWords', 'consWords',
     'wordsEmpty', 'wordsHead', 'wordsTail', 'init', 'resume', 'requestCode', 'requestArgs', 'requestBody', 'exitCode'];
   for (const name of required) if (typeof api[name] !== 'function') throw new Error(`missing reactor export ${name}`);
@@ -334,7 +333,7 @@ export async function runReactor(wasmPath, argv = process.argv.slice(2)) {
       const armed = code === 4 && !interrupted.signal;
       let status = 0;
       let answer;
-      try { answer = await perform(code, args, body, interrupted); }
+      try { answer = await perform(code, args, body, interrupted, blobs); }
       catch (error) { status = 1; answer = Buffer.from(`${error.code ?? 'IO'}: ${error.message}`); }
       grace = armed && status === 0 && Boolean(interrupted.signal);
       state = api.resume(state, status, toBytes(answer));

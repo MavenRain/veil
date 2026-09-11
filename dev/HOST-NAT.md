@@ -49,12 +49,14 @@ runtime tests against the original runtime: the roundtrip and arithmetic
 tests fail at the old narrowing boundary, and the malformed-decimal test
 fails on the old diagnostic. The bounded-index test already passes.
 
-The compiler build reports zero errors and warnings. The runtime suite passes
-26/26 tests, and the compiled/byte-stream harness passes 16/16 checks. The
-full gate run passes 25/27 legs, including HOST, HOST-NAT and RUNTIME. The only
-failures are M0-TIME (217.069 ms against 150 ms) and M0-RATIO (9.833476 against
-2.000), both at load1 71.641. Their thresholds and timed compiler sources are
-unchanged. The trusted kernel remains 5,246/5,250 lines and the encoder remains
+The records below are the 2026-09-10 host-nat validation run. The compiler
+build reported zero errors and warnings. The runtime suite passed 26/26 tests
+at that revision, and the compiled/byte-stream harness passed 16/16 checks.
+Later slices add runtime tests, so the runtime count of a fresh run is larger.
+The full gate run passed 25/27 legs, including HOST, HOST-NAT and RUNTIME. The
+only failures were M0-TIME (217.069 ms against 150 ms) and M0-RATIO (9.833476
+against 2.000), both at load1 71.641. Their thresholds and timed compiler
+sources are unchanged. The trusted kernel remains 5,246/5,250 lines and the encoder remains
 246/600. Captures preserve stdout followed by stderr with trailing whitespace
 stripped for Git hygiene.
 

@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: rejects invalid process inputs before opening files or spawning
+ok 1 - rejects invalid process inputs before opening files or spawning
+  ---
+  duration_ms: 176.149542
+  type: 'test'
+  ...
+# Subtest: prior interruption creates empty captures and never starts a command
+ok 2 - prior interruption creates empty captures and never starts a command
+  ---
+  duration_ms: 6.512667
+  type: 'test'
+  ...
+# Subtest: interruption delivered while captures open prevents spawning
+ok 3 - interruption delivered while captures open prevents spawning
+  ---
+  duration_ms: 216.274875
+  type: 'test'
+  ...
+# Subtest: captures binary stdout and stderr with exact exit status
+ok 4 - captures binary stdout and stderr with exact exit status
+  ---
+  duration_ms: 161.729042
+  type: 'test'
+  ...
+# Subtest: reports spawn errors through the response and closes captures
+ok 5 - reports spawn errors through the response and closes captures
+  ---
+  duration_ms: 10.935375
+  type: 'test'
+  ...
+# Subtest: timeout escalates for a child that ignores SIGTERM
+ok 6 - timeout escalates for a child that ignores SIGTERM
+  ---
+  duration_ms: 418.090416
+  type: 'test'
+  ...
+# Subtest: signal callback errors reject normally after killing and reaping the child
+ok 7 - signal callback errors reject normally after killing and reaping the child
+  ---
+  duration_ms: 220.696041
+  type: 'test'
+  ...
+# Subtest: active interruption returns signal status and reaps the process
+ok 8 - active interruption returns signal status and reaps the process
+  ---
+  duration_ms: 371.412792
+  type: 'test'
+  ...
+# Subtest: escalation callback errors are caught and cleanup retries the kill
+ok 9 - escalation callback errors are caught and cleanup retries the kill
+  ---
+  duration_ms: 415.980084
+  type: 'test'
+  ...
+# Subtest: unexpected descendant wait errors kill the remaining process group
+ok 10 - unexpected descendant wait errors kill the remaining process group
+  ---
+  duration_ms: 996.212292
+  type: 'test'
+  ...
+# Subtest: a lingering group member cannot hold a deadline of zero open
+ok 11 - a lingering group member cannot hold a deadline of zero open
+  ---
+  duration_ms: 535.736041
+  type: 'test'
+  ...
+# Subtest: a leader that exits before its deadline keeps its own status
+ok 12 - a leader that exits before its deadline keeps its own status
+  ---
+  duration_ms: 541.306708
+  type: 'test'
+  ...
+# Subtest: an OS string argument keeps its bytes or is rejected
+ok 13 - an OS string argument keeps its bytes or is rejected
+  ---
+  duration_ms: 0.656167
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 0 without interruption
+ok 14 - a terminal request preserves application exit code 0 without interruption
+  ---
+  duration_ms: 2.153709
+  type: 'test'
+  ...
+# Subtest: a terminal request preserves application exit code 7 without interruption
+ok 15 - a terminal request preserves application exit code 7 without interruption
+  ---
+  duration_ms: 1.241375
+  type: 'test'
+  ...
+# Subtest: the argument list reaches init in order and unchanged
+ok 16 - the argument list reaches init in order and unchanged
+  ---
+  duration_ms: 1.521208
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGINT status
+ok 17 - a terminal request after operation 4 preserves SIGINT status
+  ---
+  duration_ms: 8.976875
+  type: 'test'
+  ...
+# Subtest: a terminal request after operation 4 preserves SIGTERM status
+ok 18 - a terminal request after operation 4 preserves SIGTERM status
+  ---
+  duration_ms: 5.65325
+  type: 'test'
+  ...
+# Subtest: a signal between requests ends the loop with 128 plus the signal number
+ok 19 - a signal between requests ends the loop with 128 plus the signal number
+  ---
+  duration_ms: 9.063875
+  type: 'test'
+  ...
+# Subtest: an interruption reported by operation 4 earns one shutdown request
+ok 20 - an interruption reported by operation 4 earns one shutdown request
+  ---
+  duration_ms: 434.087625
+  type: 'test'
+  ...
+# Subtest: operation 11 answers the zk verdict of a proof slot
+ok 21 - operation 11 answers the zk verdict of a proof slot
+  ---
+  duration_ms: 3.555625
+  type: 'test'
+  ...
+# Subtest: the fhc and mpc operations keep one slot layout
+ok 22 - the fhc and mpc operations keep one slot layout
+  ---
+  duration_ms: 2.113417
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second completes
+ok 23 - veil blob stores isolate overlapping runs when the second completes
+  ---
+  duration_ms: 8.383958
+  type: 'test'
+  ...
+# Subtest: veil blob stores isolate overlapping runs when the second fails
+ok 24 - veil blob stores isolate overlapping runs when the second fails
+  ---
+  duration_ms: 22.508792
+  type: 'test'
+  ...
+# Subtest: veil blob stores start empty on sequential runs
+ok 25 - veil blob stores start empty on sequential runs
+  ---
+  duration_ms: 15.018792
+  type: 'test'
+  ...
+# Subtest: veil host naturals roundtrip across i31 and safe-integer boundaries
+ok 26 - veil host naturals roundtrip across i31 and safe-integer boundaries
+  ---
+  duration_ms: 3.774708
+  type: 'test'
+  ...
+# Subtest: veil host naturals compute exact zk, fhc and mpc results
+ok 27 - veil host naturals compute exact zk, fhc and mpc results
+  ---
+  duration_ms: 14.676833
+  type: 'test'
+  ...
+# Subtest: veil host naturals reject malformed decimals without allocating slots
+ok 28 - veil host naturals reject malformed decimals without allocating slots
+  ---
+  duration_ms: 120.583833
+  type: 'test'
+  ...
+# Subtest: veil host naturals keep bounded slot, function and subset indices
+ok 29 - veil host naturals keep bounded slot, function and subset indices
+  ---
+  duration_ms: 18.677667
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5183.804875

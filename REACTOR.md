@@ -181,6 +181,14 @@ operation 16 still use safe integers. The direct numeric WebAssembly export
 ABI still requires i31 values; large slot data crosses the host request
 boundary as bytes. [Validation](dev/HOST-NAT.md) exercises both paths.
 
+Each `runReactor` invocation owns a fresh slot store. Slot indices start at 1
+and refer only to that invocation, even when multiple runs overlap in one
+JavaScript process. Starting, completing or failing another run cannot clear
+or overwrite its slots. The module no longer exports the former global `blobs`
+map, and no run can read or clear the slots of another run.
+The [isolation regressions](dev/BLOB-ISOLATION.md) cover proof verification,
+ciphertext evaluation and joint share computation across overlapping runs.
+
 OS numeric arguments use decimal byte strings and must fit a JavaScript safe
 integer. Timeouts additionally fit `0..2147483647`. A timeout of 0 sets no
 deadline. OS string arguments must be valid UTF-8: a byte string that a UTF-8

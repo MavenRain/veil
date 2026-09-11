@@ -12,6 +12,8 @@ stored by `zkProve`, as well as checking the supplied relation. The
 The host runtime also preserves arbitrary-precision natural values and
 arithmetic results for all three shapes, as checked by the
 [host natural validation](dev/HOST-NAT.md).
+Concurrent reactor runs keep separate proof, ciphertext and share slots,
+as checked by the [blob store isolation regressions](dev/BLOB-ISOLATION.md).
 
 Function parameters can share a type and quantity:
 

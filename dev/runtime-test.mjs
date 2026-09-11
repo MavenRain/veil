@@ -433,9 +433,7 @@ test('the fhc and mpc operations keep one slot layout', async t => {
 
 // Drive the actual request loop with a scripted byte-list ABI. Each response
 // is checked before another request can use it as a slot index.
-const slotScript = async (t, script) => {
-  const engine = globalThis.WebAssembly;
-  t.after(() => { globalThis.WebAssembly = engine; });
+const slotScriptApi = script => {
   const answers = [];
   const api = {
     ...lists,
@@ -454,12 +452,110 @@ const slotScript = async (t, script) => {
     },
     exitCode: () => 0,
   };
+  return { api, answers };
+};
+const slotScript = async script => {
+  const engine = globalThis.WebAssembly;
+  const { api, answers } = slotScriptApi(script);
   globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
-  assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
-  assert.equal(answers.length, script.length);
+  try {
+    assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
+    assert.equal(answers.length, script.length);
+  } finally {
+    globalThis.WebAssembly = engine;
+  }
 };
 
-test('veil host naturals roundtrip across i31 and safe-integer boundaries', async t => {
+for (const failure of [false, true]) {
+  test(`veil blob stores isolate overlapping runs when the second ${failure ? 'fails' : 'completes'}`, async () => {
+    const firstScript = [
+      { code: 10, args: ['9', '3'], answer: '1' },
+      { code: 12, args: ['4', '9007199254740993'], answer: '2' },
+      { code: 15, args: ['7'], answer: '3' },
+      { code: 15, args: ['8'], answer: '4' },
+      { code: 6, args: [], answer: '' },
+      { code: 11, args: ['1', '9', '2'], answer: '1' },
+      { code: 14, args: ['2'], answer: '9007199254740993' },
+      { code: 17, args: ['3'], answer: '7' },
+      { code: 13, args: ['5', '3', '2'], answer: '5' },
+      { code: 14, args: ['5'], answer: '9007199254740994' },
+      { code: 16, args: ['2', '0', '3', '4'], answer: '6' },
+      { code: 17, args: ['6'], answer: '15' },
+    ];
+    const secondScript = [
+      ...[11, 14, 17].map(code => ({ code, args: code === 11 ? ['1', '9', '2'] : ['1'],
+        status: 1, answer: /unknown blob slot 1/ })),
+      { code: 10, args: ['25', '5'], answer: '1' },
+      { code: 12, args: ['2', '42'], answer: '2' },
+      { code: 15, args: ['10'], answer: '3' },
+      { code: 11, args: ['1', '25', '2'], answer: '1' },
+      { code: 14, args: ['2'], answer: '42' },
+      { code: 17, args: ['3'], answer: '10' },
+    ];
+    const first = slotScriptApi(firstScript);
+    const second = slotScriptApi(secondScript);
+    const injected = new Error('second reactor failed at init');
+    if (failure) second.api.init = () => { throw injected; };
+    const engine = globalThis.WebAssembly;
+    const write = process.stdout.write;
+    const listeners = ['SIGINT', 'SIGTERM'].map(signal => process.listenerCount(signal));
+    const instances = [first.api, second.api];
+    let started = 0;
+    globalThis.WebAssembly = { instantiate: async () => ({
+      instance: { exports: instances.at(started++) ?? assert.fail('no instance left') } }) };
+    const marker = Buffer.from('veil-isolation-barrier');
+    first.api.requestBody = state => state === 4 ? [...marker] : [];
+    let release;
+    let entered;
+    const paused = new Promise(resolve => { entered = resolve; });
+    // The stream signature is write(chunk, encoding, callback), so the
+    // callback is the second argument only when it is a function.
+    process.stdout.write = function (...args) {
+      const [chunk, second, third] = args;
+      if (Buffer.isBuffer(chunk) && chunk.equals(marker)) {
+        release = typeof second === 'function' ? second : third;
+        entered();
+        return true;
+      }
+      return write.apply(this, args);
+    };
+    const modulePath = new URL('../runtime/reactor.mjs', import.meta.url);
+    const running = runReactor(modulePath, []);
+    // Observe rejection immediately, and release the barrier on every exit.
+    // The second run starts only after the first owns four slots and is paused.
+    const finished = Promise.allSettled([running]);
+    try {
+      await Promise.race([paused, running.then(() => assert.fail('first run did not pause'))]);
+      if (failure) await assert.rejects(runReactor(modulePath, []), error => error === injected);
+      else {
+        assert.equal(await runReactor(modulePath, []), 0);
+        assert.equal(second.answers.length, secondScript.length);
+      }
+      release();
+      release = undefined;
+      assert.equal(await running, 0);
+      assert.equal(first.answers.length, firstScript.length);
+      assert.equal(started, instances.length);
+    } finally {
+      release?.();
+      await finished;
+      process.stdout.write = write;
+      globalThis.WebAssembly = engine;
+    }
+    assert.deepEqual(['SIGINT', 'SIGTERM'].map(signal => process.listenerCount(signal)), listeners);
+  });
+}
+
+test('veil blob stores start empty on sequential runs', async () => {
+  await slotScript([{ code: 15, args: ['123'], answer: '1' }]);
+  await slotScript([
+    { code: 17, args: ['1'], status: 1, answer: /unknown blob slot 1/ },
+    { code: 15, args: ['456'], answer: '1' },
+    { code: 17, args: ['1'], answer: '456' },
+  ]);
+});
+
+test('veil host naturals roundtrip across i31 and safe-integer boundaries', async () => {
   const script = [];
   let nextSlot = 0;
   for (const input of ['0', '0000', '00042', '1073741823', '1073741824',
@@ -482,11 +578,11 @@ test('veil host naturals roundtrip across i31 and safe-integer boundaries', asyn
       { code: 17, args: [share], answer: canonical },
     );
   }
-  await slotScript(t, script);
+  await slotScript(script);
 });
 
-test('veil host naturals compute exact zk, fhc and mpc results', async t => {
-  await slotScript(t, [
+test('veil host naturals compute exact zk, fhc and mpc results', async () => {
+  await slotScript([
     { code: 10, args: ['100000000000000000000', '10000000000'], answer: '1' },
     { code: 11, args: ['1', '100000000000000000000', '2'], answer: '1' },
     { code: 11, args: ['1', '100000000000000000001', '2'], answer: '0' },
@@ -524,7 +620,7 @@ test('veil host naturals compute exact zk, fhc and mpc results', async t => {
   ]);
 });
 
-test('veil host naturals reject malformed decimals without allocating slots', async t => {
+test('veil host naturals reject malformed decimals without allocating slots', async () => {
   const script = [{ code: 10, args: ['1', '1'], answer: '1' }];
   const positions = [
     [10, ['1', '1'], 0], [10, ['1', '1'], 1], [11, ['1', '1', '0'], 1],
@@ -543,12 +639,12 @@ test('veil host naturals reject malformed decimals without allocating slots', as
   }
   script.push({ code: 15, args: ['7'], answer: '2' },
     { code: 17, args: ['2'], answer: '7' });
-  await slotScript(t, script);
+  await slotScript(script);
 });
 
-test('veil host naturals keep bounded slot, function and subset indices', async t => {
+test('veil host naturals keep bounded slot, function and subset indices', async () => {
   const invalid = '9007199254740992';
-  await slotScript(t, [
+  await slotScript([
     { code: 15, args: ['3'], answer: '1' },
     { code: 14, args: [invalid], status: 1, answer: /^IO: invalid OS numeric argument$/ },
     { code: 13, args: ['0', invalid, '1'], status: 1, answer: /^IO: invalid OS numeric argument$/ },
