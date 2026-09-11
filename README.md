@@ -24,6 +24,8 @@ The [request traversal regressions](dev/REQUEST-BOUNDS.md) cover the limit.
 Long-running reactors can release host blob slots with operation 18. Released
 handles stay invalid for the rest of the run, as checked by the
 [blob release regressions](dev/BLOB-RELEASE.md).
+The [process signal tests](dev/PROCESS-SIGNALS.md) synchronize with child
+readiness before checking deadline escalation and process cleanup.
 
 Function parameters can share a type and quantity:
 

@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: timeout escalates for a child that ignores SIGTERM
+not ok 1 - timeout escalates for a child that ignores SIGTERM
+  ---
+  duration_ms: 293.481209
+  type: 'test'
+  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-signal-check-pW1bmh/dev/runtime-test.mjs:128:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      [
+        'SIGTERM',
+    -   'SIGKILL'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'SIGTERM'
+    1: 'SIGKILL'
+  actual:
+    0: 'SIGTERM'
+    1: 'SIGKILL'
+    2: 'SIGKILL'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-signal-check-pW1bmh/dev/runtime-test.mjs:145:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 451.014583
+{"case":"escalation","base":"33317868b33ad474916b29b4e4fc4ba7e523de2f","sourceHashes":{"runtime":"be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159","suite":"4c6a22e528544f887f5cbfdc3d949feed1a568ae3a8a9dd56b12be5057d0dd66"},"executedHashes":{"runtime":"df71c91ca609c0cc1b9bb7401dc65f2bae86c899da2eac72ecd8a3b7abb36fb8","suite":"4c6a22e528544f887f5cbfdc3d949feed1a568ae3a8a9dd56b12be5057d0dd66"},"testExit":1,"expectedFailures":1,"verified":true}

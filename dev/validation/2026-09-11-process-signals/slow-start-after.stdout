@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: timeout escalates for a child that ignores SIGTERM
+ok 1 - timeout escalates for a child that ignores SIGTERM
+  ---
+  duration_ms: 551.612292
+  type: 'test'
+  ...
+# Subtest: signal callback errors reject normally after killing and reaping the child
+ok 2 - signal callback errors reject normally after killing and reaping the child
+  ---
+  duration_ms: 468.690042
+  type: 'test'
+  ...
+# Subtest: escalation callback errors are caught and cleanup retries the kill
+ok 3 - escalation callback errors are caught and cleanup retries the kill
+  ---
+  duration_ms: 463.864792
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1907.099792
+{"case":"slow-start-after","base":"33317868b33ad474916b29b4e4fc4ba7e523de2f","sourceHashes":{"runtime":"be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159","suite":"4c6a22e528544f887f5cbfdc3d949feed1a568ae3a8a9dd56b12be5057d0dd66"},"executedHashes":{"runtime":"be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159","suite":"5b698a682f1ad4c14abbfe007513796587c30963eb658443c39844177679e25d"},"testExit":0,"expectedFailures":0,"verified":true}

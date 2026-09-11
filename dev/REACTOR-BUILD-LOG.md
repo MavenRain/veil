@@ -119,3 +119,23 @@ Evidence root: /Users/oobi/Documents/gpt4/kanon-reactor-buffer/evidence.
 the original helper's failure, `scoped-gates/run-enKipZ` holds the initial
 runtime failure and passing static checks, and `runtime-fixed/run-K3nhin`
 holds the final passing runtime suite.  All are kanon-exec artifacts.
+
+## Process signal test synchronization, 2026-09-11
+
+Base: `33317868b33ad474916b29b4e4fc4ba7e523de2f`.
+
+Three signal tests could kill the Node child before it published its PID.
+They now wait for atomic readiness before advancing a controlled parent
+timer. The child startup and OS signals remain real. Assertions cover the
+150 ms deadline, the 250 ms escalation delay, original error propagation
+and process reaping. The fixture deliberately delays readiness by 200 ms.
+
+The complete runtime suite passed 63 of 63 tests with no skips. A separate
+200 ms startup-delay reproduction fails all three old tests and passes
+all three revised tests. Mutations that delay the deadline or escalation
+by one millisecond, or replace the propagated error, are rejected.
+
+Production sources and gate thresholds are unchanged. No compiler rebuild
+or full milestone/performance ladder was required for this test-only change.
+The method and reproduction commands are in `dev/PROCESS-SIGNALS.md`;
+captures and source hashes are in `dev/validation/2026-09-11-process-signals/`.

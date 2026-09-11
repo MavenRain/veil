@@ -1,0 +1,177 @@
+{
+  "base": "33317868b33ad474916b29b4e4fc4ba7e523de2f",
+  "node": "v23.10.0",
+  "captures": [
+    {
+      "name": "runtime",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6gzmaO",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "runtime.stdout",
+          "sha256": "9226a19afe9fe29fdb0f5719ee5ae34686cc6b49fa7395ba1a3b8a48ae2af5e7",
+          "raw_sha256": "9226a19afe9fe29fdb0f5719ee5ae34686cc6b49fa7395ba1a3b8a48ae2af5e7"
+        },
+        "stderr": {
+          "file": "runtime.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "slow-start-before",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Q0ayrx",
+      "argv": [
+        "node",
+        "dev/runtime-signals-check.mjs",
+        "slow-start-before"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "slow-start-before.stdout",
+          "sha256": "c696a088a885b129ba7cfbc66c1fa3508f3808f0daff87948e675ac4d12270ca",
+          "raw_sha256": "f2723363a042485c337284dfaf084518be03cde2d2adc51b9c95d6b200875ac3"
+        },
+        "stderr": {
+          "file": "slow-start-before.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "slow-start-after",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Q0ayrx",
+      "argv": [
+        "node",
+        "dev/runtime-signals-check.mjs",
+        "slow-start-after"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "slow-start-after.stdout",
+          "sha256": "fb90f8d3cba95ad2fb5e314403e488277a7509b9dfdb017f7aa9b6cd8aec9ab8",
+          "raw_sha256": "fb90f8d3cba95ad2fb5e314403e488277a7509b9dfdb017f7aa9b6cd8aec9ab8"
+        },
+        "stderr": {
+          "file": "slow-start-after.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "deadline",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Q0ayrx",
+      "argv": [
+        "node",
+        "dev/runtime-signals-check.mjs",
+        "deadline"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "deadline.stdout",
+          "sha256": "fb3e77b122b89b6efa379a5b86c232786a78cd9691e3890a7f739a141d481d26",
+          "raw_sha256": "458ed4d44ab09088ddf1d03d891e12d090c617b14bba3d7a1f71a420290e8cfa"
+        },
+        "stderr": {
+          "file": "deadline.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "escalation",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Q0ayrx",
+      "argv": [
+        "node",
+        "dev/runtime-signals-check.mjs",
+        "escalation"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "escalation.stdout",
+          "sha256": "33a02fa3b20004c43a0d231dd10ed79ce0caa27adad505175140f9a14d03713b",
+          "raw_sha256": "df2124a5036f103a3b68ec1bd847262d727b3e18a0ef22b2a1f4b16023b8fe85"
+        },
+        "stderr": {
+          "file": "escalation.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "error-identity",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Q0ayrx",
+      "argv": [
+        "node",
+        "dev/runtime-signals-check.mjs",
+        "error-identity"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "error-identity.stdout",
+          "sha256": "61ee7b8d416b37300d35b27876488cdc7e5df262523df422c5c47f8d1015f282",
+          "raw_sha256": "2b20894ef11e28903d544adb2c6dc140f9850ff0c86bbe7834d2ba5fbfe5512d"
+        },
+        "stderr": {
+          "file": "error-identity.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "name": "house",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-zVQrAb",
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-process-signals",
+      "exit": 0,
+      "streams": {
+        "stdout": {
+          "file": "house.stdout",
+          "sha256": "5235fad5328db33ec90a5a13e427b06bb02957982171ea177537edc9304eeb01",
+          "raw_sha256": "5235fad5328db33ec90a5a13e427b06bb02957982171ea177537edc9304eeb01"
+        },
+        "stderr": {
+          "file": "house.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  ],
+  "sha256": {
+    "runtime/reactor.mjs": "be58d5e06dfa9810df9020f1814e3851d80cb87088260e12d2919e47d00f0159",
+    "dev/runtime-test.mjs": "33ae22431417dbbea01a838c0fe10fa83f047fb2523cf7e8bcac0499961cd7fb",
+    "dev/runtime-signals-check.mjs": "59082de05df7e8c0184683fbcb95cff9f1101ef5e3bbeff083df5941f39141d9",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "README.md": "5f66decf1f18fb0e400ff3173b768be9ec234e97ceed338f77d29103294263bb",
+    "dev/PROCESS-SIGNALS.md": "2cb20f326133e9815efa887831baf4c1c2923a7c42fe57ac45139776392e6f9f",
+    "dev/REACTOR-BUILD-LOG.md": "c3d80871dd596980ec479f2922c8fa12a6748ef15c1cfa398c60c1d3d189f9ac",
+    "dev/validation/2026-09-11-process-signals/README.md": "fca9ded0c15fc812944f1534f07c17ea47f6b38f57499f7ffbc18e24780ab295"
+  }
+}

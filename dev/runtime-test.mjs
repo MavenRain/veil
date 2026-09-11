@@ -15,11 +15,66 @@ const sandbox = async t => {
 const command = (s, deadline, source) => [s.out, s.err, s.path, deadline, process.execPath, '-e', source];
 const fields = response => response.toString().split('\0');
 const absent = async path => assert.rejects(access(path), { code: 'ENOENT' });
-// W4-F19: under load the marker write can lag the SIGKILL race by more
-// than a scheduler tick, so the escalation subtest polls up to one second
-// (50 rounds of 20 ms) before it falls through to the existing read.
-const awaitMarker = async path => {
-  for (let round = 0; round < 50 && !existsSync(path); round += 1) await delay(20);
+const nativeTimeout = globalThis.setTimeout;
+// Control the parent's deadline only. The real child deliberately takes longer
+// than 150 ms to become ready, then publishes its complete PID atomically.
+const readyProcess = async (t, s, ignoreTerm = false) => {
+  const originalKill = process.kill;
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const running = executeProcess(command(s, '150', `
+    setTimeout(() => {
+      ${ignoreTerm ? "process.on('SIGTERM', () => {});" : ''}
+      const fs = require('node:fs');
+      fs.writeFileSync(${JSON.stringify(`${s.marker}.pending`)}, String(process.pid));
+      fs.renameSync(${JSON.stringify(`${s.marker}.pending`)}, ${JSON.stringify(s.marker)});
+      setInterval(() => {}, 1000);
+    }, 200);
+  `), { signal: null });
+  // Observe rejection immediately, including failures before readiness.
+  const outcome = running.then(response => ({ response }), error => ({ error }));
+  let pid;
+  let settled = false;
+  outcome.then(() => { settled = true; });
+  t.after(async () => {
+    // Reap the fixture even if an assertion or a runtime mutation fails. The
+    // marker gives the group id when readiness itself failed.
+    const group = pid ?? (existsSync(s.marker) ? Number(await readFile(s.marker, 'utf8')) : 0);
+    try {
+      if (Number.isInteger(group) && group > 0) {
+        try { originalKill.call(process, -group, 'SIGKILL'); }
+        catch (error) { if (error.code !== 'ESRCH') throw error; }
+      }
+    } finally {
+      // Drive the mocked clock until the run settles. A tick that fires the
+      // deadline timer schedules the escalation timer, and the test runner
+      // runs that new timer only on a later tick, so one tick is not enough.
+      const stop = Date.now() + 5000;
+      while (!settled && Date.now() < stop) {
+        t.mock.timers.tick(400);
+        await Promise.race([
+          outcome,
+          new Promise(resolvePause => nativeTimeout(() => resolvePause(null), 20)),
+        ]);
+      }
+      t.mock.timers.reset();
+      await Promise.race([
+        outcome,
+        new Promise(resolvePause => nativeTimeout(() => resolvePause(null), 1000)),
+      ]);
+    }
+  });
+  const until = Date.now() + 5000;
+  while (!existsSync(s.marker)) {
+    assert.ok(Date.now() < until, 'child did not publish readiness within 5 seconds');
+    const ended = await Promise.race([
+      outcome,
+      new Promise(resolvePause => nativeTimeout(() => resolvePause(null), 20)),
+    ]);
+    if (ended) throw ended.error ?? new Error('child exited before publishing readiness');
+  }
+  pid = Number(await readFile(s.marker, 'utf8'));
+  assert.ok(Number.isInteger(pid) && pid > 0);
+  return { running, pid };
 };
 const sideEffect = s => `require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, 'ran')`;
 
@@ -87,20 +142,32 @@ test('reports spawn errors through the response and closes captures', async t =>
   assert.equal((await readFile(s.err)).length, 0);
 });
 
-test('timeout escalates for a child that ignores SIGTERM', { skip: process.platform === 'win32' }, async t => {
+test('timeout escalates for a child that ignores SIGTERM', { skip: process.platform === 'win32', timeout: 20000 }, async t => {
   const s = await sandbox(t);
-  const response = fields(await executeProcess(command(s, '150', `
-    process.on('SIGTERM', () => {});
-    require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, String(process.pid));
-    setInterval(() => {}, 1000);
-  `), { signal: null }));
+  const { running, pid } = await readyProcess(t, s, true);
+  const originalKill = process.kill;
+  const signals = [];
+  t.mock.method(process, 'kill', (target, signal) => {
+    if (target === -pid && signal !== 0) signals.push(signal);
+    return originalKill.call(process, target, signal);
+  });
+  t.mock.timers.tick(149);
+  assert.deepEqual(signals, []);
+  t.mock.timers.tick(1);
+  assert.deepEqual(signals, ['SIGTERM']);
+  assert.equal(originalKill.call(process, pid, 0), true);
+  t.mock.timers.tick(249);
+  assert.deepEqual(signals, ['SIGTERM']);
+  t.mock.timers.tick(1);
+  assert.deepEqual(signals, ['SIGTERM', 'SIGKILL']);
+  const response = fields(await running);
   assert.deepEqual(response.slice(0, 4), ['124', String(constants.signals.SIGKILL), '1', '0']);
-  const pid = Number(await readFile(s.marker, 'utf8'));
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' });
 });
 
-test('signal callback errors reject normally after killing and reaping the child', { skip: process.platform === 'win32' }, async t => {
+test('signal callback errors reject normally after killing and reaping the child', { skip: process.platform === 'win32', timeout: 20000 }, async t => {
   const s = await sandbox(t);
+  const { running, pid } = await readyProcess(t, s);
   const originalKill = process.kill;
   const injected = Object.assign(new Error('injected signal failure'), { code: 'EIO' });
   process.kill = (pid, signal) => {
@@ -108,11 +175,9 @@ test('signal callback errors reject normally after killing and reaping the child
     return originalKill.call(process, pid, signal);
   };
   try {
-    await assert.rejects(executeProcess(command(s, '150', `
-      require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, String(process.pid));
-      setInterval(() => {}, 1000);
-    `), { signal: null }), error => error === injected);
-    const pid = Number(await readFile(s.marker, 'utf8'));
+    const rejected = assert.rejects(running, error => error === injected);
+    t.mock.timers.tick(150);
+    await rejected;
     assert.throws(() => originalKill.call(process, pid, 0), { code: 'ESRCH' });
   } finally {
     process.kill = originalKill;
@@ -138,8 +203,9 @@ test('active interruption returns signal status and reaps the process', { skip: 
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' });
 });
 
-test('escalation callback errors are caught and cleanup retries the kill', { skip: process.platform === 'win32' }, async t => {
+test('escalation callback errors are caught and cleanup retries the kill', { skip: process.platform === 'win32', timeout: 20000 }, async t => {
   const s = await sandbox(t);
+  const { running, pid } = await readyProcess(t, s, true);
   const originalKill = process.kill;
   const injected = Object.assign(new Error('injected escalation failure'), { code: 'EIO' });
   let failedOnce = false;
@@ -151,13 +217,11 @@ test('escalation callback errors are caught and cleanup retries the kill', { ski
     return originalKill.call(process, pid, signal);
   };
   try {
-    await assert.rejects(executeProcess(command(s, '150', `
-      process.on('SIGTERM', () => {});
-      require('node:fs').writeFileSync(${JSON.stringify(s.marker)}, String(process.pid));
-      setInterval(() => {}, 1000);
-    `), { signal: null }), error => error === injected);
-    await awaitMarker(s.marker);
-    const pid = Number(await readFile(s.marker, 'utf8'));
+    const rejected = assert.rejects(running, error => error === injected);
+    t.mock.timers.tick(150);
+    t.mock.timers.tick(250);
+    await rejected;
+    assert.equal(failedOnce, true);
     assert.throws(() => originalKill.call(process, pid, 0), { code: 'ESRCH' });
   } finally {
     process.kill = originalKill;
