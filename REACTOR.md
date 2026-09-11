@@ -131,6 +131,18 @@ the left list's length.
 | 16 | subset, f, slot... | Write the joint slot; return its index |
 | 17 | slot | Return the plaintext of a share slot |
 
+Operations 1 to 17 check argument counts before performing the operation.
+Each fixed row requires exactly the listed arguments. Operation 4 requires
+at least five arguments, including the executable; further arguments are
+passed to that executable. Operation 16 requires a subset, a function code
+and at least one share slot. A request whose arguments decode, but whose
+count is missing or surplus, returns status 1 through `resume`, before any
+filesystem operation, output write, process spawn or slot allocation. The
+error identifies the operation, expected count and supplied count. An
+argument that the host cannot decode ends the run with the `kanon reactor:`
+line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
+The [request arity regressions](dev/REQUEST-ARITY.md) exercise all 17 rows.
+
 Operations 10 to 17 are the veil host operations. A blob is a slot that holds
 a flag and a plaintext. The flag holds the instance for the zk operations, the
 level for the fhc operations, and the party flag for the mpc operations. The

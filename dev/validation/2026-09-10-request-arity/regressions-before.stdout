@@ -1,0 +1,498 @@
+TAP version 13
+# Subtest: request arities reject missing and surplus arguments before host effects
+    # Subtest: temporary directory
+    not ok 1 - temporary directory
+      ---
+      duration_ms: 3.616459
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 1: /var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-ypTjWp/new-root/request-Fop0xr
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: file read
+    not ok 2 - file read
+      ---
+      duration_ms: 4.1625
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 2: original
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: atomic write
+    not ok 3 - atomic write
+      ---
+      duration_ms: 5.095791
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 3:
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: process
+    not ok 4 - process
+      ---
+      duration_ms: 2.113375
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 4
+        + actual - expected
+
+        + 'IO: spawn requires capture paths and working directory'
+        - 'IO: OS request 4 expects at least 5 arguments, got 0'
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'IO: OS request 4 expects at least 5 arguments, got 0'
+      actual: 'IO: spawn requires capture paths and working directory'
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:449:19)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: file size
+    not ok 5 - file size
+      ---
+      duration_ms: 1.697708
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 5: 0
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: stdout
+    not ok 6 - stdout
+      ---
+      duration_ms: 1.846584
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 6:
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: stderr
+    not ok 7 - stderr
+      ---
+      duration_ms: 1.105
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 7:
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: realpath
+    not ok 8 - realpath
+      ---
+      duration_ms: 2.549292
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 8: /private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-ypTjWp/stdout
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: resolve
+    not ok 9 - resolve
+      ---
+      duration_ms: 3.872542
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 9: /var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-ypTjWp/stdout
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: prove
+    not ok 10 - prove
+      ---
+      duration_ms: 0.938917
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 10: 2
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: verify
+    not ok 11 - verify
+      ---
+      duration_ms: 1.230375
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 11: 1
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: encrypt
+    not ok 12 - encrypt
+      ---
+      duration_ms: 1.390792
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 12: 2
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: evaluate
+    not ok 13 - evaluate
+      ---
+      duration_ms: 1.69425
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 13: 2
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: decrypt
+    not ok 14 - decrypt
+      ---
+      duration_ms: 1.154292
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 14: 3
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: input
+    not ok 15 - input
+      ---
+      duration_ms: 1.109666
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 15: 2
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: joint computation
+    not ok 16 - joint computation
+      ---
+      duration_ms: 1.165208
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 16
+        + actual - expected
+
+        + 'IO: invalid OS numeric argument'
+        - 'IO: OS request 16 expects at least 3 arguments, got 0'
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'IO: OS request 16 expects at least 3 arguments, got 0'
+      actual: 'IO: invalid OS numeric argument'
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:449:19)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    # Subtest: open
+    not ok 17 - open
+      ---
+      duration_ms: 1.78825
+      type: 'test'
+      location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        step 1, operation 17: 3
+
+        0 !== 1
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 1
+      actual: 0
+      operator: 'strictEqual'
+      stack: |-
+        Object.resume (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:447:14)
+        runReactor (file:///Users/oobi/Documents/gpt3/veil-request-baseline/runtime/reactor.mjs:339:19)
+        async slotScript (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:462:18)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:492:7)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:488:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+      ...
+    1..17
+not ok 1 - request arities reject missing and surplus arguments before host effects
+  ---
+  duration_ms: 46.297125
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-request-baseline/dev/runtime-test.mjs:469:1'
+  failureType: 'subtestsFailed'
+  error: '17 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: well-formed OS requests preserve bytes and accept a process with no argv
+ok 2 - well-formed OS requests preserve bytes and accept a process with no argv
+  ---
+  duration_ms: 59.869583
+  type: 'test'
+  ...
+# Subtest: joint computation accepts one or several shares and unknown requests resume with an error
+ok 3 - joint computation accepts one or several shares and unknown requests resume with an error
+  ---
+  duration_ms: 1.302917
+  type: 'test'
+  ...
+1..3
+# tests 20
+# suites 0
+# pass 2
+# fail 18
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 191.961666

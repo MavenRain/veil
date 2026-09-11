@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, rm, access } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, readdir, realpath, rm, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -440,7 +440,7 @@ const slotScriptApi = script => {
     init: () => 0,
     requestCode: state => state < script.length ? script.at(state).code : 0,
     requestArgs: state => script.at(state).args.map(text => [...Buffer.from(text)]),
-    requestBody: () => [],
+    requestBody: state => [...Buffer.from(script.at(state).body ?? '')],
     resume: (state, status, bytes) => {
       const step = script.at(state);
       const answer = Buffer.from(bytes).toString();
@@ -465,6 +465,79 @@ const slotScript = async script => {
     globalThis.WebAssembly = engine;
   }
 };
+
+test('request arities reject missing and surplus arguments before host effects', async t => {
+  const s = await sandbox(t);
+  const root = join(s.path, 'new-root');
+  await writeFile(s.out, 'original');
+  const started = spawns.started;
+  const requests = [
+    ['temporary directory', 1, [root, 'request-']],
+    ['file read', 2, [s.out, '0', '8']],
+    ['atomic write', 3, [s.out]],
+    ['process', 4, [s.marker, s.err, s.path, '0', process.execPath]],
+    ['file size', 5, [s.out]],
+    ['stdout', 6, []], ['stderr', 7, []],
+    ['realpath', 8, [s.out]], ['resolve', 9, [s.path, 'stdout']],
+    ['prove', 10, ['9', '3']], ['verify', 11, ['1', '9', '2']],
+    ['encrypt', 12, ['0', '3']], ['evaluate', 13, ['1', '3', '1']],
+    ['decrypt', 14, ['1']], ['input', 15, ['3']],
+    ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']],
+  ];
+  for (const [name, code, args] of requests) {
+    await t.test(name, async () => {
+      const variadic = code === 4 || code === 16;
+      const malformed = variadic ? [] : [[...args, 'surplus']];
+      for (let length = 0; length < args.length; length += 1) malformed.push(args.slice(0, length));
+      await slotScript([
+        { code: 10, args: ['9', '3'], answer: '1' },
+        ...malformed.map(invalid => ({ code, args: invalid, status: 1,
+          answer: `IO: OS request ${code} expects ${variadic ? 'at least ' : ''}${args.length} argument${args.length === 1 ? '' : 's'}, got ${invalid.length}` })),
+        { code: 15, args: ['7'], answer: '2' },
+        { code: 17, args: ['2'], answer: '7' },
+      ]);
+      await absent(root);
+      await absent(s.marker);
+      await absent(s.err);
+      assert.equal(await readFile(s.out, 'utf8'), 'original');
+      assert.equal(spawns.started, started);
+    });
+  }
+});
+
+test('well-formed OS requests preserve bytes and accept a process with no argv', async t => {
+  const s = await sandbox(t);
+  const path = join(s.path, 'content');
+  const root = join(s.path, 'directories');
+  const content = 'héllo\0';
+  const canonical = await realpath(s.path);
+  await slotScript([
+    { code: 1, args: [root, 'request-'], answer: /[/\\]request-[^/\\]+$/ },
+    { code: 3, args: [path], body: content, answer: '' },
+    { code: 2, args: [path, '0', '65536'], answer: content },
+    { code: 5, args: [path], answer: String(Buffer.byteLength(content)) },
+    { code: 6, args: [], answer: '' }, { code: 7, args: [], answer: '' },
+    { code: 8, args: [path], answer: join(canonical, 'content') },
+    { code: 9, args: [s.path, 'content'], answer: path },
+    { code: 4, args: [s.out, s.err, s.path, '0', process.execPath], answer: ['0', '0', '0', '0', ''].join('\0') },
+  ]);
+  assert.equal((await readdir(root)).length, 1);
+  assert.equal(await readFile(path, 'utf8'), content);
+  assert.equal((await readFile(s.out)).length, 0);
+  assert.equal((await readFile(s.err)).length, 0);
+});
+
+test('joint computation accepts one or several shares and unknown requests resume with an error', async () => {
+  await slotScript([
+    { code: 15, args: ['3'], answer: '1' },
+    { code: 16, args: ['1', '3', '1'], answer: '2' },
+    { code: 17, args: ['2'], answer: '4' },
+    { code: 16, args: ['3', '0', '1', '2', '1'], answer: '3' },
+    { code: 17, args: ['3'], answer: '10' },
+    { code: 18, args: [], status: 1, answer: 'IO: unknown OS request 18' },
+    { code: 15, args: ['5'], answer: '4' },
+  ]);
+});
 
 for (const failure of [false, true]) {
   test(`veil blob stores isolate overlapping runs when the second ${failure ? 'fails' : 'completes'}`, async () => {
@@ -635,7 +708,8 @@ test('veil host naturals reject malformed decimals without allocating slots', as
     }
   }
   for (const args of [[], ['1']]) {
-    script.push({ code: 10, args, status: 1, answer: /^IO: invalid veil natural argument$/ });
+    script.push({ code: 10, args, status: 1,
+      answer: `IO: OS request 10 expects 2 arguments, got ${args.length}` });
   }
   script.push({ code: 15, args: ['7'], answer: '2' },
     { code: 17, args: ['2'], answer: '7' });
@@ -651,7 +725,7 @@ test('veil host naturals keep bounded slot, function and subset indices', async 
     { code: 16, args: [invalid, '0', '1'], status: 1, answer: /^IO: invalid OS numeric argument$/ },
     { code: 11, args: ['1', '4', '4'], status: 1, answer: /^IO: unknown host function 4$/ },
     { code: 16, args: ['0', '0', '1'], status: 1, answer: /^IO: the subset holds fewer parties/ },
-    { code: 16, args: ['1', '0'], status: 1, answer: /^IO: a joint computation needs one share or more$/ },
+    { code: 16, args: ['1', '0'], status: 1, answer: 'IO: OS request 16 expects at least 3 arguments, got 2' },
     { code: 15, args: ['4'], answer: '2' },
   ]);
 });

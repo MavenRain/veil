@@ -14,6 +14,8 @@ arithmetic results for all three shapes, as checked by the
 [host natural validation](dev/HOST-NAT.md).
 Concurrent reactor runs keep separate proof, ciphertext and share slots,
 as checked by the [blob store isolation regressions](dev/BLOB-ISOLATION.md).
+The reactor rejects missing or surplus request arguments before host effects,
+as checked by the [request arity regressions](dev/REQUEST-ARITY.md).
 
 Function parameters can share a type and quantity:
 

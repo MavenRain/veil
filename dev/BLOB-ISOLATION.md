@@ -28,7 +28,8 @@ RUNTIME gate runs:
 The overlap uses a controlled output callback as a barrier, with no timing
 sleep. It runs the actual JavaScript request loop through a scripted byte-list
 ABI. Both overlap cases fail against base commit `c122c642ad27bb79d6617d846d95498ca57f8d4c`.
-They pass after the change, along with all 29 runtime tests.
+They pass after the change, along with all 29 runtime tests of that revision.
+Later slices add runtime tests, so the runtime count of a fresh run is larger.
 
 Validation logs and source hashes are retained under
 `dev/validation/2026-09-10-blob-isolation/`. Reproduce the scoped checks from

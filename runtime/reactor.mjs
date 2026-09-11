@@ -213,7 +213,16 @@ const writeSlot = (blobs, flag, plain) => {
   return Buffer.from(String(index));
 };
 
+// REACTOR.md request rows, indexed by operation code. Process argv and
+// joint-computation shares are variadic; every other row has an exact arity.
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1];
+
 async function perform(code, args, body, interrupted, blobs) {
+  const expected = requestArities[code];
+  const variadic = code === 4 || code === 16;
+  if (expected !== undefined && (variadic ? args.length < expected : args.length !== expected)) {
+    throw new RangeError(`OS request ${code} expects ${variadic ? 'at least ' : ''}${expected} argument${expected === 1 ? '' : 's'}, got ${args.length}`);
+  }
   switch (code) {
     case 1: {
       const root = resolve(args[0]);
@@ -264,7 +273,6 @@ async function perform(code, args, body, interrupted, blobs) {
       const subset = numeric(args[0]);
       const joint = hostFunction(args[1]);
       const slots = args.slice(2).map(argument => readSlot(blobs, argument));
-      if (!slots.length) throw new RangeError('a joint computation needs one share or more');
       if (subset < slots.length) throw new RangeError('the subset holds fewer parties than the joint computation has shares');
       return writeSlot(blobs, 0n, joint(slots.map(slot => slot.plain)));
     }
