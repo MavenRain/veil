@@ -1,0 +1,52 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 7,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/reverse-arguments/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/reverse-arguments",
+  "exit_code": 1,
+  "stdout_sha256": "91d0ec5661c5dc77302cdb7c3f390af2e98a76f1f754d8a8fe0b8e8ca6480fad",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 9412,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 1,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation shares file identity and contents and survives unlinking either name",
+    "hard-link creation retains old contents when atomic write replaces one name",
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation refuses existing destinations and preserves their identities",
+    "hard-link creation reports path errors without creating parents and continues",
+    "hard-link creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: \"EPERM: EPERM: operation not permitted, link '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-drOpD4/directory' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-drOpD4/stdout'\"",
+    "operator: 'match'",
+    "actual: \"ENOENT: ENOENT: no such file or directory, link '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-996Imi/marker' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-996Imi/directory'\"",
+    "operator: 'match'",
+    "-   './alias/../destination'",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

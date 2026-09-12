@@ -1,0 +1,28 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-mfSmHQ",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^hard-link creation",
+    "veil-hard-link/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3",
+  "exit_code": 0,
+  "stdout_sha256": "3607a6c43906e69b6b9a6ce23f8e8001c35b277e3c2202a175c2ce16dff5b332",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1746,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [],
+  "diagnostics": []
+}

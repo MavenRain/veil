@@ -158,8 +158,9 @@ the left list's length.
 | 23 | path | Inspect an entry with lstat; return file, directory, symlink or other |
 | 24 | path | Read a symlink's stored target as raw bytes; at most 65536 bytes |
 | 25 | target, destination | Create a symlink without replacing an existing entry; return an empty answer |
+| 26 | source, destination | Create a hard link without replacing an existing entry; return an empty answer |
 
-Operations 1 to 25 check argument counts before performing the operation.
+Operations 1 to 26 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -175,7 +176,8 @@ the [rename regressions](dev/FILE-RENAME.md) cover operation 21,
 the [directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22,
 the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23,
 the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24,
-and the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25.
+the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25,
+and the [hard-link regressions](dev/HARD-LINK.md) cover operation 26.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -283,6 +285,26 @@ acceptance varies by platform. The call uses Node's default symlink behavior.
 Validation covers macOS; Windows was not exercised. The
 [symlink creation regressions](dev/SYMLINK-CREATE.md) exercise operation 25
 through the request loop and a compiled Wasm fixture.
+
+Operation 26 calls `link(source, destination)` and returns status 0 with an
+empty answer on success. It requires exactly two NUL-free UTF-8 arguments;
+the payload is unused. For a regular file, the new name shares the source's
+file identity and contents. In-place writes through either name affect both.
+Unlinking either name leaves the other usable. Operation 3 atomically replaces
+one name, so other hard links keep the old file and contents.
+
+Both paths reach the OS without lexical normalization or an extra `realpath`
+call. Relative paths use the host working directory. Parent components,
+trailing separators and source symlinks retain the host's native `link`
+semantics. No test uses a symlink as the source, thus the tests do not pin
+that case. The destination parent must already exist. An existing destination,
+including a dangling symlink, is preserved and returns an OS error. Directory
+links and links across filesystems are subject to OS restrictions; there is
+no recursive creation, overwrite or copy fallback. OS failures return status 1
+through `resume` with their error code and message, and the application may
+continue. Native validation covers macOS; injected failures cover cross-device
+and link-limit errors. The [hard-link regressions](dev/HARD-LINK.md) also
+exercise operation 26 through a compiled Wasm fixture.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

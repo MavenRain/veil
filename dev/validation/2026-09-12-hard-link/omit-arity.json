@@ -1,0 +1,36 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 8,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/omit-arity/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/omit-arity",
+  "exit_code": 1,
+  "stdout_sha256": "762d42a5e9bd75213252169e36bfb59ee0a4b82aa08e8c65fee599c1264e91ab",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2787,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 0",
+    "operator: 'strictEqual'"
+  ]
+}

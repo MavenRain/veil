@@ -1,0 +1,36 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 6,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/overwrite-destination/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/overwrite-destination",
+  "exit_code": 1,
+  "stdout_sha256": "f4b2b96c34975b1533305d500a48cd679ab18655ba7891426de7261dbeccc091",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3297,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation refuses existing destinations and preserves their identities"
+  ],
+  "diagnostics": [
+    "actual: \"ENOENT: ENOENT: no such file or directory, link '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-On3qer/stdout' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-On3qer/stdout'\"",
+    "operator: 'match'"
+  ]
+}

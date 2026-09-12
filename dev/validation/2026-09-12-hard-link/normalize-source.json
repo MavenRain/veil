@@ -1,0 +1,43 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 4,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-source/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-source",
+  "exit_code": 1,
+  "stdout_sha256": "2db4fd537e10d5d4c1c34a70602d066633b9e79baa4c815a9a1edd94fe64cba5",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 5288,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 4,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation reports path errors without creating parents and continues",
+    "hard-link creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 'decoy'",
+    "operator: 'strictEqual'",
+    "actual: \"EPERM: EPERM: operation not permitted, link '/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-source' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-uMCbYF/marker'\"",
+    "operator: 'match'",
+    "-   '../h\u00e9llo//source',",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

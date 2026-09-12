@@ -334,3 +334,36 @@ milestone and performance battery was not repeated for this runtime slice.
 The [symlink creation note](SYMLINK-CREATE.md) documents the behavior, and the
 [validation record](validation/2026-09-12-symlink-create/README.md) retains
 completed captures, source hashes and exact mutation replacements.
+
+## Hard-link creation, 2026-09-12
+
+Base: `e099b831b8ec3fe3b5b09d9a35720bcb688dc875`.
+
+Operation 26 creates a hard link from source and destination arguments and
+returns an empty status-0 answer. For regular files, both names share identity
+and contents. Unlinking one name preserves the other. Atomic replacement through
+operation 3 leaves the other name attached to the old contents. Paths retain
+OS resolution; existing destinations are preserved, parents are not created,
+and OS failures resume with status 1. Both arguments use the existing arity,
+NUL and UTF-8 validation before dispatch.
+
+RUNTIME passes all 111 tests without skips. REACTOR passes 627 checks, including
+the new import-free fixture, argument and status forwarding, and real CLI
+creation, conflict and error cases. Both use the unchanged 30-second watchdogs.
+The first sandboxed REACTOR capture failed with a process-group cleanup error
+and empty streams. The same command passed with process-control access; the
+failed capture is recorded as having no usable verdict.
+
+All seven focused tests fail against the base runtime. Seven isolated mutation
+controls are rejected: copying instead of linking, creating a symlink,
+normalizing either path, overwriting a destination, reversing the arguments
+and omitting the arity entry. Native cases cover macOS. Cross-device,
+permission and link-limit errors are also injected to verify error propagation.
+
+JavaScript syntax, HOUSE and TRUSTED-LINES checks pass. The kernel remains
+5246/5250 lines and the encoder 246/600. The existing compiler executable
+matches the symlink-creation validation record. Compiler sources, gate scripts
+and thresholds are unchanged, so the full milestone battery was not repeated.
+The [hard-link note](HARD-LINK.md) documents the contract, and the
+[validation record](validation/2026-09-12-hard-link/README.md) retains the
+commands, capture references, source hashes and exact mutation replacements.

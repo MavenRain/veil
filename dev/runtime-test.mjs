@@ -771,6 +771,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['entry kind', 23, [s.out]],
     ['symlink target', 24, [s.out]],
     ['symlink creation', 25, [s.out, s.marker]],
+    ['hard-link creation', 26, [s.out, s.marker]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1083,6 +1084,153 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('hard-link creation shares file identity and contents and survives unlinking either name', async t => {
+  const s = await sandbox(t);
+  const bytes = Buffer.from([0, 255, 128, 10, 65]);
+  await writeFile(s.out, bytes);
+  const original = await lstat(s.out);
+  await slotScript([{ code: 26, args: [s.out, s.marker], body: Buffer.from('ignored'), answer: '' }]);
+  const linked = await lstat(s.marker);
+  assert.ok(linked.isFile());
+  assert.deepEqual([linked.dev, linked.ino], [original.dev, original.ino]);
+  assert.equal(linked.nlink, original.nlink + 1);
+  assert.deepEqual(await readFile(s.out), bytes);
+  assert.deepEqual(await readFile(s.marker), bytes);
+  await writeFile(s.marker, 'shared');
+  assert.equal(await readFile(s.out, 'utf8'), 'shared');
+  await slotScript([
+    { code: 19, args: [s.out], answer: '' },
+    { code: 2, args: [s.marker, '0', '6'], answer: 'shared' },
+    { code: 26, args: [s.marker, s.err], answer: '' },
+    { code: 19, args: [s.err], answer: '' },
+    { code: 5, args: [s.marker], answer: '6' },
+  ]);
+  await absent(s.out);
+  await absent(s.err);
+  assert.equal((await lstat(s.marker)).nlink, original.nlink);
+  assert.equal(await readFile(s.marker, 'utf8'), 'shared');
+});
+
+test('hard-link creation retains old contents when atomic write replaces one name', async t => {
+  const s = await sandbox(t);
+  await slotScript([
+    { code: 3, args: [s.out], body: 'original', answer: '' },
+    { code: 26, args: [s.out, s.marker], answer: '' },
+    { code: 3, args: [s.out], body: 'replacement', answer: '' },
+    { code: 2, args: [s.out, '0', '32'], answer: 'replacement' },
+    { code: 2, args: [s.marker, '0', '32'], answer: 'original' },
+  ]);
+  assert.notEqual((await lstat(s.out)).ino, (await lstat(s.marker)).ino);
+});
+
+test('hard-link creation preserves OS resolution for both paths and accepts relative names', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const actual = join(s.path, 'actual');
+  const nested = join(actual, 'nested');
+  const alias = join(s.path, 'alias');
+  await mkdir(nested, { recursive: true });
+  await symlink(nested, alias);
+  await writeFile(join(actual, 'source'), 'correct');
+  await writeFile(join(s.path, 'source'), 'decoy');
+  const relativeLink = join(nested, 'héllo world\nfile');
+  await slotScript([
+    { code: 26, args: [alias + '/../source', alias + '/../created'], answer: '' },
+    { code: 2, args: [join(actual, 'created'), '0', '7'], answer: 'correct' },
+    { code: 26, args: [relative(process.cwd(), join(actual, 'created')), relative(process.cwd(), relativeLink)], answer: '' },
+  ]);
+  const original = await lstat(join(actual, 'source'));
+  for (const path of [join(actual, 'created'), relativeLink]) {
+    const info = await lstat(path);
+    assert.deepEqual([info.dev, info.ino], [original.dev, original.ino]);
+  }
+  await absent(join(s.path, 'created'));
+  assert.equal(await readFile(join(s.path, 'source'), 'utf8'), 'decoy');
+  assert.equal(await readlink(alias), nested);
+});
+
+test('hard-link creation refuses existing destinations and preserves their identities', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const link = join(s.path, 'link');
+  const dangling = join(s.path, 'dangling');
+  await writeFile(s.out, 'source');
+  await writeFile(s.err, 'destination');
+  await mkdir(directory);
+  await symlink('stderr', link);
+  await symlink('absent', dangling);
+  const paths = [s.out, s.err, directory, link, dangling];
+  const identities = await Promise.all(paths.map(path => lstat(path)));
+  await slotScript(paths.map(path => ({ code: 26, args: [s.out, path], status: 1, answer: /^EEXIST:/ })));
+  assert.deepEqual(await Promise.all(paths.map(async path => (await lstat(path)).ino)), identities.map(info => info.ino));
+  assert.equal(await readFile(s.out, 'utf8'), 'source');
+  assert.equal(await readFile(s.err, 'utf8'), 'destination');
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readlink(link), 'stderr');
+  assert.equal(await readlink(dangling), 'absent');
+  await absent(join(s.path, 'absent'));
+});
+
+test('hard-link creation reports path errors without creating parents and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const missing = join(s.path, 'missing');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await mkdir(directory);
+  await symlink('loop', loop);
+  const rejected = [
+    [missing, s.marker, /^ENOENT:/], [s.out, join(missing, 'child'), /^ENOENT:/],
+    [directory, s.marker, /^(EPERM|EACCES|EISDIR):/],
+    [s.out, join(s.out, 'child'), /^ENOTDIR:/], [join(s.out, 'child'), s.marker, /^ENOTDIR:/],
+    [s.out, join(loop, 'child'), /^ELOOP:/], [join(loop, 'child'), s.marker, /^ELOOP:/],
+    ['', s.marker, /^ENOENT:/], [s.out, '', /^ENOENT:/],
+    [s.out + '/', s.marker, /^ENOTDIR:/], [s.out, s.marker + '/', /^(ENOENT|ENOTDIR):/],
+  ];
+  await slotScript(rejected.map(([source, destination, answer]) => ({ code: 26, args: [source, destination], status: 1, answer })));
+  await absent(s.marker);
+  await absent(missing);
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readlink(loop), 'loop');
+  await slotScript([
+    { code: 26, args: [s.out, s.marker], answer: '' },
+    { code: 2, args: [s.marker, '0', '4'], answer: 'kept' },
+  ]);
+});
+
+test('hard-link creation rejects malformed requests before filesystem access', async t => {
+  const create = t.mock.method(fsPromises, 'link', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { create.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['source'], ['source', 'destination', 'surplus']].map(args => ({
+    code: 26, args, status: 1, answer: `IO: OS request 26 expects 2 arguments, got ${args.length}`,
+  })));
+  for (const [invalid, message] of [[Buffer.from('path\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[invalid, 'destination'], ['source', invalid]]) {
+      await assert.rejects(slotScript([{ code: 26, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(create.mock.callCount(), 0);
+  const args = ['../héllo//source', './alias/../destination'];
+  await slotScript([{ code: 26, args, body: Buffer.from([0, 255]), answer: '' }]);
+  assert.equal(create.mock.callCount(), 1);
+  assert.deepEqual(create.mock.calls[0].arguments, args);
+});
+
+test('hard-link creation returns OS failures without copy fallback and resumes subsequent requests', async t => {
+  const failures = ['EXDEV', 'EPERM', 'EMLINK'];
+  const create = t.mock.method(fsPromises, 'link', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected link failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { create.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 26, args: ['source', 'destination'], status: 1,
+    answer: `${code}: injected link failure` }));
+  await slotScript([...script, { code: 26, args: ['source', 'destination'], answer: '' }]);
+  assert.equal(create.mock.callCount(), 4);
 });
 
 test('symlink creation preserves literal targets including dangling and cyclic links', { skip: process.platform === 'win32' }, async t => {

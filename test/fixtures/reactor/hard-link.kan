@@ -1,0 +1,34 @@
+-- Create a hard link from source and destination arguments, report the host
+-- answer on stdout, and preserve creation and output failures in the exit code.
+
+mu HardLinkState : Type 0 with
+| requested : Words -> HardLinkState
+| reporting : Nat -> Bytes -> HardLinkState
+| finished : Nat -> HardLinkState
+
+def init (argv : Words) : HardLinkState := requested argv
+def resume (state : HardLinkState) (status : Nat) (answer : Bytes) : HardLinkState :=
+  case state as current in HardLinkState return HardLinkState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : HardLinkState) : Nat :=
+  case state as current in HardLinkState return Nat with
+  | requested args => 26
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : HardLinkState) : Words :=
+  case state as current in HardLinkState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : HardLinkState) : Bytes :=
+  case state as current in HardLinkState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : HardLinkState) : Nat :=
+  case state as current in HardLinkState return Nat with
+  | requested args => 1
+  | reporting result body => 1
+  | finished result => result

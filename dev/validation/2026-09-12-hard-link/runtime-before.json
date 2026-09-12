@@ -1,0 +1,56 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/runtime-before/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/runtime-before",
+  "exit_code": 1,
+  "stdout_sha256": "645ae935aa3e3b26dca0a1a0ecfda20e12f845a63835f2d0e6566ea3f584427e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 9757,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 0,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation shares file identity and contents and survives unlinking either name",
+    "hard-link creation retains old contents when atomic write replaces one name",
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation refuses existing destinations and preserves their identities",
+    "hard-link creation reports path errors without creating parents and continues",
+    "hard-link creation rejects malformed requests before filesystem access",
+    "hard-link creation returns OS failures without copy fallback and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 'IO: unknown OS request 26'",
+    "operator: 'match'",
+    "actual: 'IO: unknown OS request 26'",
+    "operator: 'match'",
+    "- 'IO: OS request 26 expects 2 arguments, got 0'",
+    "actual: 'IO: unknown OS request 26'",
+    "operator: 'strictEqual'",
+    "- 'EXDEV: injected link failure'",
+    "actual: 'IO: unknown OS request 26'",
+    "operator: 'strictEqual'"
+  ]
+}

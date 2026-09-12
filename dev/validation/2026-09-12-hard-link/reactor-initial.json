@@ -1,0 +1,31 @@
+{
+  "status": "wrapper-error",
+  "usable_verdict": false,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link",
+  "helper_exit_code": 2,
+  "error": "IO: process group cleanup failed",
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-hard-link/.kanon-exec/run-sPNcNx",
+  "retained_manifest": {
+    "schemaVersion": 2,
+    "artifact": "/Users/oobi/Documents/gpt3/veil-hard-link/.kanon-exec/run-sPNcNx",
+    "status": "running",
+    "exitCode": 0,
+    "counts": {
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout_lines": 0,
+      "stderr_lines": 0,
+      "error_lines": 0,
+      "warning_lines": 0
+    },
+    "commands": []
+  },
+  "note": "The capture wrapper failed in the sandbox with empty streams. The same command subsequently passed with process-control access."
+}

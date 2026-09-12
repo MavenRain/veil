@@ -1,0 +1,49 @@
+{
+  "runtime-before": {
+    "base": "e099b831b8ec3fe3b5b09d9a35720bcb688dc875",
+    "runtime_sha256": "d0d559708a21937eef73e587edd21a0a602cbb867955629cc6e13afee80084f4",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "copy-instead": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await writeFile(args[1], await readFile(args[0]), { flag: \"wx\" }); return Buffer.alloc(0);",
+    "runtime_sha256": "6971a42e35b77bf11513a82c19150f7660c7c4c9a16c41e32461fdde75970270",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "symlink-instead": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "78077b41b560db9bf37cc2626df3c2762ae93b645a8e05493af9da4a11e7396e",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "normalize-source": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await link(resolve(args[0]), args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "4b7c101ff013d943c61207b443db77bb3551d4a79bffd317334238271899e760",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "normalize-destination": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await link(args[0], resolve(args[1])); return Buffer.alloc(0);",
+    "runtime_sha256": "adeb64a6b5061dd9475552a34b50a683733e51d1242f0b14c41525925dbdccc6",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "overwrite-destination": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await unlink(args[1]).catch(error => { if (error.code !== \"ENOENT\") throw error; }); await link(args[0], args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "8d44774c8cb80d72e4c3f5887225a7d3bb7099f3eddac4a25c44231df1fa1990",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "reverse-arguments": {
+    "before": "case 26: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 26: await link(args[1], args[0]); return Buffer.alloc(0);",
+    "runtime_sha256": "448921e6851cb9581d84e743e2914bddc1d93d306570795871ebb8bcadb6a47c",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  },
+  "omit-arity": {
+    "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2];",
+    "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2];",
+    "runtime_sha256": "ebdc38cd0c52b9e8709dc41ce2e89d834e771abd4769786d923788e64c138ec6",
+    "test_sha256": "7d0fbeaa094cd46eba79bfac7e892f55735d1cef7e4fe5e6c018157b36d1f3f8"
+  }
+}

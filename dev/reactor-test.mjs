@@ -396,6 +396,88 @@ try {
       verify(() => assert.equal(rejected.stderr, ''));
     }
   }
+  const hardLink = join(scratch, 'hard-link.wasm');
+  const hardLinkBuild = run(['build', shared, fixture('hard-link'), '-o', hardLink,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(hardLinkBuild.status, 0, hardLinkBuild.stderr));
+  const hardLinkBytes = readFileSync(hardLink);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(hardLinkBytes)).length, 0));
+  const { instance: hardLinkInstance } = await WebAssembly.instantiate(hardLinkBytes);
+  const hardLinkApi = hardLinkInstance.exports;
+  let hardLinkArgs = hardLinkApi.emptyWords();
+  for (const argument of ['./destination', '../héllo//source']) {
+    let bytes = hardLinkApi.emptyBytes();
+    for (const byte of Buffer.from(argument).reverse()) bytes = hardLinkApi.consBytes(byte, bytes);
+    hardLinkArgs = hardLinkApi.consWords(bytes, hardLinkArgs);
+  }
+  const hardLinkPending = hardLinkApi.init(hardLinkArgs);
+  verify(() => assert.equal(hardLinkApi.requestCode(hardLinkPending), 26));
+  let hardLinkForwarded = hardLinkApi.requestArgs(hardLinkPending);
+  for (const expected of ['../héllo//source', './destination']) {
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(hardLinkApi, hardLinkApi.wordsHead(hardLinkForwarded), Buffer.byteLength(expected))), Buffer.from(expected)));
+    hardLinkForwarded = hardLinkApi.wordsTail(hardLinkForwarded);
+  }
+  verify(() => assert.equal(hardLinkApi.wordsEmpty(hardLinkForwarded), 1));
+  verify(() => assert.equal(hardLinkApi.bytesEmpty(hardLinkApi.requestBody(hardLinkPending)), 1));
+  verify(() => assert.equal(hardLinkApi.exitCode(hardLinkPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EXDEV: injected failure')]]) {
+    let bytes = hardLinkApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = hardLinkApi.consBytes(byte, bytes);
+    const reporting = hardLinkApi.resume(hardLinkPending, status, bytes);
+    verify(() => assert.equal(hardLinkApi.requestCode(reporting), 6));
+    verify(() => assert.equal(hardLinkApi.wordsEmpty(hardLinkApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(hardLinkApi, hardLinkApi.requestBody(reporting), answer.length)), answer));
+    for (const writeStatus of [0, 1]) {
+      const finished = hardLinkApi.resume(reporting, writeStatus, hardLinkApi.emptyBytes());
+      verify(() => assert.equal(hardLinkApi.requestCode(finished), 0));
+      verify(() => assert.equal(hardLinkApi.exitCode(finished), status + writeStatus));
+    }
+  }
+  const hardLinkSource = join(scratch, 'hard-link-source');
+  const hardLinkDestination = join(scratch, 'hard-link-destination');
+  const hardLinkContent = Buffer.from([0, 255, 128, 10, 65]);
+  writeFileSync(hardLinkSource, hardLinkContent);
+  for (const args of [[], [hardLinkSource], [hardLinkSource, hardLinkDestination, 'surplus']]) {
+    const rejected = runModule([hardLink, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 26 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.throws(() => lstatSync(hardLinkDestination), { code: 'ENOENT' }));
+  }
+  const hardLinked = runModule([hardLink, basename(hardLinkSource), basename(hardLinkDestination)]);
+  verify(() => assert.equal(hardLinked.status, 0, hardLinked.error ?? hardLinked.stderr));
+  verify(() => assert.equal(hardLinked.stdout, ''));
+  verify(() => assert.equal(hardLinked.stderr, ''));
+  const hardLinkInfo = lstatSync(hardLinkSource);
+  const hardLinkedInfo = lstatSync(hardLinkDestination);
+  verify(() => assert.ok(hardLinkedInfo.isFile()));
+  verify(() => assert.deepEqual([hardLinkedInfo.dev, hardLinkedInfo.ino], [hardLinkInfo.dev, hardLinkInfo.ino]));
+  verify(() => assert.equal(hardLinkedInfo.nlink, 2));
+  verify(() => assert.deepEqual(readFileSync(hardLinkDestination), hardLinkContent));
+  const hardLinkDuplicate = runModule([hardLink, hardLinkSource, hardLinkDestination]);
+  verify(() => assert.equal(hardLinkDuplicate.status, 1, hardLinkDuplicate.error ?? hardLinkDuplicate.stderr));
+  verify(() => assert.match(hardLinkDuplicate.stdout, /^EEXIST:/));
+  verify(() => assert.equal(hardLinkDuplicate.stderr, ''));
+  verify(() => assert.equal(lstatSync(hardLinkDestination).ino, hardLinkInfo.ino));
+  writeFileSync(hardLinkDestination, 'shared update');
+  verify(() => assert.equal(readFileSync(hardLinkSource, 'utf8'), 'shared update'));
+  rmSync(hardLinkSource);
+  verify(() => assert.equal(readFileSync(hardLinkDestination, 'utf8'), 'shared update'));
+  verify(() => assert.equal(lstatSync(hardLinkDestination).nlink, 1));
+  const hardLinkMissing = join(scratch, 'hard-link-missing');
+  for (const [source, destination, error] of [
+    [hardLinkSource, hardLinkMissing, /^ENOENT:/],
+    [hardLinkDestination, join(scratch, 'hard-link-absent-parent', 'child'), /^ENOENT:/],
+    [hardLinkDestination, '', /^ENOENT:/],
+  ]) {
+    const rejected = runModule([hardLink, source, destination]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
+  verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
+
   const listing = join(scratch, 'directory-listing.wasm');
   const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-hard-link/.kanon-exec/run-ZiQksG",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link",
+  "exit_code": 0,
+  "stdout_sha256": "d39c0644883569a457f2b3b637956524945d5666398e40e2299449debf77a934",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 27,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 627 checks passed\n",
+  "stderr": ""
+}

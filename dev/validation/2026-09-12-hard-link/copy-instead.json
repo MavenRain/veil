@@ -1,0 +1,48 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 2,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/copy-instead/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/copy-instead",
+  "exit_code": 1,
+  "stdout_sha256": "27b5d0143e2c6c7aa5938cd2b0744401b2ca55f16a0b2d36b32ff63b55ae5b78",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 5621,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 3,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation shares file identity and contents and survives unlinking either name",
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation rejects malformed requests before filesystem access",
+    "hard-link creation returns OS failures without copy fallback and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "-   549944228",
+    "actual:",
+    "operator: 'deepStrictEqual'",
+    "-   549944238",
+    "actual:",
+    "operator: 'deepStrictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "- 'EXDEV: injected link failure'",
+    "actual: \"ENOENT: ENOENT: no such file or directory, open 'source'\"",
+    "operator: 'strictEqual'"
+  ]
+}

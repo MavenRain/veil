@@ -47,6 +47,9 @@ cover literal targets, response bounds and request validation.
 Operation 25 creates a symlink from a literal target and a new destination path.
 The [symlink creation regressions](dev/SYMLINK-CREATE.md) cover target preservation,
 destination conflicts, path errors and composition with file reads and cleanup.
+Operation 26 creates hard links to existing filesystem entries. The
+[hard-link regressions](dev/HARD-LINK.md) cover shared file contents, conflicts,
+path errors and interaction with atomic replacement and unlink.
 
 Function parameters can share a type and quantity:
 

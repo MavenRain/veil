@@ -1,0 +1,43 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 5,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-destination/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-destination",
+  "exit_code": 1,
+  "stdout_sha256": "9b8fdabed478b87a52e5b09afeb11bb333319f44539d80527e35904d28446368",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 5509,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 4,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation reports path errors without creating parents and continues",
+    "hard-link creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: \"EEXIST: EEXIST: file already exists, link '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-oEgdfR/stdout' -> '/Users/oobi/Documents/gpt3/veil-hard-link-controls/normalize-destination'\"",
+    "operator: 'match'",
+    "-   './alias/../destination'",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

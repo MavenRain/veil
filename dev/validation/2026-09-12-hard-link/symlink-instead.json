@@ -1,0 +1,53 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ViiUkv",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^hard-link creation",
+    "/Users/oobi/Documents/gpt3/veil-hard-link-controls/symlink-instead/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link-controls/symlink-instead",
+  "exit_code": 1,
+  "stdout_sha256": "ca5c9d6e81bd5135ca1f7b4508877d430366de8095d194d64c0ee9294bee9d40",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 7580,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 1,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "hard-link creation shares file identity and contents and survives unlinking either name",
+    "hard-link creation retains old contents when atomic write replaces one name",
+    "hard-link creation preserves OS resolution for both paths and accepts relative names",
+    "hard-link creation reports path errors without creating parents and continues",
+    "hard-link creation rejects malformed requests before filesystem access",
+    "hard-link creation returns OS failures without copy fallback and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual: false",
+    "operator: '=='",
+    "- 'original'",
+    "actual: 'replacement'",
+    "operator: 'strictEqual'",
+    "-   549944269",
+    "actual:",
+    "operator: 'deepStrictEqual'",
+    "actual: 0",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 0",
+    "operator: 'strictEqual'"
+  ]
+}

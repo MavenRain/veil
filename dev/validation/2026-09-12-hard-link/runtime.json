@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-hard-link/.kanon-exec/run-R2yLLY",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link",
+  "exit_code": 0,
+  "stdout_sha256": "bb4316ea95c0c17b479de991c5a17b7956cf275825a74cd149fc200d1b7ff4b4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 21016,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 111,
+    "suites": 0,
+    "pass": 111,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [],
+  "diagnostics": []
+}

@@ -1,0 +1,17 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0A9Dz4",
+  "command_index": 4,
+  "argv": [
+    "zsh",
+    "dev/house.sh"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-hard-link",
+  "exit_code": 0,
+  "stdout_sha256": "b21c359c21979b1e63e1eb022e60391b6744840821f9b7ffa9107bd7a83e0083",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 232,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "HOUSE no-exception OK\nHOUSE no-mutable-state OK\nHOUSE one-catch-site OK\n/Users/oobi/Documents/gpt3/veil-hard-link/test/sys_io.ml:19:  try Ok (thunk ()) with Sys_error m -> Error m\nHOUSE no-bool-match OK\nHOUSE no-em-dash OK\nHOUSE OK\n",
+  "stderr": ""
+}
