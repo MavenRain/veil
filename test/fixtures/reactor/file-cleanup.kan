@@ -1,0 +1,35 @@
+-- Build with runtime/reactor.kan. The first argv word holds a one-byte
+-- operation code. Forward the remaining words, print the answer and exit
+-- with the status returned by the host.
+mu CleanupState : Type 0 with
+| requested : Nat -> Words -> CleanupState
+| reporting : Nat -> Bytes -> CleanupState
+| finished : Nat -> CleanupState
+
+def init (argv : Words) : CleanupState :=
+  requested (bytesHead (wordsHead argv)) (wordsTail argv)
+def resume (state : CleanupState) (status : Nat) (answer : Bytes) : CleanupState :=
+  case state as current in CleanupState return CleanupState with
+  | requested code args => reporting status answer
+  | reporting result body => finished result
+  | finished result => finished result
+def requestCode (state : CleanupState) : Nat :=
+  case state as current in CleanupState return Nat with
+  | requested code args => code
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : CleanupState) : Words :=
+  case state as current in CleanupState return Words with
+  | requested code args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : CleanupState) : Bytes :=
+  case state as current in CleanupState return Bytes with
+  | requested code args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : CleanupState) : Nat :=
+  case state as current in CleanupState return Nat with
+  | requested code args => 1
+  | reporting result body => result
+  | finished result => result

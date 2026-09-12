@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -145,6 +145,46 @@ try {
     if (process.platform !== 'win32') verify(() => assert.equal(info.mode & 0o777, 0o700));
   }
   verify(() => assert.equal(readdirSync(directoryRoot).length, 5));
+  const cleanup = join(scratch, 'file-cleanup.wasm');
+  const cleanupBuild = run(['build', shared, fixture('file-cleanup'), '-o', cleanup,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(cleanupBuild.status, 0, cleanupBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(cleanup))).length, 0));
+  const cleanupDirectory = join(scratch, 'cleanup');
+  const cleanupFile = join(cleanupDirectory, 'héllo world');
+  const emptyDirectory = join(scratch, 'cleanup-empty');
+  mkdirSync(cleanupDirectory);
+  mkdirSync(emptyDirectory);
+  writeFileSync(cleanupFile, 'keep until unlinked');
+  for (const [code, target] of [[19, cleanupFile], [20, emptyDirectory]]) {
+    for (const args of [[], [target, 'surplus']]) {
+      const rejected = runModule([cleanup, String.fromCharCode(code), ...args]);
+      verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+      verify(() => assert.equal(rejected.stdout, `IO: OS request ${code} expects 1 argument, got ${args.length}`));
+      verify(() => assert.equal(rejected.stderr, ''));
+      verify(() => assert.ok(existsSync(target)));
+    }
+  }
+  for (const [code, target, error] of [[19, emptyDirectory, /^(EISDIR|EPERM|EACCES):/],
+    [20, cleanupFile, /^ENOTDIR:/], [20, cleanupDirectory, /^(ENOTEMPTY|EEXIST):/]]) {
+    const rejected = runModule([cleanup, String.fromCharCode(code), target]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.equal(readFileSync(cleanupFile, 'utf8'), 'keep until unlinked'));
+    verify(() => assert.deepEqual(readdirSync(emptyDirectory), []));
+  }
+  for (const [code, target] of [[19, 'cleanup/héllo world'], [20, 'cleanup'], [20, 'cleanup-empty']]) {
+    const removed = runModule([cleanup, String.fromCharCode(code), target]);
+    verify(() => assert.equal(removed.status, 0, removed.error ?? removed.stderr));
+    verify(() => assert.equal(removed.stdout, ''));
+    verify(() => assert.equal(removed.stderr, ''));
+    verify(() => assert.equal(existsSync(join(scratch, target)), false));
+    const missing = runModule([cleanup, String.fromCharCode(code), target]);
+    verify(() => assert.equal(missing.status, 1, missing.error ?? missing.stderr));
+    verify(() => assert.match(missing.stdout, /^ENOENT:/));
+    verify(() => assert.equal(missing.stderr, ''));
+  }
   const predicates = join(scratch, 'list-predicates.wasm');
   const predicateBuild = run(['build', fixture('list-predicates'), '-o', predicates,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -1,7 +1,8 @@
 # Reactor request arities
 
-The JavaScript reactor validates the argument count of operations 1 to 18
-before dispatch. An unknown operation resumes with an unknown-request error
+The JavaScript reactor validates the argument count of operations 1 to 20
+before dispatch. This note records the original rows 1 to 18; the
+[cleanup regressions](FILE-CLEANUP.md) record rows 19 and 20. An unknown operation resumes with an unknown-request error
 and no count check. Fixed requests require their documented arity;
 process operation 4 accepts an executable with zero or more arguments, and
 joint-computation operation 16 accepts one or more share slots.
@@ -23,7 +24,7 @@ does not inspect the argument list or body.
 
 The existing RUNTIME gate runs these regressions in `dev/runtime-test.mjs`:
 
-- All 18 request rows reject each missing argument prefix. Every fixed row
+- The 18 request rows of this note reject each missing argument prefix. Every fixed row
   also rejects a surplus argument, including stdout and stderr requests.
 - Rejected requests preserve existing file contents, leave new directory and
   capture paths absent, keep the process counter unchanged and consume no

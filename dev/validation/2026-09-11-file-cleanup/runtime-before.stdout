@@ -1,0 +1,85 @@
+TAP version 13
+# Subtest: filesystem cleanup removes a reactor file and its temporary directory
+not ok 1 - filesystem cleanup removes a reactor file and its temporary directory
+  ---
+  duration_ms: 42.147833
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:813:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /^(ENOTEMPTY|EEXIST):/. Input:
+    
+    'IO: unknown OS request 20'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'IO: unknown OS request 20'
+  operator: 'match'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:713:49)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/runtime/reactor.mjs:374:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:727:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:820:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)
+  ...
+# Subtest: filesystem cleanup refuses wrong kinds and preserves directory contents
+not ok 2 - filesystem cleanup refuses wrong kinds and preserves directory contents
+  ---
+  duration_ms: 15.347791
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:835:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /^(EISDIR|EPERM|EACCES):/. Input:
+    
+    'IO: unknown OS request 19'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'IO: unknown OS request 19'
+  operator: 'match'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:713:49)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/runtime/reactor.mjs:374:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:727:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:840:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: filesystem cleanup unlinks symlinks without removing their targets
+not ok 3 - filesystem cleanup unlinks symlinks without removing their targets
+  ---
+  duration_ms: 15.234959
+  type: 'test'
+  location: '/Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:851:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /^ENOTDIR:/. Input:
+    
+    'IO: unknown OS request 20'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'IO: unknown OS request 20'
+  operator: 'match'
+  stack: |-
+    Object.resume (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:713:49)
+    runReactor (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/runtime/reactor.mjs:374:19)
+    async slotScript (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:727:18)
+    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-cleanup-before/dev/runtime-test.mjs:862:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1615.313917

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, writeFile, readdir, realpath, rm, access, stat } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink } from 'node:fs/promises';
 import { join, dirname, basename, relative, resolve } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -735,6 +735,8 @@ const slotScript = async script => {
 test('request arities reject missing and surplus arguments before host effects', async t => {
   const s = await sandbox(t);
   const root = join(s.path, 'new-root');
+  const emptyDirectory = join(s.path, 'empty');
+  await mkdir(emptyDirectory);
   await writeFile(s.out, 'original');
   const started = spawns.started;
   const requests = [
@@ -749,6 +751,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['encrypt', 12, ['0', '3']], ['evaluate', 13, ['1', '3', '1']],
     ['decrypt', 14, ['1']], ['input', 15, ['3']],
     ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']], ['release', 18, ['1']],
+    ['unlink', 19, [s.out]], ['remove directory', 20, [emptyDirectory]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -767,6 +770,7 @@ test('request arities reject missing and surplus arguments before host effects',
       await absent(s.marker);
       await absent(s.err);
       assert.equal(await readFile(s.out, 'utf8'), 'original');
+      assert.deepEqual(await readdir(emptyDirectory), []);
       assert.equal(spawns.started, started);
     });
   }
@@ -806,6 +810,65 @@ test('temporary directories reject path separators before creating the root', as
   }
 });
 
+test('filesystem cleanup removes a reactor file and its temporary directory', async t => {
+  const s = await sandbox(t);
+  const [directory] = await slotScript([{ code: 1, args: [s.path, 'cleanup-'], answer: /.+/ }]);
+  const file = join(directory, 'héllo world');
+  const fileArgument = relative(process.cwd(), file);
+  const directoryArgument = relative(process.cwd(), directory);
+  await writeFile(s.marker, 'keep');
+  await slotScript([
+    { code: 3, args: [fileArgument], body: 'private\0content', answer: '' },
+    { code: 2, args: [fileArgument, '0', '65536'], answer: 'private\0content' },
+    { code: 20, args: [directoryArgument], status: 1, answer: /^(ENOTEMPTY|EEXIST):/ },
+    { code: 2, args: [fileArgument, '0', '65536'], answer: 'private\0content' },
+    { code: 19, args: [fileArgument], answer: '' },
+    { code: 19, args: [fileArgument], status: 1, answer: /^ENOENT:/ },
+    { code: 20, args: [directoryArgument], answer: '' },
+    { code: 20, args: [directoryArgument], status: 1, answer: /^ENOENT:/ },
+  ]);
+  await absent(directory);
+  assert.deepEqual(await readdir(s.path), ['marker']);
+  assert.equal(await readFile(s.marker, 'utf8'), 'keep');
+});
+
+test('filesystem cleanup refuses wrong kinds and preserves directory contents', async t => {
+  const s = await sandbox(t);
+  const emptyDirectory = join(s.path, 'empty');
+  await mkdir(emptyDirectory);
+  await writeFile(s.out, 'original');
+  await slotScript([
+    { code: 19, args: [emptyDirectory], status: 1, answer: /^(EISDIR|EPERM|EACCES):/ },
+    { code: 19, args: [s.path], status: 1, answer: /^(EISDIR|EPERM|EACCES):/ },
+    { code: 20, args: [s.out], status: 1, answer: /^ENOTDIR:/ },
+    { code: 20, args: [s.path], status: 1, answer: /^(ENOTEMPTY|EEXIST):/ },
+  ]);
+  assert.deepEqual(await readdir(emptyDirectory), []);
+  assert.equal(await readFile(s.out, 'utf8'), 'original');
+  assert.deepEqual((await readdir(s.path)).sort(), ['empty', 'stdout']);
+});
+
+test('filesystem cleanup unlinks symlinks without removing their targets', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'target-directory');
+  const directoryLink = join(s.path, 'directory-link');
+  const fileLink = join(s.path, 'file-link');
+  const danglingLink = join(s.path, 'dangling-link');
+  await mkdir(directory);
+  await writeFile(s.out, 'target');
+  await symlink(directory, directoryLink);
+  await symlink(s.out, fileLink);
+  await symlink(s.marker, danglingLink);
+  await slotScript([{ code: 20, args: [directoryLink], status: 1, answer: /^ENOTDIR:/ }]);
+  assert.ok((await lstat(directoryLink)).isSymbolicLink());
+  assert.deepEqual(await readdir(directory), []);
+  await slotScript([directoryLink, fileLink, danglingLink].map(path => ({ code: 19, args: [path], answer: '' })));
+  for (const path of [directoryLink, fileLink, danglingLink]) await assert.rejects(lstat(path), { code: 'ENOENT' });
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readFile(s.out, 'utf8'), 'target');
+  await absent(s.marker);
+});
+
 test('well-formed OS requests preserve bytes and accept a process with no argv', async t => {
   const s = await sandbox(t);
   const path = join(s.path, 'content');
@@ -835,7 +898,7 @@ test('joint computation accepts one or several shares and unknown requests resum
     { code: 17, args: ['2'], answer: '4' },
     { code: 16, args: ['3', '0', '1', '2', '1'], answer: '3' },
     { code: 17, args: ['3'], answer: '10' },
-    { code: 19, args: [], status: 1, answer: 'IO: unknown OS request 19' },
+    { code: 21, args: [], status: 1, answer: 'IO: unknown OS request 21' },
     { code: 15, args: ['5'], answer: '4' },
   ]);
 });

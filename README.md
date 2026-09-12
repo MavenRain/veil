@@ -29,6 +29,10 @@ readiness before checking deadline escalation and process cleanup.
 Temporary-directory requests keep empty and dot prefixes inside their root
 and reject path separators, as checked by the
 [directory regressions](dev/TEMP-DIRECTORY.md).
+Reactors can unlink files and remove empty directories with operations 19 and 20,
+completing temporary-file cleanup through the host API. The
+[cleanup regressions](dev/FILE-CLEANUP.md) cover successful removal, rejected
+requests and preservation of symlink targets.
 
 Function parameters can share a type and quantity:
 

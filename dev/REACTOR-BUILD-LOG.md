@@ -160,3 +160,27 @@ the [validation record](validation/2026-09-11-temp-directory/README.md)
 retains the failed control, final outputs, source hashes and a corrected
 macOS path-alias assertion from the first compiled test run. No full
 milestone or performance battery was repeated for this runtime slice.
+
+## Filesystem cleanup, 2026-09-11
+
+Base: `b0887e5c8fce2e4e16f929bdb73b9ba3903c0e96`.
+
+Operation 19 unlinks files and symlinks; operation 20 removes empty
+directories. Both require one path and return empty success answers or
+filesystem errors through `resume`. This lets reactors release files and
+temporary directories through the host API. Directory removal is never
+recursive, and unlinking a final symlink preserves its target.
+
+RUNTIME passes 70 tests with no skips, and REACTOR passes 281 checks under
+the existing 30-second watchdogs. The three new cleanup tests fail against
+the original runtime. They also reject three isolated mutations: a no-op
+unlink, recursive directory removal, and following symlinks before unlink.
+The initial full runtime run caught the old unknown-opcode test's use of
+19; its sentinel is now 21. Production behavior required no further change.
+
+HOUSE and TRUSTED-LINES pass. The kernel remains 5246/5250 lines and the
+encoder 246/600. The existing compiler executable compiled the new fixture;
+no compiler rebuild or full milestone/performance battery was required.
+The [cleanup note](FILE-CLEANUP.md) documents semantics and commands; the
+[validation record](validation/2026-09-11-file-cleanup/README.md) retains
+outputs, source hashes and the failed controls.

@@ -1,0 +1,298 @@
+{
+  "base": "b0887e5c8fce2e4e16f929bdb73b9ba3903c0e96",
+  "source_sha256": {
+    "runtime/reactor.mjs": "3d0b63c3b9ef193e6fa6b7706ed174c7594997d9c303cf3f887946535dfbf7ab",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "dev/runtime-test.mjs": "fb06d5c845e99775796f644015a676c3a310db47fc986b6e24e88cc9bacf73d7",
+    "dev/reactor-test.mjs": "8fc25621948892842ffaa58f2074063c0c70594e6f66fad25679c8472dbee851",
+    "test/fixtures/reactor/file-cleanup.kan": "a82811504aacc6806cb38ca835858659e6686339cf24bf62b06ba324666c099f",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "control_runtime_sha256": "122257693944f0ff162a02b57f0a15d5d77f0fb1e2a2ccd1299f37efb342a619",
+  "control_test_sha256": "fb06d5c845e99775796f644015a676c3a310db47fc986b6e24e88cc9bacf73d7",
+  "mutations": {
+    "unlink-no-op": {
+      "replace": "await unlink(args[0]); ",
+      "with": "",
+      "runtime_sha256": "1fcb26b7f90301f443c307060a51df563c44157c237b05ebaab176b3079174da"
+    },
+    "recursive-directory": {
+      "replace": "await rmdir(args[0]);",
+      "with": "await (await import('node:fs/promises')).rm(args[0], { recursive: true });",
+      "runtime_sha256": "499e6c0390ed2debce0225468f9b79095fd881fca356051ed0d971d4540b0419"
+    },
+    "follow-symlink": {
+      "replace": "await unlink(args[0]);",
+      "with": "await unlink(await realpath(args[0]));",
+      "runtime_sha256": "018ce189f57b69eea3c862ed38cf17a592ce7e10d8b0bb733b0fdb281050dea1"
+    }
+  },
+  "captures": {
+    "runtime-before": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "filesystem cleanup",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-cleanup-before",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC/command-0001.stdout",
+        "bytes": 3592,
+        "lines": 85
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "runtime-first": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-file-cleanup",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0002.stdout",
+        "bytes": 13493,
+        "lines": 453
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "runtime": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-file-cleanup",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC/command-0002.stdout",
+        "bytes": 12443,
+        "lines": 431
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-oh1vUC/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "reactor": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k",
+      "index": 3,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "dev/reactor-test.mjs",
+        "_build/default/bin/kanon.exe"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-file-cleanup",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0003.stdout",
+        "bytes": 27,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0003.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "house": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-92LFcZ",
+      "index": 1,
+      "argv": [
+        "zsh",
+        "/Users/oobi/Documents/gpt3/veil-file-cleanup/dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-92LFcZ/command-0001.stdout",
+        "bytes": 235,
+        "lines": 7
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-92LFcZ/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "trusted-lines": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k",
+      "index": 5,
+      "argv": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-file-cleanup",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0005.stdout",
+        "bytes": 50,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-j8bu7k/command-0005.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "unlink-no-op": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "filesystem cleanup",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-cleanup-mutants/unlink-no-op",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0001.stdout",
+        "bytes": 3162,
+        "lines": 78
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "recursive-directory": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "filesystem cleanup",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-cleanup-mutants/recursive-directory",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0002.stdout",
+        "bytes": 3633,
+        "lines": 85
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    },
+    "follow-symlink": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF",
+      "index": 3,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "filesystem cleanup",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-cleanup-mutants/follow-symlink",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0003.stdout",
+        "bytes": 1824,
+        "lines": 47
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-GodSJF/command-0003.stderr",
+        "bytes": 0,
+        "lines": 0
+      }
+    }
+  },
+  "capture_sha256": {
+    "follow-symlink.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "follow-symlink.stdout": "bde0d683ef00d2bf43ec7004d628b41d7aae534b0800e50bd1a81adec30a4be7",
+    "house.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "house.stdout": "11d1a2f87874aa0a2e932302dc67e9371072de004507a012b0db4fd150b1f07d",
+    "reactor.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reactor.stdout": "853f23a1af510ccabc8aceb6c173a3cba78b3be3f0bb5ff01fb04032829cfbb8",
+    "recursive-directory.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recursive-directory.stdout": "b2ce5a3ead449155f3bb3a874ec24b0a1d87a4ffde5d77ac63e4303ebc41519a",
+    "runtime-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-before.stdout": "4f4357af4b4ecc5aa03aeb1eaee00f639b073ba99873b1372c251aa85208ad47",
+    "runtime-first.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-first.stdout": "624cb015fb16dae3795a5b07e78e41d70441fcbc3573f2c213e780f07663efef",
+    "runtime.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime.stdout": "3e16b22bf46b30c0e2d440bec6782f7cb231a82535dfc592daa162a05236ea00",
+    "trusted-lines.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trusted-lines.stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+    "unlink-no-op.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "unlink-no-op.stdout": "940955092cb296401205ecf797ff165cc9f0017c38a17cb81f76f32519a122bc"
+  }
+}

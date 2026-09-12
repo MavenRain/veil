@@ -151,8 +151,10 @@ the left list's length.
 | 16 | subset, f, slot... | Write the joint slot; return its index |
 | 17 | slot | Return the plaintext of a share slot |
 | 18 | slot | Release a host blob slot; return an empty answer |
+| 19 | path | Unlink a file or symlink; return an empty answer |
+| 20 | path | Remove an empty directory; return an empty answer |
 
-Operations 1 to 18 check argument counts before performing the operation.
+Operations 1 to 20 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -162,8 +164,22 @@ filesystem operation, output write, process spawn, slot allocation or release. T
 error identifies the operation, expected count and supplied count. An
 argument that the host cannot decode ends the run with the `kanon reactor:`
 line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
-The [request arity regressions](dev/REQUEST-ARITY.md) cover all 18 rows;
-the [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
+The [request arity regressions](dev/REQUEST-ARITY.md) cover the original rows;
+the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix to all 20 rows.
+The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
+
+Operations 19 and 20 let a reactor clean up its files and temporary directories.
+Each requires exactly one path and returns status 0 with empty bytes on success.
+Operation 19 uses `unlink`: it removes a file or the final symlink itself and
+refuses directories. Operation 20 uses `rmdir`: it removes an empty directory,
+refuses files and final symlinks, and never removes directory contents recursively.
+These path-kind and symlink rules are the POSIX rules. Windows was not exercised.
+Missing paths return status 1 with `ENOENT`; other filesystem failures return
+status 1 with the OS error code and message. The program decides whether a missing
+path counts as already cleaned up. Relative paths use the host working directory;
+parent symlinks follow normal OS path resolution. Applications choose the paths
+and own their cleanup order. These operations are not restricted to paths that
+the reactor created, and they are not a filesystem sandbox. See [the cleanup regressions](dev/FILE-CLEANUP.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

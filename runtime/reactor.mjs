@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, mkdir, mkdtemp, chmod, rename, unlink, stat, realpath, writeFile } from 'node:fs/promises';
+import { readFile, open, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, realpath, writeFile } from 'node:fs/promises';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -219,7 +219,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1];
 
 async function perform(code, args, body, interrupted, blobs) {
   const expected = requestArities[code];
@@ -290,6 +290,8 @@ async function perform(code, args, body, interrupted, blobs) {
       if (!blobs.slots.delete(index)) throw new Error(`unknown blob slot ${index}`);
       return Buffer.alloc(0);
     }
+    case 19: await unlink(args[0]); return Buffer.alloc(0);
+    case 20: await rmdir(args[0]); return Buffer.alloc(0);
     default: throw new Error(`unknown OS request ${code}`);
   }
 }
