@@ -300,3 +300,37 @@ The full milestone and performance battery was not repeated for this runtime
 slice. The [symlink target note](SYMLINK-TARGET.md) documents the behavior, and
 the [validation record](validation/2026-09-12-symlink-target/README.md) retains
 completed captures, source hashes and the exact mutation replacements.
+
+## Symlink creation, 2026-09-12
+
+Base: `3018ec59c4fff261de59f7ca78cec29aa5130102`.
+
+Operation 25 creates a symlink from a target and destination, returning an
+empty status-0 answer. On POSIX the stored target remains literal, including
+relative, dangling, chained and cyclic targets. Destination paths retain OS
+resolution of parent symlinks and dot segments. Existing destinations are
+preserved, missing parents are not created, and OS errors resume with status 1.
+Both arguments use the existing NUL-free UTF-8 validation before dispatch.
+
+RUNTIME passes all 103 tests without skips. REACTOR passes 568 checks, including
+the new import-free fixture, direct argument and status checks, and native CLI
+creation and failure cases. Both suites use their existing 30-second watchdogs.
+The six focused tests all fail against the base runtime with
+`IO: unknown OS request 25`.
+
+Six isolated controls are rejected: resolving the target, normalizing the
+target, normalizing the destination, unlinking an existing destination first,
+reversing the arguments and omitting the arity entry. Each control runs the
+unchanged final test file. The kill counts are not uniform: the controls fail
+6, 5, 3, 1, 6 and 1 of the six tests, in that order. Native cases cover macOS; an injected creator
+checks validation before any filesystem call and literal argument forwarding.
+An initial test assumed empty targets were rejected; macOS accepts them, so
+the final contract leaves their acceptance to the OS and tests their forwarding.
+
+HOUSE and TRUSTED-LINES pass. The kernel remains 5246/5250 lines and the encoder
+246/600. The existing compiler executable matches the symlink-target validation
+record. Compiler sources, gate scripts and thresholds are unchanged. The full
+milestone and performance battery was not repeated for this runtime slice.
+The [symlink creation note](SYMLINK-CREATE.md) documents the behavior, and the
+[validation record](validation/2026-09-12-symlink-create/README.md) retains
+completed captures, source hashes and exact mutation replacements.

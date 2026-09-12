@@ -770,6 +770,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['directory listing', 22, [emptyDirectory]],
     ['entry kind', 23, [s.out]],
     ['symlink target', 24, [s.out]],
+    ['symlink creation', 25, [s.out, s.marker]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1082,6 +1083,129 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('symlink creation preserves literal targets including dangling and cyclic links', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  await mkdir(join(s.path, 'directory'));
+  const targets = [s.out, 'stdout', 'directory', 'missing/../dangling', './directory//../stdout',
+    'héllo world\n', 'created-0', 'created-7'];
+  await slotScript(targets.flatMap((target, index) => {
+    const path = join(s.path, `created-${index}`);
+    return [
+      { code: 25, args: [target, path], body: Buffer.from([0, 255, 128]), answer: '' },
+      { code: 24, args: [path], answer: Buffer.from(target) },
+      { code: 23, args: [path], answer: 'symlink' },
+    ];
+  }));
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+  assert.deepEqual(await readdir(join(s.path, 'directory')), []);
+  for (const [index, target] of targets.entries()) {
+    assert.deepEqual(await readlink(join(s.path, `created-${index}`), { encoding: 'buffer' }), Buffer.from(target));
+  }
+});
+
+test('symlink creation preserves OS resolution of parent components and relative destinations', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const actual = join(s.path, 'actual');
+  const nested = join(actual, 'nested');
+  const alias = join(s.path, 'alias');
+  await mkdir(nested, { recursive: true });
+  await symlink(nested, alias);
+  await slotScript([
+    { code: 25, args: ['target', alias + '/../created'], answer: '' },
+    { code: 24, args: [join(actual, 'created')], answer: 'target' },
+    { code: 25, args: ['../literal', relative(process.cwd(), join(nested, 'héllo world'))], answer: '' },
+    { code: 24, args: [join(nested, 'héllo world')], answer: '../literal' },
+  ]);
+  await assert.rejects(lstat(join(s.path, 'created')), { code: 'ENOENT' });
+  assert.equal(await readlink(alias), nested);
+});
+
+test('symlink creation refuses existing destinations without replacing entries or targets', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const link = join(s.path, 'link');
+  const dangling = join(s.path, 'dangling');
+  await writeFile(s.out, 'kept');
+  await mkdir(directory);
+  await symlink('stdout', link);
+  await symlink('absent', dangling);
+  const paths = [s.out, directory, link, dangling];
+  const identities = await Promise.all(paths.map(path => lstat(path)));
+  await slotScript([
+    ...paths.map(path => ({ code: 25, args: ['replacement', path], status: 1, answer: /^EEXIST:/ })),
+    { code: 25, args: [s.out, s.out], status: 1, answer: /^EEXIST:/ },
+    { code: 25, args: ['replacement', directory + '/'], status: 1, answer: /^EEXIST:/ },
+    { code: 25, args: ['stdout', s.marker], answer: '' },
+  ]);
+  assert.deepEqual(await Promise.all(paths.map(async path => (await lstat(path)).ino)), identities.map(info => info.ino));
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readlink(link), 'stdout');
+  assert.equal(await readlink(dangling), 'absent');
+  await assert.rejects(lstat(join(s.path, 'absent')), { code: 'ENOENT' });
+});
+
+test('symlink creation reports path errors without creating parents and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('loop', loop);
+  await slotScript([
+    { code: 25, args: ['target', join(missing, 'child')], status: 1, answer: /^ENOENT:/ },
+    { code: 25, args: ['target', join(s.out, 'child')], status: 1, answer: /^ENOTDIR:/ },
+    { code: 25, args: ['target', join(loop, 'child')], status: 1, answer: /^ELOOP:/ },
+    { code: 25, args: ['target', ''], status: 1, answer: /^ENOENT:/ },
+    { code: 25, args: ['target', s.marker + '/'], status: 1, answer: /^ENOENT:/ },
+    { code: 25, args: ['missing/target', s.marker], answer: '' },
+    { code: 24, args: [s.marker], answer: 'missing/target' },
+  ]);
+  await assert.rejects(lstat(missing), { code: 'ENOENT' });
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('symlink creation composes with file reads and unlink while preserving the target', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'nested');
+  const path = join(directory, 'link');
+  const bytes = Buffer.from([0, 255, 128, 10, 65]);
+  await mkdir(directory);
+  await writeFile(s.out, bytes);
+  await slotScript([
+    { code: 25, args: ['../stdout', path], answer: '' },
+    { code: 2, args: [path, '0', '5'], answer: bytes },
+    { code: 19, args: [path], answer: '' },
+    { code: 23, args: [path], status: 1, answer: /^ENOENT:/ },
+  ]);
+  await assert.rejects(lstat(path), { code: 'ENOENT' });
+  assert.deepEqual(await readFile(s.out), bytes);
+});
+
+test('symlink creation rejects malformed requests before filesystem access', async t => {
+  const create = t.mock.method(fsPromises, 'symlink', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { create.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['target'], ['target', 'link', 'surplus']].map(args => ({
+    code: 25, args, status: 1, answer: `IO: OS request 25 expects 2 arguments, got ${args.length}`,
+  })));
+  for (const [invalid, message] of [[Buffer.from('path\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[invalid, 'link'], ['target', invalid]]) {
+      await assert.rejects(slotScript([{ code: 25, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(create.mock.callCount(), 0);
+  await slotScript([
+    { code: 25, args: ['../héllo//world', './link'], answer: '' },
+    { code: 25, args: ['', 'empty-target'], answer: '' },
+  ]);
+  assert.equal(create.mock.callCount(), 2);
+  assert.deepEqual(create.mock.calls[0].arguments, ['../héllo//world', './link']);
+  assert.deepEqual(create.mock.calls[1].arguments, ['', 'empty-target']);
 });
 
 test('symlink target returns stored bytes for existing, dangling, chained and cyclic links', { skip: process.platform === 'win32' }, async t => {

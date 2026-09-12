@@ -1,0 +1,38 @@
+{
+  "resolve-target": {
+    "before": "case 25: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 25: await symlink(await realpath(args[0]), args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "452c74bbe98ee405478fc8be2ecc24198664bee551559639c9511844d1bd25d5",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  },
+  "normalize-target": {
+    "before": "case 25: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 25: await symlink(resolve(args[0]), args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "aadb83ae2dc5f7c1e641a7f746d1e74b5dff87c6150494d7fa75adf71b30848a",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  },
+  "normalize-destination": {
+    "before": "case 25: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 25: await symlink(args[0], resolve(args[1])); return Buffer.alloc(0);",
+    "runtime_sha256": "af3c9797cc2b114eb7a4cec593a866613e8bcba4ee8fbe8d8288e6067dfeeb07",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  },
+  "overwrite-destination": {
+    "before": "case 25: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 25: await unlink(args[1]).catch(error => { if (error.code !== \"ENOENT\") throw error; }); await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "f6ea162b21c2f9c70a6e8098374339edb19760751358a87c3c699b1370ebf81c",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  },
+  "reverse-arguments": {
+    "before": "case 25: await symlink(args[0], args[1]); return Buffer.alloc(0);",
+    "after": "case 25: await symlink(args[1], args[0]); return Buffer.alloc(0);",
+    "runtime_sha256": "b60ceae3748a722c5378b183a32f5262768572f179f73649892dff73eaa32461",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  },
+  "omit-arity": {
+    "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2];",
+    "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1];",
+    "runtime_sha256": "4c210113366c2fdb41e4d5148a63df490a0f0f9575172b81aa0f96fc738cf83d",
+    "test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79"
+  }
+}

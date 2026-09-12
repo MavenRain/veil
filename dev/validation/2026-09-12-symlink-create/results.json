@@ -1,0 +1,178 @@
+{
+  "base": "3018ec59c4fff261de59f7ca78cec29aa5130102",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "compiler": {
+    "reuse": "byte-identical to the symlink-target validation",
+    "sha256": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "prior_record": "../2026-09-12-symlink-target/results.json"
+  },
+  "source_sha256": {
+    "README.md": "9f2ca3295035154cfa48d62c5e041c4cb8bfcb1d98666b7b8b83085d6e373af8",
+    "REACTOR.md": "630657123d24e1e66bb58c5800de93e75716cac31c0044050ecb507623667d16",
+    "runtime/reactor.mjs": "d0d559708a21937eef73e587edd21a0a602cbb867955629cc6e13afee80084f4",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79",
+    "dev/reactor-test.mjs": "d9da1800dd6c7173bfcd22f2376161195f4ae540c52b2b00f5b108da5bdb6884",
+    "test/fixtures/reactor/symlink-create.kan": "b3da263a94c27a34b61a265389fe6cc56bb8ade5c1bdd6b13b01826e5b3a96e6",
+    "dev/SYMLINK-CREATE.md": "6821214043fde2f1007d608530f6abeead9ec48a6cc9314b000da341c5f4aff1",
+    "dev/REQUEST-ARITY.md": "4b09efbdd594619575ba9e43600c15c3e5ca321c950044c75a0f937c86fc8309",
+    "dev/REACTOR-BUILD-LOG.md": "c18e9a59c5373ee0758365bbf30a222a51ac3b9ca06c15f4df4e885f5d02795e",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-12-symlink-create/README.md": "81bd3c8bc8f704b573583671fe35d3c684f1bf854151399938893f525802cfc6",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "before_runtime_sha256": "f6c51be6c3ca14640ae3283524d8d59bb9baca0bc4dc11cbf39860c7b117ac23",
+  "before_test_sha256": "d7160832ff9898ac2f663277975bc26a9b730fac5c09c23bdf2cbf968c708e79",
+  "captures": {
+    "runtime-initial": {
+      "capture": "runtime-initial.json",
+      "capture_sha256": "41adc44eac29d74e3728052264a703bb633ea9de67fa0fd7d2b52492aa79425b",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-symlink-create/.kanon-exec/run-ndSU4Z",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "aabb71abce589b80eaa8c6366c4c6f50e5532fda91dbfd215e8e58a4d4310749",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "phase": "Exploratory test before correcting the empty-target assumption; final source hashes do not describe this test version."
+    },
+    "runtime": {
+      "capture": "runtime.json",
+      "capture_sha256": "2b1efe6533c60296f5be3833a7c6203381c149af0a6ee598b85c3a4619b94c27",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-symlink-create/.kanon-exec/run-xKrcV8",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "b6ae56cd724fc2d9a51e26d58af5c4fe9244d955548ac89028eda306947ea706",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "reactor": {
+      "capture": "reactor.json",
+      "capture_sha256": "9b33eb31360365010c563b8792788413a1b6db1b72035b947caa19a9df247a97",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-symlink-create/.kanon-exec/run-J33C4e",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "13448bc09c1aa3ef9204dcc87b9295f4ed34937fe062fd23fc95b6b334e9ad12",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "runtime-before": {
+      "capture": "runtime-before.json",
+      "capture_sha256": "2997021b0ff81ce714127ee3725d6379e3cd4450716b34bf63a73e49710e503e",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "d2195b86ee7c6f6fc6c39c3a953811b80142ac9acfd5a0a97968998a331a3672",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "resolve-target": {
+      "capture": "resolve-target.json",
+      "capture_sha256": "ea3ac3841a2270a6525930472044e82d26d8b8f8d3b833efd67b9f254cc4bd29",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 2,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "b569c17320974ac6f407ab6412608e1e52bc332fce9e35af55c0f3ca847acea3",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "normalize-target": {
+      "capture": "normalize-target.json",
+      "capture_sha256": "0d3098dc93ac0bbc7592df99c08f8d6be5207c56c9c41199d0ffea02c3b01ad3",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 3,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "84b65dfa9c094de7229d9e38fd4b087b13c704481761a6fbf66535b1c9a1b05b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "normalize-destination": {
+      "capture": "normalize-destination.json",
+      "capture_sha256": "544aed130616ea9e49ce1f3893a1d94f94151aa3e6c7a8b1883b1f3ae7e87a79",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 4,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "c2a96eedd890b79ef30fb9ea2232fb1a527836c81bd40eb1fdd2b7fb579f08ba",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "overwrite-destination": {
+      "capture": "overwrite-destination.json",
+      "capture_sha256": "a39d4c9a2c6139376fac9d6646ad9e25bb16cadb1f3b6f8353a4cf095f7e1f0f",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 5,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "b48746f8cec8365aabe2ec8e9d691983f403fe20008a5d10f653e92036d4d5e0",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "reverse-arguments": {
+      "capture": "reverse-arguments.json",
+      "capture_sha256": "b9b6d853ccc2e4fba938d038716aefd8f68f9de55636ce3a7c84491450abf0aa",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 6,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "d20bfc88d1481df343c4c316a2987e0ea4bba7abf2db92c2777c21cea22508d0",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "omit-arity": {
+      "capture": "omit-arity.json",
+      "capture_sha256": "ba4f412bcd90c2e726f62ad0c61993e5e229cd7334db4e4953c5bf48279953f7",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-eCwH6r",
+      "command": 7,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "c9a61df66cdf65cd37d9cf8e99933322885a9dac1cb2103426f3f21dcd034cb1",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "capture": "house.json",
+      "capture_sha256": "bac2cfb12859651e8f0a45c96a832e5277d27bf9452f9b36a9a16d2f44b82666",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-yptCzs",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "16e6c590e64049c3112bc9d2725926f85799132f5c79984434c28c962f8d0dc3",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "trusted-lines": {
+      "capture": "trusted-lines.json",
+      "capture_sha256": "68d8aeeed0d4d686c272fceeff59b5cdd724a7b65191c8b93cefd2c6a2874cf4",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-yptCzs",
+      "command": 2,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "diff-check": {
+      "capture": "diff-check.json",
+      "capture_sha256": "2d7319cc7b672ba771689155b568cae4b10b8334b6870ee0f7ecc9ebc621e58f",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-yptCzs",
+      "command": 3,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "controls_sha256": "4805471043b747fed298043ca0af72c1b5db3f1ea667a4eade59bef6116b0c7a",
+  "full_gate_ladder_run": false
+}

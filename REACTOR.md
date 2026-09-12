@@ -157,8 +157,9 @@ the left list's length.
 | 22 | path | List direct entry names in byte order, each followed by NUL; at most 65536 bytes |
 | 23 | path | Inspect an entry with lstat; return file, directory, symlink or other |
 | 24 | path | Read a symlink's stored target as raw bytes; at most 65536 bytes |
+| 25 | target, destination | Create a symlink without replacing an existing entry; return an empty answer |
 
-Operations 1 to 24 check argument counts before performing the operation.
+Operations 1 to 25 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -173,7 +174,8 @@ the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix through operati
 the [rename regressions](dev/FILE-RENAME.md) cover operation 21,
 the [directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22,
 the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23,
-and the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24.
+the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24,
+and the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -262,6 +264,25 @@ a larger target returns status 1 with
 Raw target bytes that fail the OS string rules cannot be reused as path
 arguments. The [symlink target regressions](dev/SYMLINK-TARGET.md) cover these
 responses and successful requests after an error.
+
+Operation 25 calls `symlink(target, destination)` and returns status 0 with an
+empty answer on success. Both arguments must be NUL-free UTF-8. The payload is
+unused. On POSIX, the stored target retains its bytes, including relative paths,
+dot segments, repeated separators and newlines. The target need not exist:
+dangling links, chains and self-referential links can be created. Relative
+targets are interpreted from the link's parent when the link is later followed.
+The operation does not create or modify a target entry.
+
+The destination is passed to the OS without lexical normalization. Relative
+destinations use the host working directory; parent symlinks and trailing
+separators follow OS resolution. The parent directory must exist. An existing
+destination, including a dangling symlink, reports an OS error without replacing
+it. Missing parents, non-directory parents and other OS failures return status 1
+with their error code and message. Empty targets are passed to the OS, whose
+acceptance varies by platform. The call uses Node's default symlink behavior.
+Validation covers macOS; Windows was not exercised. The
+[symlink creation regressions](dev/SYMLINK-CREATE.md) exercise operation 25
+through the request loop and a compiled Wasm fixture.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

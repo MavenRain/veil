@@ -44,6 +44,9 @@ special files and path errors.
 Operation 24 reads a symlink's stored target as raw bytes, including dangling
 and cyclic links. The [symlink target regressions](dev/SYMLINK-TARGET.md)
 cover literal targets, response bounds and request validation.
+Operation 25 creates a symlink from a literal target and a new destination path.
+The [symlink creation regressions](dev/SYMLINK-CREATE.md) cover target preservation,
+destination conflicts, path errors and composition with file reads and cleanup.
 
 Function parameters can share a type and quantity:
 

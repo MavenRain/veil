@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync, renameSync, symlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -324,6 +324,77 @@ try {
     verify(() => assert.equal(missing.status, 1, missing.error ?? missing.stderr));
     verify(() => assert.match(missing.stdout, /^ENOENT:/));
     verify(() => assert.equal(missing.stderr, ''));
+  }
+  const symlinkCreate = join(scratch, 'symlink-create.wasm');
+  const symlinkCreateBuild = run(['build', shared, fixture('symlink-create'), '-o', symlinkCreate,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(symlinkCreateBuild.status, 0, symlinkCreateBuild.stderr));
+  const symlinkCreateBytes = readFileSync(symlinkCreate);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(symlinkCreateBytes)).length, 0));
+  const { instance: symlinkCreateInstance } = await WebAssembly.instantiate(symlinkCreateBytes);
+  const createApi = symlinkCreateInstance.exports;
+  let createArgs = createApi.emptyWords();
+  for (const argument of ['./destination', '../héllo//target']) {
+    let bytes = createApi.emptyBytes();
+    for (const byte of Buffer.from(argument).reverse()) bytes = createApi.consBytes(byte, bytes);
+    createArgs = createApi.consWords(bytes, createArgs);
+  }
+  const createPending = createApi.init(createArgs);
+  verify(() => assert.equal(createApi.requestCode(createPending), 25));
+  const forwardedArgs = createApi.requestArgs(createPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(createApi, createApi.wordsHead(forwardedArgs), Buffer.byteLength('../héllo//target'))), Buffer.from('../héllo//target')));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(createApi, createApi.wordsHead(createApi.wordsTail(forwardedArgs)), Buffer.byteLength('./destination'))), Buffer.from('./destination')));
+  verify(() => assert.equal(createApi.wordsEmpty(createApi.wordsTail(createApi.wordsTail(forwardedArgs))), 1));
+  verify(() => assert.equal(createApi.bytesEmpty(createApi.requestBody(createPending)), 1));
+  verify(() => assert.equal(createApi.exitCode(createPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EEXIST: injected conflict')]]) {
+    let bytes = createApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = createApi.consBytes(byte, bytes);
+    const reporting = createApi.resume(createPending, status, bytes);
+    verify(() => assert.equal(createApi.requestCode(reporting), 6));
+    verify(() => assert.equal(createApi.wordsEmpty(createApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(createApi, createApi.requestBody(reporting), answer.length)), answer));
+    for (const writeStatus of [0, 1]) {
+      const finished = createApi.resume(reporting, writeStatus, createApi.emptyBytes());
+      verify(() => assert.equal(createApi.requestCode(finished), 0));
+      verify(() => assert.equal(createApi.exitCode(finished), status + writeStatus));
+    }
+  }
+  const createDestination = join(scratch, 'symlink-create-new');
+  for (const args of [[], [entryFile], [entryFile, createDestination, 'surplus']]) {
+    const rejected = runModule([symlinkCreate, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 25 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.throws(() => lstatSync(createDestination), { code: 'ENOENT' }));
+  }
+  if (process.platform !== 'win32') {
+    const targets = [entryFile, entryDirectory, './entry-directory/héllo world\nfile',
+      'missing/../dangling', 'symlink-create-0', 'symlink-create-5'];
+    for (const [index, target] of targets.entries()) {
+      const path = join(scratch, `symlink-create-${index}`);
+      const created = runModule([symlinkCreate, target, index % 2 ? basename(path) : path]);
+      verify(() => assert.equal(created.status, 0, created.error ?? created.stderr));
+      verify(() => assert.equal(created.stdout, ''));
+      verify(() => assert.equal(created.stderr, ''));
+      verify(() => assert.ok(lstatSync(path).isSymbolicLink()));
+      verify(() => assert.deepEqual(readlinkSync(path, { encoding: 'buffer' }), Buffer.from(target)));
+      const duplicate = runModule([symlinkCreate, 'replacement', path]);
+      verify(() => assert.equal(duplicate.status, 1, duplicate.error ?? duplicate.stderr));
+      verify(() => assert.match(duplicate.stdout, /^EEXIST:/));
+      verify(() => assert.equal(duplicate.stderr, ''));
+      verify(() => assert.deepEqual(readlinkSync(path, { encoding: 'buffer' }), Buffer.from(target)));
+    }
+    for (const [target, destination, error] of [
+      ['target', entryFile, /^EEXIST:/], ['target', entryDirectory, /^EEXIST:/],
+      ['target', join(scratch, 'absent-parent', 'link'), /^ENOENT:/],
+      ['target', join(entryFile, 'child'), /^ENOTDIR:/], ['target', '', /^ENOENT:/],
+    ]) {
+      const rejected = runModule([symlinkCreate, target, destination]);
+      verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+      verify(() => assert.match(rejected.stdout, error));
+      verify(() => assert.equal(rejected.stderr, ''));
+    }
   }
   const listing = join(scratch, 'directory-listing.wasm');
   const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,
