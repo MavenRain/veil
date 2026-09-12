@@ -766,6 +766,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['unlink', 19, [s.out]], ['remove directory', 20, [emptyDirectory]],
     ['rename', 21, [s.out, s.marker]],
     ['directory listing', 22, [emptyDirectory]],
+    ['entry kind', 23, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1004,6 +1005,80 @@ test('filesystem rename rejects undecodable paths before changing either endpoin
       assert.deepEqual((await readdir(s.path)).sort(), ['stderr', 'stdout']);
     }
   }
+});
+
+test('entry kind classifies files and directories with literal and relative paths', async t => {
+  const s = await sandbox(t);
+  const file = join(s.path, 'héllo world\nfile');
+  await writeFile(file, Buffer.from([0, 255, 10]));
+  await slotScript([
+    { code: 23, args: [file], body: 'unused payload', answer: 'file' },
+    { code: 23, args: [relative(process.cwd(), file)], answer: 'file' },
+    { code: 23, args: [s.path], answer: 'directory' },
+    { code: 23, args: [relative(process.cwd(), s.path)], answer: 'directory' },
+  ]);
+  assert.deepEqual(await readFile(file), Buffer.from([0, 255, 10]));
+  assert.deepEqual(await readdir(s.path), ['héllo world\nfile']);
+});
+
+test('entry kind inspects final symlinks and preserves OS resolution of parent components', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const fileLink = join(s.path, 'file-link');
+  const directoryLink = join(s.path, 'directory-link');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  const parentLink = join(s.path, 'parent-link');
+  await mkdir(directory);
+  await writeFile(s.out, 'target');
+  await symlink(s.out, fileLink);
+  await symlink(directory, directoryLink);
+  await symlink(s.marker, dangling);
+  await symlink(loop, loop);
+  await symlink(s.path, parentLink);
+  await slotScript([
+    ...[fileLink, directoryLink, dangling, loop].map(path => ({ code: 23, args: [path], answer: 'symlink' })),
+    { code: 23, args: [join(parentLink, 'stdout')], answer: 'file' },
+    { code: 23, args: [join(parentLink, 'directory')], answer: 'directory' },
+    { code: 23, args: [join(parentLink, 'dangling')], answer: 'symlink' },
+    { code: 23, args: [directoryLink + '/'], answer: 'directory' },
+  ]);
+  assert.equal(await readlink(fileLink), s.out);
+  assert.equal(await readlink(directoryLink), directory);
+  assert.equal(await readlink(dangling), s.marker);
+  assert.equal(await readlink(loop), loop);
+  assert.equal(await readFile(s.out, 'utf8'), 'target');
+  assert.deepEqual(await readdir(directory), []);
+  await absent(s.marker);
+});
+
+test('entry kind reports special files without opening them', { skip: process.platform === 'win32' }, async () => {
+  assert.equal((await lstat('/dev/null')).isCharacterDevice(), true);
+  await slotScript([{ code: 23, args: ['/dev/null'], answer: 'other' }]);
+});
+
+test('entry kind reports filesystem errors and continues with subsequent requests', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'file');
+  await slotScript([
+    { code: 23, args: [s.marker], status: 1, answer: /^ENOENT:/ },
+    { code: 23, args: [''], status: 1, answer: /^ENOENT:/ },
+    ...(process.platform === 'win32' ? [] : [
+      { code: 23, args: [join(s.out, 'child')], status: 1, answer: /^ENOTDIR:/ },
+    ]),
+    { code: 23, args: [s.out], answer: 'file' },
+    { code: 23, args: [s.path], answer: 'directory' },
+  ]);
+});
+
+test('entry kind rejects undecodable paths before responding', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'unchanged');
+  for (const [invalid, message] of [[Buffer.from(s.out + '\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
+  }
+  assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
 });
 
 test('directory listing returns sorted direct names with NUL framing and no recursion', async t => {

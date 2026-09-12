@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "zsh",
+    "dev/trusted-lines.sh"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-entry-kind",
+  "exit_code": 0,
+  "stdout": "TRUSTED-LINES kernel=5246/5250 encoder=246/600 OK\n",
+  "stderr": ""
+}

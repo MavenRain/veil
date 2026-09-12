@@ -155,8 +155,9 @@ the left list's length.
 | 20 | path | Remove an empty directory; return an empty answer |
 | 21 | source, destination | Rename a file, symlink or directory; return an empty answer |
 | 22 | path | List direct entry names in byte order, each followed by NUL; at most 65536 bytes |
+| 23 | path | Inspect an entry with lstat; return file, directory, symlink or other |
 
-Operations 1 to 22 check argument counts before performing the operation.
+Operations 1 to 23 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -168,8 +169,9 @@ argument that the host cannot decode ends the run with the `kanon reactor:`
 line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
 The [request arity regressions](dev/REQUEST-ARITY.md) cover the original rows;
 the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix through operation 20,
-the [rename regressions](dev/FILE-RENAME.md) cover operation 21, and the
-[directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22.
+the [rename regressions](dev/FILE-RENAME.md) cover operation 21,
+the [directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22,
+and the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -223,6 +225,23 @@ The directory can change while it is read; this operation promises neither a
 filesystem snapshot nor pagination. Raw non-UTF-8 entry bytes are preserved in
 answers, but later path arguments still obey the existing UTF-8 and NUL rules.
 See the [directory listing regressions](dev/DIRECTORY-LISTING.md).
+
+Operation 23 inspects one filesystem entry with `lstat`. On success it returns
+status 0 and exactly one ASCII word: `file`, `directory`, `symlink` or `other`,
+without a newline or NUL terminator. `other` covers special entries such as
+devices, FIFOs and sockets. The operation does not open the entry or read its
+contents, and its payload is unused. A final symlink named directly is reported
+as `symlink`, including a dangling link or a link to itself.
+
+Paths are passed to the OS without lexical normalization. Parent symlinks
+follow normal OS resolution, and relative paths use the host working directory.
+On POSIX, a trailing separator requires directory resolution and can follow a
+directory symlink. To inspect the link itself, name it without trailing path
+components. Missing paths, non-directory parent components and other OS failures
+return status 1 with their error code and message; a missing path is not `other`.
+Invalid UTF-8 and NUL in a path retain the existing exit-2 behavior before dispatch.
+This operation observes the entry at inspection time; later requests may see a
+changed filesystem. See the [entry kind regressions](dev/ENTRY-KIND.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

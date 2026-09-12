@@ -1,0 +1,20 @@
+{
+  "follow-final-symlink": {
+    "changes": [
+      {
+        "before": "      const info = await lstat(args[0]);",
+        "after": "      const info = await stat(args[0]);"
+      }
+    ],
+    "runtime_sha256": "8a791c90e8d3e1a5738e854b4286d6be59275207655e0eb0441c088422987cb6"
+  },
+  "omit-entry-arity": {
+    "changes": [
+      {
+        "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1];",
+        "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1];"
+      }
+    ],
+    "runtime_sha256": "6e7529faf9df570fa2ef287923e3f1df8222e9983cb96847e589727bebd527af"
+  }
+}

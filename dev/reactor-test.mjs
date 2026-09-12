@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync, renameSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync, renameSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -228,6 +228,46 @@ try {
   verify(() => assert.equal(directoryMove.stderr, ''));
   verify(() => assert.equal(existsSync(renameDirectory), false));
   verify(() => assert.deepEqual(readFileSync(join(renamedDirectory, 'héllo world')), renameContent));
+  const entryKind = join(scratch, 'entry-kind.wasm');
+  const entryKindBuild = run(['build', shared, fixture('entry-kind'), '-o', entryKind,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(entryKindBuild.status, 0, entryKindBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(entryKind))).length, 0));
+  const entryDirectory = join(scratch, 'entry-directory');
+  const entryFile = join(entryDirectory, 'héllo world\nfile');
+  mkdirSync(entryDirectory);
+  writeFileSync(entryFile, 'preserved');
+  const entryCases = [[entryDirectory, 'directory'], [entryFile, 'file'],
+    ['entry-directory/héllo world\nfile', 'file']];
+  if (process.platform !== 'win32') {
+    const fileLink = join(scratch, 'entry-file-link');
+    const directoryLink = join(scratch, 'entry-directory-link');
+    const danglingLink = join(scratch, 'entry-dangling-link');
+    symlinkSync(entryFile, fileLink);
+    symlinkSync(entryDirectory, directoryLink);
+    symlinkSync(join(scratch, 'entry-missing'), danglingLink);
+    entryCases.push([fileLink, 'symlink'], [directoryLink, 'symlink'], [danglingLink, 'symlink'],
+      [join(directoryLink, 'héllo world\nfile'), 'file'], ['/dev/null', 'other']);
+  }
+  for (const [path, expected] of entryCases) {
+    const inspected = runModule([entryKind, path]);
+    verify(() => assert.equal(inspected.status, 0, inspected.error ?? inspected.stderr));
+    verify(() => assert.equal(inspected.stdout, expected));
+    verify(() => assert.equal(inspected.stderr, ''));
+  }
+  for (const args of [[], [entryFile, 'surplus']]) {
+    const rejected = runModule([entryKind, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 23 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  for (const path of [join(scratch, 'entry-missing'), '']) {
+    const missing = runModule([entryKind, path]);
+    verify(() => assert.equal(missing.status, 1, missing.error ?? missing.stderr));
+    verify(() => assert.match(missing.stdout, /^ENOENT:/));
+    verify(() => assert.equal(missing.stderr, ''));
+  }
+  verify(() => assert.equal(readFileSync(entryFile, 'utf8'), 'preserved'));
   const listing = join(scratch, 'directory-listing.wasm');
   const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,
     ...reactorExports.flatMap(name => ['--export', name])]);

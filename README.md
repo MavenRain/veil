@@ -38,6 +38,9 @@ file. The [rename regressions](dev/FILE-RENAME.md) cover replacement and error h
 Operation 22 lists direct directory entries as sorted, NUL-terminated raw names.
 The [directory listing regressions](dev/DIRECTORY-LISTING.md) cover byte preservation,
 the 65536-byte answer limit and directory-handle cleanup.
+Operation 23 inspects filesystem entry kinds, including dangling symlinks.
+The [entry kind regressions](dev/ENTRY-KIND.md) cover files, directories, links,
+special files and path errors.
 
 Function parameters can share a type and quantity:
 

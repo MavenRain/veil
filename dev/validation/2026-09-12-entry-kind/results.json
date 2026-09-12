@@ -1,0 +1,105 @@
+{
+  "base": "0c9cf1e21407f0391c8a932f3cecc279bbf8046c",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "compiler": {
+    "reuse": "byte-identical to the directory-listing validation",
+    "sha256": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "prior_record": "../2026-09-11-directory-listing/results.json"
+  },
+  "source_sha256": {
+    "README.md": "596777ae5e852f79cc56f7009c0e5887bfac7ede782c22737397425d60fc1972",
+    "REACTOR.md": "830281808fa98fbcc9b356d8dcc9c68434906fa9358e78f9823fcb7490c83ad1",
+    "runtime/reactor.mjs": "7c08fe897508f1143136d0003dc940ff266fbbd083fad232d568664a2a226d9d",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "761cbd7c8d996aad0ffc8035a1f835b2c5adff4d066dc52bb1ff2c6fa28bc864",
+    "dev/reactor-test.mjs": "3f9e39ef559d1c817e574f9934a8063e95fb75375cd9720fcf305c265356a45d",
+    "test/fixtures/reactor/entry-kind.kan": "608924ea12ad4738903e748c78c90f4c75b4b376abaf28ff34e10a8b534ef593",
+    "dev/ENTRY-KIND.md": "739fcd28570a5aae63b82df3b36f208fb04c0ec837ce55662df161f03fed998f",
+    "dev/REACTOR-BUILD-LOG.md": "b3559245a5bd4fc9d75f23779de9d8af90d43a436b192360fa110c3080e91588",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "before_runtime_sha256": "882fc5f6ad289a2ce6b5d9c77b5e9ef56bb3025f6cd1ddf77fbf94a47e73b737",
+  "captures": {
+    "runtime-before": {
+      "capture": "runtime-before.json",
+      "capture_sha256": "c624fc1b619c8b02ba20ad2522becbeea953fa15cd4d9d7b10c972b35eb105d5",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-entry-kind/.kanon-exec/run-at0qQ5",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "b49e74f7c386e6eae2cac6c0eda5f23d1bf204e573d3e0f487c891c3920d6229",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "runtime": {
+      "capture": "runtime.json",
+      "capture_sha256": "4ee31714f365de432d9c1d2d986d8cfc923320061db54cad4d8e2fcbcacf3b6d",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-entry-kind/.kanon-exec/run-UEWA8S",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "d50161075418bd63542cdce6a53d2350b34152ee929ef57e24e28a5aa03a9131",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "reactor": {
+      "capture": "reactor.json",
+      "capture_sha256": "d0104461606f7e9d9b7d0828488b318051d318da96a55f43de11857b2edaecce",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-entry-kind/.kanon-exec/run-uZDW63",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "420f24caabb6ce7e024fae2743884db77a3922735595a4b1c7a3cfac9713c288",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "capture": "house.json",
+      "capture_sha256": "69fc0a1b051930aa53c0627cc2ca64d4f25f9ec7d6eac6473dcc329b73f82e1b",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-35E774",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "e8d19d0a52a64f9841562cad22b3381a23559a7d87b01c2503a8cd44fbea704d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "trusted-lines": {
+      "capture": "trusted-lines.json",
+      "capture_sha256": "f1984759d2de67998739fc7bfd484777f149d2f20af2ce17d552ee66de95b731",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-35E774",
+      "command": 2,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "follow-final-symlink": {
+      "capture": "follow-final-symlink.json",
+      "capture_sha256": "097b2333b49c4656c44563872fb72c8c2ac4e0c44ac1765a124a880e6c5f7279",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ZwVt8v",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "424a8b6d6cee3aa036cf011103846c43b2c1c231cf3cc50bb4335cde81dac34e",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "omit-entry-arity": {
+      "capture": "omit-entry-arity.json",
+      "capture_sha256": "637ccea13d44f6d0c443ee68043423985be451b5b4c704f3ea6b33ce7cdf593a",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ZwVt8v",
+      "command": 2,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "b7114b16e76ecb1c20a0ddc8bdd7c78f8c939585e89b051606947dc14b4dcd0f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "controls_sha256": "c500fa9bcfb99967cff59cf77ed3b8ade202079e689cbeab733e903e6b9f526e",
+  "full_gate_ladder_run": false
+}

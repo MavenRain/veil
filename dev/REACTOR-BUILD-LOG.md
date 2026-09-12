@@ -244,3 +244,26 @@ The full milestone and performance battery was not repeated for this runtime
 slice. The [listing note](DIRECTORY-LISTING.md) documents the operation; the
 [validation record](validation/2026-09-11-directory-listing/README.md) retains
 the completed captures, source hashes and negative controls.
+
+## Filesystem entry kinds, 2026-09-12
+
+Operation 23 extends directory listing with entry inspection. It accepts one
+path, uses `lstat`, and returns `file`, `directory`, `symlink` or `other` as
+unterminated ASCII bytes. Directly named final symlinks retain their own kind,
+including dangling and self-referential links. Parent components and trailing
+separators follow OS resolution. Missing paths report errors through `resume`.
+
+The full RUNTIME suite passes 89 tests without skips, and REACTOR passes 390
+checks under the existing 30-second watchdogs. The new Kanon fixture compiles
+to an import-free Wasm module and checks successful kinds and error statuses
+through the CLI. The base runtime fails the new behavior and arity checks with
+`unknown OS request 23`. Two isolated controls are rejected: replacing `lstat`
+with `stat`, and omitting the operation's arity entry.
+
+HOUSE and TRUSTED-LINES pass. The compiler executable was reused after matching
+the directory-listing validation hash. Compiler sources, gate scripts and
+thresholds are unchanged; the kernel remains 5246/5250 and the encoder 246/600.
+The full milestone and performance battery was not repeated for this runtime
+slice. The [entry kind note](ENTRY-KIND.md) documents the operation, and the
+[validation record](validation/2026-09-12-entry-kind/README.md) retains captures,
+source hashes and the negative-control replacements.
