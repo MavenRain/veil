@@ -219,7 +219,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2];
 
 async function perform(code, args, body, interrupted, blobs) {
   const expected = requestArities[code];
@@ -292,6 +292,7 @@ async function perform(code, args, body, interrupted, blobs) {
     }
     case 19: await unlink(args[0]); return Buffer.alloc(0);
     case 20: await rmdir(args[0]); return Buffer.alloc(0);
+    case 21: await rename(args[0], args[1]); return Buffer.alloc(0);
     default: throw new Error(`unknown OS request ${code}`);
   }
 }

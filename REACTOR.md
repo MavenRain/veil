@@ -153,8 +153,9 @@ the left list's length.
 | 18 | slot | Release a host blob slot; return an empty answer |
 | 19 | path | Unlink a file or symlink; return an empty answer |
 | 20 | path | Remove an empty directory; return an empty answer |
+| 21 | source, destination | Rename a file, symlink or directory; return an empty answer |
 
-Operations 1 to 20 check argument counts before performing the operation.
+Operations 1 to 21 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -165,7 +166,8 @@ error identifies the operation, expected count and supplied count. An
 argument that the host cannot decode ends the run with the `kanon reactor:`
 line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
 The [request arity regressions](dev/REQUEST-ARITY.md) cover the original rows;
-the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix to all 20 rows.
+the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix through operation 20,
+and the [rename regressions](dev/FILE-RENAME.md) extend it through operation 21.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -180,6 +182,24 @@ path counts as already cleaned up. Relative paths use the host working directory
 parent symlinks follow normal OS path resolution. Applications choose the paths
 and own their cleanup order. These operations are not restricted to paths that
 the reactor created, and they are not a filesystem sandbox. See [the cleanup regressions](dev/FILE-CLEANUP.md).
+
+Operation 21 calls the OS `rename` operation with exactly two paths. It returns
+status 0 with an empty answer on success, or status 1 with the OS error code
+and message on failure. It can move an existing file or directory between
+existing parent directories. It does not create destination parents or fall
+back to copying and deleting when the OS refuses the move, including `EXDEV`
+across filesystems. Its payload is unused.
+
+Under POSIX rules, a source file can replace a destination file, and a source
+directory can replace an empty destination directory. A nonempty destination
+directory or incompatible path kinds are refused. A final source symlink moves
+as a link; a final destination symlink is replaced as a link. Their targets are
+not moved or overwritten. Parent symlinks follow normal OS resolution, relative
+paths use the host working directory, and a rename to the same file is a successful
+no-op. Operation 21 retains the filesystem's rename atomicity, without a
+durability guarantee across a crash. Applications choose both paths; no sandbox
+or restriction to reactor-created paths is added. The
+[rename regressions](dev/FILE-RENAME.md) cover macOS; Windows was not exercised.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

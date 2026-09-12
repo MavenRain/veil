@@ -184,3 +184,30 @@ no compiler rebuild or full milestone/performance battery was required.
 The [cleanup note](FILE-CLEANUP.md) documents semantics and commands; the
 [validation record](validation/2026-09-11-file-cleanup/README.md) retains
 outputs, source hashes and the failed controls.
+
+## Filesystem rename, 2026-09-11
+
+Base: `6fbd6dd0d14503b64635453ceea651df9455db99`.
+
+Operation 21 renames existing files, symlinks and directories with exactly
+two path arguments. It returns empty success answers or OS errors through
+`resume`. The host uses `rename` directly, retaining the filesystem's
+replacement semantics and refusing cross-filesystem moves without a copy
+fallback. Final symlink targets are preserved.
+
+RUNTIME passes 76 tests with no skips, and REACTOR passes 321 checks under
+the existing 30-second watchdogs. The base runtime fails four of the five
+new focused tests; its existing path decoder already passes the fifth.
+The tests reject four isolated mutations: a no-op rename, copying and then
+unlinking, following the source symlink, and following the destination
+symlink. The unknown-operation test now uses the maximum ABI operation
+number, keeping that check separate from the newly implemented operation.
+
+The compiler executable matches the preceding cleanup validation record
+and compiled the new fixture without a compiler rebuild. HOUSE passes all
+five checks. The kernel remains
+5246/5250 lines and the encoder 246/600. No gate or threshold changed, and
+the full milestone and performance battery was not repeated.
+The [rename note](FILE-RENAME.md) documents behavior and commands; the
+[validation record](validation/2026-09-11-file-rename/README.md) retains
+the complete captured streams, statuses, source hashes and mutation details.

@@ -1,0 +1,33 @@
+-- Build with runtime/reactor.kan. Forward argv to operation 21, print the
+-- host answer and exit with the returned status.
+mu RenameState : Type 0 with
+| requested : Words -> RenameState
+| reporting : Nat -> Bytes -> RenameState
+| finished : Nat -> RenameState
+
+def init (argv : Words) : RenameState := requested argv
+def resume (state : RenameState) (status : Nat) (answer : Bytes) : RenameState :=
+  case state as current in RenameState return RenameState with
+  | requested args => reporting status answer
+  | reporting result body => finished result
+  | finished result => finished result
+def requestCode (state : RenameState) : Nat :=
+  case state as current in RenameState return Nat with
+  | requested args => 21
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : RenameState) : Words :=
+  case state as current in RenameState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : RenameState) : Bytes :=
+  case state as current in RenameState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : RenameState) : Nat :=
+  case state as current in RenameState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

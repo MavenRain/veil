@@ -1,8 +1,9 @@
 # Reactor request arities
 
-The JavaScript reactor validates the argument count of operations 1 to 20
+The JavaScript reactor validates the argument count of operations 1 to 21
 before dispatch. This note records the original rows 1 to 18; the
-[cleanup regressions](FILE-CLEANUP.md) record rows 19 and 20. An unknown operation resumes with an unknown-request error
+[cleanup regressions](FILE-CLEANUP.md) record rows 19 and 20, and the
+[rename regressions](FILE-RENAME.md) record row 21. An unknown operation resumes with an unknown-request error
 and no count check. Fixed requests require their documented arity;
 process operation 4 accepts an executable with zero or more arguments, and
 joint-computation operation 16 accepts one or more share slots.

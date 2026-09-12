@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink, readlink } from 'node:fs/promises';
 import { join, dirname, basename, relative, resolve } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -752,6 +752,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['decrypt', 14, ['1']], ['input', 15, ['3']],
     ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']], ['release', 18, ['1']],
     ['unlink', 19, [s.out]], ['remove directory', 20, [emptyDirectory]],
+    ['rename', 21, [s.out, s.marker]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -869,6 +870,129 @@ test('filesystem cleanup unlinks symlinks without removing their targets', { ski
   await absent(s.marker);
 });
 
+test('filesystem rename moves and replaces files without changing their contents or identity', async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'destination');
+  const target = join(directory, 'héllo world');
+  const content = Buffer.from([0, 255, 128, 10, 65]);
+  await mkdir(directory);
+  await slotScript([
+    { code: 3, args: [s.out], body: content, answer: '' },
+    { code: 3, args: [target], body: 'old destination', answer: '' },
+  ]);
+  const original = await stat(s.out);
+  const sourceArgument = relative(process.cwd(), s.out);
+  const targetArgument = relative(process.cwd(), target);
+  await slotScript([
+    { code: 21, args: [sourceArgument, targetArgument], body: 'ignored', answer: '' },
+    { code: 21, args: [targetArgument, targetArgument], answer: '' },
+    { code: 5, args: [targetArgument], answer: String(content.length) },
+    { code: 21, args: [sourceArgument, targetArgument], status: 1, answer: /^ENOENT:/ },
+    { code: 21, args: [targetArgument, s.marker], answer: '' },
+  ]);
+  await absent(s.out);
+  await absent(target);
+  assert.deepEqual(await readFile(s.marker), content);
+  const moved = await stat(s.marker);
+  assert.equal(moved.dev, original.dev);
+  assert.equal(moved.ino, original.ino);
+  assert.equal(moved.mode, original.mode);
+  assert.deepEqual(await readdir(directory), []);
+});
+
+test('filesystem rename moves nonempty directories and replaces empty directories', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const source = join(s.path, 'source');
+  const moved = join(s.path, 'moved');
+  const target = join(s.path, 'target');
+  await mkdir(join(source, 'nested'), { recursive: true });
+  await mkdir(target);
+  await writeFile(join(source, 'nested', 'content'), 'keep');
+  const original = await stat(source);
+  await slotScript([
+    { code: 21, args: [source, moved], answer: '' },
+    { code: 2, args: [join(moved, 'nested', 'content'), '0', '65536'], answer: 'keep' },
+    { code: 21, args: [moved, target], answer: '' },
+  ]);
+  await absent(source);
+  await absent(moved);
+  assert.equal(await readFile(join(target, 'nested', 'content'), 'utf8'), 'keep');
+  assert.equal((await stat(target)).ino, original.ino);
+  assert.deepEqual(await readdir(s.path), ['target']);
+});
+
+test('filesystem rename reports filesystem errors while preserving both paths', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const sourceDirectory = join(s.path, 'source');
+  const targetDirectory = join(s.path, 'target');
+  await mkdir(sourceDirectory);
+  await mkdir(targetDirectory);
+  await writeFile(s.out, 'source file');
+  await writeFile(s.err, 'destination file');
+  await writeFile(join(sourceDirectory, 'content'), 'source directory');
+  await writeFile(join(targetDirectory, 'content'), 'destination directory');
+  for (const [source, target, error] of [
+    [s.marker, s.err, /^ENOENT:/],
+    [s.out, join(s.marker, 'missing-parent'), /^ENOENT:/],
+    [s.out, targetDirectory, /^(EISDIR|ENOTDIR):/],
+    [sourceDirectory, s.err, /^ENOTDIR:/],
+    [sourceDirectory, targetDirectory, /^(ENOTEMPTY|EEXIST):/],
+    [sourceDirectory, join(sourceDirectory, 'child'), /^EINVAL:/],
+  ]) {
+    await slotScript([{ code: 21, args: [source, target], status: 1, answer: error }]);
+    assert.equal(await readFile(s.out, 'utf8'), 'source file');
+    assert.equal(await readFile(s.err, 'utf8'), 'destination file');
+    assert.equal(await readFile(join(sourceDirectory, 'content'), 'utf8'), 'source directory');
+    assert.equal(await readFile(join(targetDirectory, 'content'), 'utf8'), 'destination directory');
+    assert.deepEqual(await readdir(sourceDirectory), ['content']);
+    assert.deepEqual(await readdir(targetDirectory), ['content']);
+    await absent(s.marker);
+  }
+});
+
+test('filesystem rename preserves symlink targets at both endpoints', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  await mkdir(directory);
+  await writeFile(s.out, 'target file');
+  await writeFile(join(directory, 'content'), 'target directory');
+  for (const target of [s.out, directory, s.marker]) {
+    const sourceLink = join(s.path, 'source-link');
+    const movedLink = join(s.path, 'moved-link');
+    await symlink(target, sourceLink);
+    await writeFile(movedLink, 'replaced');
+    await slotScript([{ code: 21, args: [sourceLink, movedLink], answer: '' }]);
+    await assert.rejects(lstat(sourceLink), { code: 'ENOENT' });
+    assert.ok((await lstat(movedLink)).isSymbolicLink());
+    assert.equal(await readlink(movedLink), target);
+    await slotScript([
+      { code: 3, args: [s.err], body: 'replacement', answer: '' },
+      { code: 21, args: [s.err, movedLink], answer: '' },
+    ]);
+    await absent(s.err);
+    assert.ok((await lstat(movedLink)).isFile());
+    assert.equal(await readFile(movedLink, 'utf8'), 'replacement');
+    assert.equal(await readFile(s.out, 'utf8'), 'target file');
+    assert.equal(await readFile(join(directory, 'content'), 'utf8'), 'target directory');
+    await absent(s.marker);
+  }
+});
+
+test('filesystem rename rejects undecodable paths before changing either endpoint', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'source');
+  await writeFile(s.err, 'destination');
+  for (const [invalid, message] of [[Buffer.from('bad\0path'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[invalid, s.err], [s.out, invalid]]) {
+      await assert.rejects(slotScript([{ code: 21, args, answer: '' }]), { message });
+      assert.equal(await readFile(s.out, 'utf8'), 'source');
+      assert.equal(await readFile(s.err, 'utf8'), 'destination');
+      assert.deepEqual((await readdir(s.path)).sort(), ['stderr', 'stdout']);
+    }
+  }
+});
+
 test('well-formed OS requests preserve bytes and accept a process with no argv', async t => {
   const s = await sandbox(t);
   const path = join(s.path, 'content');
@@ -898,7 +1022,7 @@ test('joint computation accepts one or several shares and unknown requests resum
     { code: 17, args: ['2'], answer: '4' },
     { code: 16, args: ['3', '0', '1', '2', '1'], answer: '3' },
     { code: 17, args: ['3'], answer: '10' },
-    { code: 21, args: [], status: 1, answer: 'IO: unknown OS request 21' },
+    { code: 1073741823, args: [], status: 1, answer: 'IO: unknown OS request 1073741823' },
     { code: 15, args: ['5'], answer: '4' },
   ]);
 });

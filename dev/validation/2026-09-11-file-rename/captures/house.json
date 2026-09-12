@@ -1,0 +1,4 @@
+{
+  "stdout": "HOUSE no-exception OK\nHOUSE no-mutable-state OK\nHOUSE one-catch-site OK\n/Users/oobi/Documents/gpt3/veil-rename/test/sys_io.ml:19:  try Ok (thunk ()) with Sys_error m -> Error m\nHOUSE no-bool-match OK\nHOUSE no-em-dash OK\nHOUSE OK\n",
+  "stderr": ""
+}

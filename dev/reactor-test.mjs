@@ -185,6 +185,49 @@ try {
     verify(() => assert.match(missing.stdout, /^ENOENT:/));
     verify(() => assert.equal(missing.stderr, ''));
   }
+  const rename = join(scratch, 'file-rename.wasm');
+  const renameBuild = run(['build', shared, fixture('file-rename'), '-o', rename,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(renameBuild.status, 0, renameBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(rename))).length, 0));
+  const renameSource = join(scratch, 'rename-source');
+  const renameDirectory = join(scratch, 'rename-directory');
+  const renameTarget = join(renameDirectory, 'héllo world');
+  const renameContent = Buffer.from([0, 255, 128, 10, 65]);
+  mkdirSync(renameDirectory);
+  writeFileSync(renameSource, renameContent);
+  writeFileSync(renameTarget, 'original destination');
+  const renameIdentity = statSync(renameSource);
+  for (const args of [[], [renameSource], [renameSource, renameTarget, 'surplus']]) {
+    const rejected = runModule([rename, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 21 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.deepEqual(readFileSync(renameSource), renameContent));
+    verify(() => assert.equal(readFileSync(renameTarget, 'utf8'), 'original destination'));
+  }
+  for (const args of [['rename-source', 'rename-directory/héllo world'], [renameTarget, renameTarget]]) {
+    const moved = runModule([rename, ...args]);
+    verify(() => assert.equal(moved.status, 0, moved.error ?? moved.stderr));
+    verify(() => assert.equal(moved.stdout, ''));
+    verify(() => assert.equal(moved.stderr, ''));
+    verify(() => assert.equal(existsSync(renameSource), false));
+    verify(() => assert.deepEqual(readFileSync(renameTarget), renameContent));
+    verify(() => assert.equal(statSync(renameTarget).ino, renameIdentity.ino));
+    verify(() => assert.equal(statSync(renameTarget).mode, renameIdentity.mode));
+  }
+  const renameMissing = runModule([rename, renameSource, renameTarget]);
+  verify(() => assert.equal(renameMissing.status, 1, renameMissing.error ?? renameMissing.stderr));
+  verify(() => assert.match(renameMissing.stdout, /^ENOENT:/));
+  verify(() => assert.equal(renameMissing.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(renameTarget), renameContent));
+  const renamedDirectory = join(scratch, 'renamed-directory');
+  const directoryMove = runModule([rename, renameDirectory, renamedDirectory]);
+  verify(() => assert.equal(directoryMove.status, 0, directoryMove.error ?? directoryMove.stderr));
+  verify(() => assert.equal(directoryMove.stdout, ''));
+  verify(() => assert.equal(directoryMove.stderr, ''));
+  verify(() => assert.equal(existsSync(renameDirectory), false));
+  verify(() => assert.deepEqual(readFileSync(join(renamedDirectory, 'héllo world')), renameContent));
   const predicates = join(scratch, 'list-predicates.wasm');
   const predicateBuild = run(['build', fixture('list-predicates'), '-o', predicates,
     ...reactorExports.flatMap(name => ['--export', name])]);

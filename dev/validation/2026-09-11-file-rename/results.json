@@ -1,0 +1,343 @@
+{
+  "base": "6fbd6dd0d14503b64635453ceea651df9455db99",
+  "source_sha256": {
+    "runtime/reactor.mjs": "539a70717de82c9576d5ba1752bb77b8a4eabb388dbb81d08be4dba36602e0e7",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "dev/runtime-test.mjs": "41478edb04001373a1eb0772afaeebea02c9ae7197a89b45c30f076f24200cb6",
+    "dev/reactor-test.mjs": "cd7be685044eeaed132f92326370bba9bcea34fdd6c4e0b1bb648d9a7e92b00b",
+    "test/fixtures/reactor/file-rename.kan": "0425a1f5277d7218c76ac4f85608c2063e8246c8034127ab4461f6471732fa37",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "controls": {
+    "runtime-before": {
+      "runtime_sha256": "3d0b63c3b9ef193e6fa6b7706ed174c7594997d9c303cf3f887946535dfbf7ab",
+      "replace": null,
+      "with": null
+    },
+    "rename-no-op": {
+      "runtime_sha256": "8b2c284dd929f798720cc78636cd975cadf04bf2635c5af8fd755f894e10671f",
+      "replace": "case 21: await rename(args[0], args[1]); return Buffer.alloc(0);",
+      "with": "case 21: return Buffer.alloc(0);"
+    },
+    "copy-then-unlink": {
+      "runtime_sha256": "586cf5e207911c38cdff6eeb66e163ad3d8cd874e6d544b54b25082daf0c91c6",
+      "replace": "case 21: await rename(args[0], args[1]); return Buffer.alloc(0);",
+      "with": "case 21: await (await import('node:fs/promises')).copyFile(args[0], args[1]); await unlink(args[0]); return Buffer.alloc(0);"
+    },
+    "follow-source": {
+      "runtime_sha256": "2f94b26c856a597248b375d9aa1d2cf67c47800fc29e48225334b623d6832d2d",
+      "replace": "case 21: await rename(args[0], args[1]); return Buffer.alloc(0);",
+      "with": "case 21: await rename(await realpath(args[0]), args[1]); return Buffer.alloc(0);"
+    },
+    "follow-destination": {
+      "runtime_sha256": "6cca6b44ab29255fdfe8f661bdd42bdd730952f7efb76579a3ae23e42ea9b7a0",
+      "replace": "case 21: await rename(args[0], args[1]); return Buffer.alloc(0);",
+      "with": "case 21: await rename(args[0], await realpath(args[1])); return Buffer.alloc(0);"
+    }
+  },
+  "control_test_sha256": "41478edb04001373a1eb0772afaeebea02c9ae7197a89b45c30f076f24200cb6",
+  "captures": {
+    "runtime": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0001.stdout",
+        "bytes": 13637,
+        "lines": 467
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "7f816a95dc91e4e052016eed5031401e36c88d557f2177362e6a57e95fbe996f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/runtime.json",
+      "capture_sha256": "f2dd0a30fbc640f7aa14a3e1a9f45f5d360ca86cf683a82eb735b70d48658fdd"
+    },
+    "reactor": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "dev/reactor-test.mjs",
+        "_build/default/bin/kanon.exe"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0002.stdout",
+        "bytes": 27,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "3285c8c822ebfab7e3428635c52a6870787f3d9242d92da8a119f506755629af",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/reactor.json",
+      "capture_sha256": "45911332838201395fd48ec3f80a679736400d7db946c3d4c0b4f76a1f140864"
+    },
+    "trusted-lines": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh",
+      "index": 3,
+      "argv": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0003.stdout",
+        "bytes": 50,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-tdwoJh/command-0003.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/trusted-lines.json",
+      "capture_sha256": "725dba3a88ea7ed8c988fbdcba71c64b60b9acbf3ba2d0f37b245d3af36a8b82"
+    },
+    "runtime-before": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^filesystem rename",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename-controls/runtime-before",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0001.stdout",
+        "bytes": 5119,
+        "lines": 116
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "f53af52604e8dabd5906d2fffa2215ef7e26c58be62c8846b4fd93ac66f66b95",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/runtime-before.json",
+      "capture_sha256": "2a9707f81bf99a53eda6a5fc6c8117a87a8672b8b9ca3f901acf2e624fc026e9"
+    },
+    "rename-no-op": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^filesystem rename",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename-controls/rename-no-op",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0002.stdout",
+        "bytes": 4703,
+        "lines": 109
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "a1f06178c462320a71c9dfd420cc5221e672d46f05f770c355a3b1b382900079",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/rename-no-op.json",
+      "capture_sha256": "654ed1a83417dce53d713309b0f17bed4a261dd84965af5e92dfab1010e63b64"
+    },
+    "copy-then-unlink": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy",
+      "index": 3,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^filesystem rename",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename-controls/copy-then-unlink",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0003.stdout",
+        "bytes": 5459,
+        "lines": 109
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0003.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "26ba960da61625a35e2462994edea9601b2a637ceeaf55abe7f9985ff8d810ab",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/copy-then-unlink.json",
+      "capture_sha256": "b0c17d9736517c821386d24a734311e92d8adb1e19abc185e7f15fe1ea004f38"
+    },
+    "follow-source": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy",
+      "index": 4,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^filesystem rename",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename-controls/follow-source",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0004.stdout",
+        "bytes": 1776,
+        "lines": 52
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0004.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "5ff9cc3bac4b331c7aa2343504dbec15cf690bf2d12dc704b3cd6c439308ba95",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/follow-source.json",
+      "capture_sha256": "fcc5b33b275ee69b27273b21973ff2236df118aae21fa83c53acbc6a62ccf032"
+    },
+    "follow-destination": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy",
+      "index": 5,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^filesystem rename",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename-controls/follow-destination",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0005.stdout",
+        "bytes": 5195,
+        "lines": 109
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-K5cnqy/command-0005.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "58f491a3bde628007f4bf555ef4aece27f0a5c219f6955fc54233c5c2d098697",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/follow-destination.json",
+      "capture_sha256": "9ed7f490a92f33366afa2b6ac859c259b65a430f8ec9937f08d27675f60f4e0c"
+    },
+    "house": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-rename/.kanon-exec/run-yFQ8BY",
+      "index": 1,
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-rename",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/veil-rename/.kanon-exec/run-yFQ8BY/command-0001.stdout",
+        "bytes": 229,
+        "lines": 7
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/veil-rename/.kanon-exec/run-yFQ8BY/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "f6532a555d91681d2eba967224b0feb63652807399151d3dae163100155f0d05",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/house.json",
+      "capture_sha256": "a1f9cedbae2809419abed2da382746f110f8bae73a606d06326252212bc35dbf"
+    }
+  }
+}

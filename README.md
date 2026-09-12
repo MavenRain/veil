@@ -33,6 +33,8 @@ Reactors can unlink files and remove empty directories with operations 19 and 20
 completing temporary-file cleanup through the host API. The
 [cleanup regressions](dev/FILE-CLEANUP.md) cover successful removal, rejected
 requests and preservation of symlink targets.
+Operation 21 moves existing files and directories, including replacing a destination
+file. The [rename regressions](dev/FILE-RENAME.md) cover replacement and error handling.
 
 Function parameters can share a type and quantity:
 
