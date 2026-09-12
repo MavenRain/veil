@@ -35,6 +35,9 @@ completing temporary-file cleanup through the host API. The
 requests and preservation of symlink targets.
 Operation 21 moves existing files and directories, including replacing a destination
 file. The [rename regressions](dev/FILE-RENAME.md) cover replacement and error handling.
+Operation 22 lists direct directory entries as sorted, NUL-terminated raw names.
+The [directory listing regressions](dev/DIRECTORY-LISTING.md) cover byte preservation,
+the 65536-byte answer limit and directory-handle cleanup.
 
 Function parameters can share a type and quantity:
 

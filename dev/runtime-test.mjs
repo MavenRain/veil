@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink, readlink } from 'node:fs/promises';
+import { Dir, existsSync } from 'node:fs';
+import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink, readlink, rename } from 'node:fs/promises';
 import { join, dirname, basename, relative, resolve } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -709,8 +709,10 @@ const slotScriptApi = script => {
     resume: (state, status, bytes) => {
       const step = script.at(state);
       const answer = Buffer.from(bytes).toString();
-      assert.equal(status, step.status ?? 0, `step ${state}, operation ${step.code}: ${answer}`);
-      if (step.answer instanceof RegExp) assert.match(answer, step.answer);
+      assert.equal(status, step.status ?? 0, `step ${state}, operation ${step.code}: ${answer.slice(0, 160)}`);
+      if (Buffer.isBuffer(step.answer)) assert.ok(Buffer.from(bytes).equals(step.answer),
+        `step ${state}, operation ${step.code}: response bytes differ (got ${bytes.length}, expected ${step.answer.length})`);
+      else if (step.answer instanceof RegExp) assert.match(answer, step.answer);
       else assert.equal(answer, step.answer, `step ${state}, operation ${step.code}`);
       answers.push(answer);
       return state + 1;
@@ -722,6 +724,16 @@ const slotScriptApi = script => {
 const slotScript = async script => {
   const engine = globalThis.WebAssembly;
   const { api, answers } = slotScriptApi(script);
+  // Requests use the array ABI above. Build responses by constant-time cons
+  // so the full 64 KiB answer does not trigger quadratic array copying.
+  api.emptyBytes = () => null;
+  api.consBytes = (head, tail) => ({ head, tail });
+  const resume = api.resume;
+  api.resume = (state, status, list) => {
+    const bytes = [];
+    for (let cursor = list; cursor !== null; cursor = cursor.tail) bytes.push(cursor.head);
+    return resume(state, status, bytes);
+  };
   globalThis.WebAssembly = { instantiate: async () => ({ instance: { exports: api } }) };
   try {
     assert.equal(await runReactor(new URL('../runtime/reactor.mjs', import.meta.url), []), 0);
@@ -753,6 +765,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['joint computation', 16, ['1', '0', '1']], ['open', 17, ['1']], ['release', 18, ['1']],
     ['unlink', 19, [s.out]], ['remove directory', 20, [emptyDirectory]],
     ['rename', 21, [s.out, s.marker]],
+    ['directory listing', 22, [emptyDirectory]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -991,6 +1004,120 @@ test('filesystem rename rejects undecodable paths before changing either endpoin
       assert.deepEqual((await readdir(s.path)).sort(), ['stderr', 'stdout']);
     }
   }
+});
+
+test('directory listing returns sorted direct names with NUL framing and no recursion', async t => {
+  const s = await sandbox(t);
+  const child = join(s.path, 'child');
+  await mkdir(child);
+  await writeFile(join(child, 'nested'), 'nested content');
+  for (const name of ['zeta', 'A space', 'line\nbreak', '.hidden', 'héllo', '\uE000', '\u{10000}']) {
+    await writeFile(join(s.path, name), 'file content');
+  }
+  const expected = Buffer.from('.hidden\0A space\0child\0héllo\0line\nbreak\0zeta\0\uE000\0\u{10000}\0');
+  await slotScript([
+    { code: 22, args: [s.path], body: 'unused payload', answer: expected },
+    { code: 22, args: [relative(process.cwd(), s.path)], answer: expected },
+    { code: 22, args: [child], answer: Buffer.from('nested\0') },
+  ]);
+  assert.equal(await readFile(join(child, 'nested'), 'utf8'), 'nested content');
+});
+
+test('directory listing includes symlink names and follows a requested directory symlink', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const link = join(s.path, 'link');
+  await mkdir(directory);
+  await symlink(directory, link);
+  await slotScript([{ code: 22, args: [link], answer: Buffer.alloc(0) }]);
+  await writeFile(s.out, 'target');
+  await symlink(s.out, join(directory, 'file-link'));
+  await symlink(s.marker, join(directory, 'dangling'));
+  await symlink(s.path, join(directory, 'parent-link'));
+  await slotScript([
+    { code: 22, args: [directory], answer: Buffer.from('dangling\0file-link\0parent-link\0') },
+    { code: 22, args: [link], answer: Buffer.from('dangling\0file-link\0parent-link\0') },
+    { code: 22, args: [join(link, 'parent-link', 'directory')], answer: Buffer.from('dangling\0file-link\0parent-link\0') },
+  ]);
+  assert.equal(await readFile(s.out, 'utf8'), 'target');
+  assert.equal(await readlink(join(directory, 'dangling')), s.marker);
+});
+
+test('directory listing preserves raw non-UTF-8 entry bytes', async t => {
+  const s = await sandbox(t);
+  // Inject the entry bytes: some filesystems or sandboxes refuse to create
+  // these names. The real directory handle still opens and closes normally.
+  const entries = [[255, 97], [128, 97], [254, 97]].map(bytes => ({ name: Buffer.from(bytes) }));
+  t.mock.method(Dir.prototype, 'read', async () => entries.shift() ?? null);
+  await slotScript([{ code: 22, args: [s.path], answer: Buffer.from([128, 97, 0, 254, 97, 0, 255, 97, 0]) }]);
+});
+
+test('directory listing reports path errors and rejects undecodable arguments', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'preserved');
+  await slotScript([
+    { code: 22, args: [s.marker], status: 1, answer: /^ENOENT:/ },
+    { code: 22, args: [s.out], status: 1, answer: /^ENOTDIR:/ },
+    { code: 22, args: [''], status: 1, answer: /^ENOENT:/ },
+    { code: 22, args: [s.path], answer: Buffer.from('stdout\0') },
+  ]);
+  for (const [invalid, message] of [[Buffer.from(`${s.path}\0ignored`), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 22, args: [invalid], answer: '' }]), { message });
+  }
+  assert.equal(await readFile(s.out, 'utf8'), 'preserved');
+});
+
+test('directory listing accepts 65536 bytes, rejects one more and closes each handle', async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'bounded');
+  const empty = join(s.path, 'empty');
+  await mkdir(directory);
+  await mkdir(empty);
+  const names = Array.from({ length: 255 }, (_, index) => `${String(index).padStart(3, '0')}-${'x'.repeat(251)}`);
+  const boundary = '\uE000'.repeat(84) + 'y';
+  for (const name of [...names, 'z', boundary]) await writeFile(join(directory, name), '');
+  const expected = Buffer.from([...names, 'z', boundary, ''].join('\0'));
+  assert.equal(expected.length, 65536);
+  const closes = [];
+  const close = Dir.prototype.close;
+  t.mock.method(Dir.prototype, 'close', function (...args) {
+    if (args.length === 0) closes.push(this.path);
+    return close.apply(this, args);
+  });
+  await slotScript([{ code: 22, args: [directory], answer: expected }]);
+  assert.deepEqual(closes, [directory]);
+  await rename(join(directory, boundary), join(directory, boundary + 'y'));
+  await slotScript([
+    { code: 22, args: [directory], status: 1, answer: 'IO: directory listing exceeds maximum OS chunk size' },
+    { code: 22, args: [empty], answer: Buffer.alloc(0) },
+  ]);
+  assert.deepEqual(closes, [directory, directory, empty]);
+});
+
+test('directory listing discards partial results and closes the handle after a read failure', async t => {
+  const s = await sandbox(t);
+  const empty = join(s.path, 'empty');
+  await mkdir(empty);
+  await writeFile(s.out, 'preserved');
+  const read = Dir.prototype.read;
+  const close = Dir.prototype.close;
+  let reads = 0;
+  const closes = [];
+  t.mock.method(Dir.prototype, 'read', async function (...args) {
+    if (args.length === 0 && this.path === s.path && ++reads === 2) throw Object.assign(new Error('injected directory read failure'), { code: 'EIO' });
+    return read.apply(this, args);
+  });
+  t.mock.method(Dir.prototype, 'close', function (...args) {
+    if (args.length === 0) closes.push(this.path);
+    return close.apply(this, args);
+  });
+  await slotScript([
+    { code: 22, args: [s.path], status: 1, answer: 'EIO: injected directory read failure' },
+    { code: 22, args: [empty], answer: Buffer.alloc(0) },
+  ]);
+  assert.equal(reads, 2);
+  assert.deepEqual(closes, [s.path, empty]);
 });
 
 test('well-formed OS requests preserve bytes and accept a process with no argv', async t => {

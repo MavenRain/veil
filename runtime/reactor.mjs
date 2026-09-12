@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, realpath, writeFile } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, realpath, writeFile } from 'node:fs/promises';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -219,7 +219,29 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1];
+
+async function listDirectory(path) {
+  const directory = await opendir(path, { encoding: 'buffer' });
+  const names = [];
+  let size = 0;
+  try {
+    for (let entry = await directory.read(); entry !== null; entry = await directory.read()) {
+      size += entry.name.length + 1;
+      if (size > MAX_IO) throw new RangeError('directory listing exceeds maximum OS chunk size');
+      names.push(entry.name);
+    }
+  } finally { await directory.close(); }
+  names.sort(Buffer.compare);
+  // Each raw name ends in NUL, including the last. No decoding or escaping.
+  const answer = Buffer.alloc(size);
+  let offset = 0;
+  for (const name of names) {
+    name.copy(answer, offset);
+    offset += name.length + 1;
+  }
+  return answer;
+}
 
 async function perform(code, args, body, interrupted, blobs) {
   const expected = requestArities[code];
@@ -293,6 +315,7 @@ async function perform(code, args, body, interrupted, blobs) {
     case 19: await unlink(args[0]); return Buffer.alloc(0);
     case 20: await rmdir(args[0]); return Buffer.alloc(0);
     case 21: await rename(args[0], args[1]); return Buffer.alloc(0);
+    case 22: return listDirectory(args[0]);
     default: throw new Error(`unknown OS request ${code}`);
   }
 }

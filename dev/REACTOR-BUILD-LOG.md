@@ -211,3 +211,36 @@ the full milestone and performance battery was not repeated.
 The [rename note](FILE-RENAME.md) documents behavior and commands; the
 [validation record](validation/2026-09-11-file-rename/README.md) retains
 the complete captured streams, statuses, source hashes and mutation details.
+
+## Directory listing, 2026-09-11
+
+Base: `037eccb42a0cbb0882a8aa726d1a2afe4ceff31f`.
+
+Operation 22 lists direct entry names with exactly one directory argument.
+Names retain their raw bytes, sort in unsigned byte order and each end in
+NUL. The host reads incrementally and rejects answers over 65536 bytes,
+including terminators. Success, overflow and read failures close the handle.
+Symlink entries remain names; a requested directory symlink follows normal
+OS resolution. OS errors resume with status 1, without partial listings.
+
+RUNTIME passes 83 tests with no skips, and REACTOR passes 351 checks under
+the existing 30-second watchdogs. The compiled fixture checks the exact
+65536-byte answer and a 65537-byte rejection through the CLI. All six new
+focused runtime tests fail against the base runtime. They also reject four
+isolated mutations: text sorting, missing terminators, no answer limit and
+omitted directory close. The response helper now uses constant-time cons,
+and byte comparison diagnostics stay bounded even for full-size answers.
+
+The initial focused run caught quadratic copying in the test helper and
+double-counted Node's callback wrapper when observing handle closure. It
+also found that the local sandbox refuses raw non-UTF-8 filenames. The final
+raw-byte test injects those reader entries; the remaining enumeration tests
+create real files and directories. The compiled suite passed on its first run.
+
+HOUSE and TRUSTED-LINES pass. The existing compiler executable matches the
+preceding rename validation record. No compiler sources, gate scripts or
+thresholds changed; the kernel remains 5246/5250 and the encoder 246/600.
+The full milestone and performance battery was not repeated for this runtime
+slice. The [listing note](DIRECTORY-LISTING.md) documents the operation; the
+[validation record](validation/2026-09-11-directory-listing/README.md) retains
+the completed captures, source hashes and negative controls.

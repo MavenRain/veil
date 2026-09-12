@@ -1,0 +1,33 @@
+-- Forward argv to operation 22, print the raw answer and preserve its status.
+-- Compile after runtime/reactor.kan.
+mu ListingState : Type 0 with
+| requested : Words -> ListingState
+| reporting : Nat -> Bytes -> ListingState
+| finished : Nat -> ListingState
+
+def init (argv : Words) : ListingState := requested argv
+def resume (state : ListingState) (status : Nat) (answer : Bytes) : ListingState :=
+  case state as current in ListingState return ListingState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : ListingState) : Nat :=
+  case state as current in ListingState return Nat with
+  | requested args => 22
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : ListingState) : Words :=
+  case state as current in ListingState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : ListingState) : Bytes :=
+  case state as current in ListingState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : ListingState) : Nat :=
+  case state as current in ListingState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

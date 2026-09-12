@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, existsSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -228,6 +228,54 @@ try {
   verify(() => assert.equal(directoryMove.stderr, ''));
   verify(() => assert.equal(existsSync(renameDirectory), false));
   verify(() => assert.deepEqual(readFileSync(join(renamedDirectory, 'héllo world')), renameContent));
+  const listing = join(scratch, 'directory-listing.wasm');
+  const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(listingBuild.status, 0, listingBuild.stderr));
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(readFileSync(listing))).length, 0));
+  const listingDirectory = join(scratch, 'listing');
+  mkdirSync(listingDirectory);
+  const listingEmpty = runModule([listing, listingDirectory]);
+  verify(() => assert.equal(listingEmpty.status, 0, listingEmpty.error ?? listingEmpty.stderr));
+  verify(() => assert.equal(listingEmpty.stdout, ''));
+  verify(() => assert.equal(listingEmpty.stderr, ''));
+  mkdirSync(join(listingDirectory, 'child'));
+  writeFileSync(join(listingDirectory, 'child', 'nested'), 'nested');
+  for (const name of ['zeta', 'A space', '.hidden', 'line\nbreak', '\uE000', '\u{10000}']) writeFileSync(join(listingDirectory, name), '');
+  for (const path of [listingDirectory, 'listing']) {
+    const listed = runModule([listing, path]);
+    verify(() => assert.equal(listed.status, 0, listed.error ?? listed.stderr));
+    verify(() => assert.equal(listed.stdout, '.hidden\0A space\0child\0line\nbreak\0zeta\0\uE000\0\u{10000}\0'));
+    verify(() => assert.equal(listed.stderr, ''));
+  }
+  for (const args of [[], [listingDirectory, 'surplus']]) {
+    const rejected = runModule([listing, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 22 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  for (const [path, message] of [[join(scratch, 'listing-missing'), /^ENOENT:/], [join(listingDirectory, '.hidden'), /^ENOTDIR:/]]) {
+    const rejected = runModule([listing, path]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  const listingBounded = join(scratch, 'listing-bounded');
+  mkdirSync(listingBounded);
+  const listingNames = Array.from({ length: 255 }, (_, index) => `${String(index).padStart(3, '0')}-${'x'.repeat(251)}`);
+  const listingBoundary = '\uE000'.repeat(84) + 'y';
+  for (const name of [...listingNames, 'z', listingBoundary]) writeFileSync(join(listingBounded, name), '');
+  const listingExpected = Buffer.from([...listingNames, 'z', listingBoundary, ''].join('\0'));
+  verify(() => assert.equal(listingExpected.length, 65536));
+  const listingFull = spawnSync(process.execPath, [join(root, 'runtime/run.mjs'), listing, listingBounded], { cwd: scratch, timeout: 20000 });
+  verify(() => assert.equal(listingFull.status, 0, listingFull.error ?? String(listingFull.stderr)));
+  verify(() => assert.deepEqual(listingFull.stdout, listingExpected));
+  verify(() => assert.equal(listingFull.stderr.length, 0));
+  renameSync(join(listingBounded, listingBoundary), join(listingBounded, listingBoundary + 'y'));
+  const listingOverflow = runModule([listing, listingBounded]);
+  verify(() => assert.equal(listingOverflow.status, 1, listingOverflow.error ?? listingOverflow.stderr));
+  verify(() => assert.equal(listingOverflow.stdout, 'IO: directory listing exceeds maximum OS chunk size'));
+  verify(() => assert.equal(listingOverflow.stderr, ''));
   const predicates = join(scratch, 'list-predicates.wasm');
   const predicateBuild = run(['build', fixture('list-predicates'), '-o', predicates,
     ...reactorExports.flatMap(name => ['--export', name])]);

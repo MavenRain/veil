@@ -154,8 +154,9 @@ the left list's length.
 | 19 | path | Unlink a file or symlink; return an empty answer |
 | 20 | path | Remove an empty directory; return an empty answer |
 | 21 | source, destination | Rename a file, symlink or directory; return an empty answer |
+| 22 | path | List direct entry names in byte order, each followed by NUL; at most 65536 bytes |
 
-Operations 1 to 21 check argument counts before performing the operation.
+Operations 1 to 22 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -167,7 +168,8 @@ argument that the host cannot decode ends the run with the `kanon reactor:`
 line and exit 2, as above, and the count check does not run. Operation 0 terminates without reading arguments or body.
 The [request arity regressions](dev/REQUEST-ARITY.md) cover the original rows;
 the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix through operation 20,
-and the [rename regressions](dev/FILE-RENAME.md) extend it through operation 21.
+the [rename regressions](dev/FILE-RENAME.md) cover operation 21, and the
+[directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -200,6 +202,27 @@ no-op. Operation 21 retains the filesystem's rename atomicity, without a
 durability guarantee across a crash. Applications choose both paths; no sandbox
 or restriction to reactor-created paths is added. The
 [rename regressions](dev/FILE-RENAME.md) cover macOS; Windows was not exercised.
+
+Operation 22 lists the direct entries of one directory. The successful answer
+contains each raw entry name followed by one NUL byte, including the last name.
+An empty directory answers with empty bytes. Names are sorted lexicographically
+by unsigned byte value, without locale rules, UTF-8 decoding or escaping.
+Hidden entries, directories and symlinks are included; `.` and `..` are omitted.
+Entry names have no path prefix, and the host does not descend into entries or
+follow their symlink targets. A requested directory path can itself contain or
+end in a symlink, which follows normal OS resolution. Relative paths use the
+host working directory. The request payload is unused.
+
+The complete answer may contain at most 65536 bytes, including every NUL.
+Exactly that size succeeds. A larger listing returns status 1 with
+`IO: directory listing exceeds maximum OS chunk size`, with no partial listing.
+Entries are read incrementally; the host stops when the answer would exceed
+the limit and closes the directory handle on success or failure. Missing paths,
+non-directory paths and other OS errors also return status 1 through `resume`.
+The directory can change while it is read; this operation promises neither a
+filesystem snapshot nor pagination. Raw non-UTF-8 entry bytes are preserved in
+answers, but later path arguments still obey the existing UTF-8 and NUL rules.
+See the [directory listing regressions](dev/DIRECTORY-LISTING.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

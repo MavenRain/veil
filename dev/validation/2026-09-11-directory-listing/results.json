@@ -1,0 +1,350 @@
+{
+  "base": "037eccb42a0cbb0882a8aa726d1a2afe4ceff31f",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "882fc5f6ad289a2ce6b5d9c77b5e9ef56bb3025f6cd1ddf77fbf94a47e73b737",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "dev/runtime-test.mjs": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f",
+    "dev/reactor-test.mjs": "f2a4237d04f4130e58764f958e515d9dab3fbdf3feac9229e1ed390d82a61276",
+    "test/fixtures/reactor/directory-listing.kan": "f5b8d5d4b586c1115e4ea774034a52f7182d02e1fd5fa6cd3171c2b0525b70c7",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "controls": {
+    "runtime-before": {
+      "runtime_sha256": "539a70717de82c9576d5ba1752bb77b8a4eabb388dbb81d08be4dba36602e0e7",
+      "test_sha256": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f"
+    },
+    "text-sort": {
+      "runtime_sha256": "14b2fab4503115b999809ec34766d5c65ce27b98758222ad1af2ceb31b2385aa",
+      "test_sha256": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f",
+      "replacement": {
+        "before": "names.sort(Buffer.compare);",
+        "after": "names.sort((left, right) => left.toString().localeCompare(right.toString()));"
+      }
+    },
+    "missing-terminators": {
+      "runtime_sha256": "320c842306bc3bc02e62f34c3f6284e49c82b3ccc064ec52b48c56be7120ccf9",
+      "test_sha256": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f",
+      "replacement": {
+        "before": "offset += name.length + 1;",
+        "after": "offset += name.length;"
+      }
+    },
+    "unbounded-answer": {
+      "runtime_sha256": "7e6001665cace8d703233cf1496f5bfaa1034aebdca32dfb64cbbb9edd3eec56",
+      "test_sha256": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f",
+      "replacement": {
+        "before": "      if (size > MAX_IO) throw new RangeError('directory listing exceeds maximum OS chunk size');\n",
+        "after": ""
+      }
+    },
+    "unclosed-directory": {
+      "runtime_sha256": "20ea563537fc12954299c44602a716482bd0dd29446d4a81c2e69db359e26c48",
+      "test_sha256": "316c5d5ac87ee13db00e23812705fd7d7800b84d756f1b3fc20f5e62ab10a43f",
+      "replacement": {
+        "before": "finally { await directory.close(); }",
+        "after": "finally { /* mutation: omit directory close */ }"
+      }
+    }
+  },
+  "captures": {
+    "runtime": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-QNWlhN",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-QNWlhN/command-0001.stdout",
+        "bytes": 15086,
+        "lines": 509
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-QNWlhN/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "ee0d5f5b5b792e0c48ac964e6f65eb29efa25b965d6efee8ea35e4a90819e285",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/runtime.json",
+      "capture_sha256": "89dac2d5ac642d7995db7b0a67941236dd4ddef98bb6a640f96fb3cea19e463b"
+    },
+    "reactor": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-kuStPK",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "dev/reactor-test.mjs",
+        "_build/default/bin/kanon.exe"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-kuStPK/command-0001.stdout",
+        "bytes": 27,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-kuStPK/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "2afc502849777339b967defed258e5b61452798e36da3edd355c687058eb244d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/reactor.json",
+      "capture_sha256": "d43efa8a39189b02e73d9c67c1620546c8fa5e92651ca00039ace9ddc25d194e"
+    },
+    "trusted-lines": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-53ANpL",
+      "index": 2,
+      "argv": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-53ANpL/command-0002.stdout",
+        "bytes": 50,
+        "lines": 1
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-53ANpL/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/trusted-lines.json",
+      "capture_sha256": "725dba3a88ea7ed8c988fbdcba71c64b60b9acbf3ba2d0f37b245d3af36a8b82"
+    },
+    "runtime-before": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ",
+      "index": 1,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^directory listing",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing-controls/runtime-before",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0001.stdout",
+        "bytes": 8455,
+        "lines": 168
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "431bd6acbb1dd39e10375229c82fc7a57582a344385ccb8569e77f422ce0ee2f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/runtime-before.json",
+      "capture_sha256": "f78da6b4b8cf60ec6c589eebba888016f18874d487fabc15618276e5c7f03029"
+    },
+    "text-sort": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ",
+      "index": 2,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^directory listing",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing-controls/text-sort",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0002.stdout",
+        "bytes": 3638,
+        "lines": 78
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0002.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "438309b2cb6c53ea5f060dfe6b12ce1b2fed01a55d005e1b2652ac09903dc367",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/text-sort.json",
+      "capture_sha256": "c2c0510df8501d9243b9cbef17d8ab1b96a2f40a0a8e393bbb84bd19d2bb9cc6"
+    },
+    "missing-terminators": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ",
+      "index": 3,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^directory listing",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing-controls/missing-terminators",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0003.stdout",
+        "bytes": 6075,
+        "lines": 110
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0003.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "bc8b62d6209f258a53d0e12a8affd9a1afa397ea4f23ec304b141973a544cb2b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/missing-terminators.json",
+      "capture_sha256": "af841c587b11113bf3096936c7496d063175c1d9c6983666861d87c199f0aec4"
+    },
+    "unbounded-answer": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ",
+      "index": 4,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^directory listing",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing-controls/unbounded-answer",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0004.stdout",
+        "bytes": 2725,
+        "lines": 66
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0004.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "2dd6f292e5833318cbcfc3608307d9e88a0581e88446ad5bbe299cfedfd8f9fc",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/unbounded-answer.json",
+      "capture_sha256": "be51c2596680df94315ccd3dc8cd1c0735ca79c69c6679106d00a35866769d41"
+    },
+    "unclosed-directory": {
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ",
+      "index": 5,
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^directory listing",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing-controls/unclosed-directory",
+      "exitCode": 1,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0005.stdout",
+        "bytes": 3587,
+        "lines": 94
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/.kanon-exec/run-ouVDmJ/command-0005.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "bcb5ebe209eedb8cc922f6d9f806fdddb5bf56e7866e5cc6a661afbc4359c95f",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/unclosed-directory.json",
+      "capture_sha256": "e6fd59d13144c2da15353982be78ab6c7691c1536f161db1a58e07f4fbbe224d"
+    },
+    "house": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-HmcLCu",
+      "index": 1,
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-directory-listing",
+      "exitCode": 0,
+      "signal": 0,
+      "timedOut": false,
+      "spawnError": "",
+      "stdout": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-HmcLCu/command-0001.stdout",
+        "bytes": 240,
+        "lines": 7
+      },
+      "stderr": {
+        "path": "/Users/oobi/Documents/gpt3/veil-directory-listing/.kanon-exec/run-HmcLCu/command-0001.stderr",
+        "bytes": 0,
+        "lines": 0
+      },
+      "streams_sha256": {
+        "stdout": "b440ab2f6e6d76bdf4b733026b5aba3a9ef2dbb159e6e0909426ea4128d438f1",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "capture": "captures/house.json",
+      "capture_sha256": "77881a3da6555e945e94a6a6b30ec702f6d81379821955526e23503066b41eb4"
+    }
+  }
+}
