@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, lstat, realpath, writeFile } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, lstat, realpath, readlink, writeFile } from 'node:fs/promises';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -219,7 +219,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -322,6 +322,11 @@ async function perform(code, args, body, interrupted, blobs) {
       if (info.isDirectory()) return Buffer.from('directory');
       if (info.isSymbolicLink()) return Buffer.from('symlink');
       return Buffer.from('other');
+    }
+    case 24: {
+      const target = await readlink(args[0], { encoding: 'buffer' });
+      if (target.length > MAX_IO) throw new RangeError('symlink target exceeds maximum OS chunk size');
+      return target;
     }
     default: throw new Error(`unknown OS request ${code}`);
   }

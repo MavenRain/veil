@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Dir, existsSync } from 'node:fs';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink, readlink, rename } from 'node:fs/promises';
+import fsPromises from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
 import { join, dirname, basename, relative, resolve } from 'node:path';
 import { tmpdir, constants } from 'node:os';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -767,6 +769,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['rename', 21, [s.out, s.marker]],
     ['directory listing', 22, [emptyDirectory]],
     ['entry kind', 23, [s.out]],
+    ['symlink target', 24, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1079,6 +1082,107 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('symlink target returns stored bytes for existing, dangling, chained and cyclic links', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const file = join(s.path, 'héllo world\nfile');
+  const directory = join(s.path, 'directory');
+  await writeFile(file, 'preserved');
+  await mkdir(directory);
+  const targets = ['./héllo world\nfile', file, directory, 'missing/../still-missing', 'link-0', 'link-5'];
+  for (const [index, target] of targets.entries()) await symlink(target, join(s.path, `link-${index}`));
+  await slotScript([
+    ...targets.map((target, index) => ({ code: 24, args: [join(s.path, `link-${index}`)],
+      body: 'unused payload', answer: Buffer.from(target) })),
+    { code: 24, args: [relative(process.cwd(), join(s.path, 'link-0'))], answer: Buffer.from(targets[0]) },
+  ]);
+  for (const [index, target] of targets.entries()) assert.equal(await readlink(join(s.path, `link-${index}`)), target);
+  assert.equal(await readFile(file, 'utf8'), 'preserved');
+  assert.deepEqual(await readdir(directory), []);
+  await absent(join(s.path, 'still-missing'));
+});
+
+test('symlink target preserves OS resolution of parent components and trailing separators', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const nested = join(s.path, 'actual', 'nested');
+  const alias = join(s.path, 'alias');
+  await mkdir(nested, { recursive: true });
+  await symlink(nested, alias);
+  await symlink('kept', join(s.path, 'actual', 'link'));
+  await symlink('wrong', join(s.path, 'link'));
+  await writeFile(join(nested, 'file'), 'preserved');
+  await symlink('file', join(nested, 'file-link'));
+  await slotScript([
+    { code: 24, args: [alias], answer: nested },
+    { code: 24, args: [join(alias, 'file-link')], answer: 'file' },
+    { code: 24, args: [alias + '/../link'], answer: 'kept' },
+    { code: 24, args: [alias + '/'], status: 1, answer: /^EINVAL:/ },
+    { code: 24, args: [join(alias, 'file-link') + '/'], status: 1, answer: /^ENOTDIR:/ },
+  ]);
+  assert.equal(await readFile(join(nested, 'file'), 'utf8'), 'preserved');
+});
+
+test('symlink target reports path errors and continues with subsequent requests', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'preserved');
+  await symlink('stdout', s.marker);
+  const loop = join(s.path, 'loop');
+  await symlink('loop', loop);
+  await slotScript([
+    { code: 24, args: [join(s.path, 'missing')], status: 1, answer: /^ENOENT:/ },
+    { code: 24, args: [''], status: 1, answer: /^ENOENT:/ },
+    { code: 24, args: [s.out], status: 1, answer: /^EINVAL:/ },
+    { code: 24, args: [s.path], status: 1, answer: /^EINVAL:/ },
+    { code: 24, args: [join(s.out, 'child')], status: 1, answer: /^ENOTDIR:/ },
+    { code: 24, args: [join(loop, 'child')], status: 1, answer: /^ELOOP:/ },
+    { code: 24, args: [s.marker], answer: 'stdout' },
+  ]);
+  assert.equal(await readFile(s.out, 'utf8'), 'preserved');
+});
+
+// Native filesystems may reject arbitrary target bytes or targets this large.
+// Sync the mock into named builtin imports, and restore both views after each test.
+const mockReadlink = (t, implementation) => {
+  const mocked = t.mock.method(fsPromises, 'readlink', implementation);
+  syncBuiltinESMExports();
+  t.after(() => { mocked.mock.restore(); syncBuiltinESMExports(); });
+  return mocked;
+};
+
+test('symlink target preserves raw non-UTF-8 bytes without terminators', async t => {
+  const target = Buffer.from([46, 47, 255, 128, 254, 10, 195, 169]);
+  mockReadlink(t, async (path, options) => options?.encoding === 'buffer'
+    ? target : target.toString(options?.encoding ?? 'utf8'));
+  await slotScript([{ code: 24, args: ['raw-link'], answer: target }]);
+});
+
+test('symlink target accepts 65536 bytes and rejects 65537 without a partial answer', async t => {
+  const full = Buffer.from('é'.repeat(32768));
+  const oversized = Buffer.concat([full, Buffer.from('!')]);
+  const targets = new Map([['full', full], ['oversized', oversized], ['small', Buffer.from('target')]]);
+  mockReadlink(t, async (path, options) => options?.encoding === 'buffer'
+    ? targets.get(path) : targets.get(path).toString(options?.encoding ?? 'utf8'));
+  await slotScript([
+    { code: 24, args: ['full'], answer: full },
+    { code: 24, args: ['oversized'], status: 1, answer: 'IO: symlink target exceeds maximum OS chunk size' },
+    { code: 24, args: ['small'], answer: 'target' },
+  ]);
+});
+
+test('symlink target rejects malformed requests before filesystem access', async t => {
+  const read = mockReadlink(t, async () => Buffer.from('target'));
+  await slotScript([
+    { code: 24, args: [], status: 1, answer: 'IO: OS request 24 expects 1 argument, got 0' },
+    { code: 24, args: ['link', 'surplus'], status: 1, answer: 'IO: OS request 24 expects 1 argument, got 2' },
+  ]);
+  for (const [invalid, message] of [[Buffer.from('link\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 24, args: [invalid], answer: '' }]), { message });
+  }
+  assert.equal(read.mock.callCount(), 0);
+  await slotScript([{ code: 24, args: ['link'], answer: 'target' }]);
+  assert.equal(read.mock.callCount(), 1);
 });
 
 test('directory listing returns sorted direct names with NUL framing and no recursion', async t => {

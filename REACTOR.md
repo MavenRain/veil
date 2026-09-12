@@ -156,8 +156,9 @@ the left list's length.
 | 21 | source, destination | Rename a file, symlink or directory; return an empty answer |
 | 22 | path | List direct entry names in byte order, each followed by NUL; at most 65536 bytes |
 | 23 | path | Inspect an entry with lstat; return file, directory, symlink or other |
+| 24 | path | Read a symlink's stored target as raw bytes; at most 65536 bytes |
 
-Operations 1 to 23 check argument counts before performing the operation.
+Operations 1 to 24 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -171,7 +172,8 @@ The [request arity regressions](dev/REQUEST-ARITY.md) cover the original rows;
 the [cleanup regressions](dev/FILE-CLEANUP.md) extend the matrix through operation 20,
 the [rename regressions](dev/FILE-RENAME.md) cover operation 21,
 the [directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22,
-and the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23.
+the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23,
+and the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -242,6 +244,24 @@ return status 1 with their error code and message; a missing path is not `other`
 Invalid UTF-8 and NUL in a path retain the existing exit-2 behavior before dispatch.
 This operation observes the entry at inspection time; later requests may see a
 changed filesystem. See the [entry kind regressions](dev/ENTRY-KIND.md).
+
+Operation 24 reads one symlink with `readlink`. On success it returns status 0
+and the stored target bytes without a newline or NUL terminator. Relative
+targets, dot segments and non-UTF-8 bytes are preserved. The host does not
+resolve the target or require it to exist, so directly named dangling links,
+chains and self-referential links can be read. The request payload is unused.
+
+The path argument follows the existing UTF-8 and NUL rules and is passed to
+the OS without lexical normalization. Relative paths use the host working
+directory; parent components and trailing separators follow OS resolution.
+Name the link without trailing components to read the link itself. Missing
+paths, entries that are not symlinks and other OS failures return status 1
+with their error code and message. A target of exactly 65536 bytes succeeds;
+a larger target returns status 1 with
+`IO: symlink target exceeds maximum OS chunk size`, without a partial target.
+Raw target bytes that fail the OS string rules cannot be reused as path
+arguments. The [symlink target regressions](dev/SYMLINK-TARGET.md) cover these
+responses and successful requests after an error.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

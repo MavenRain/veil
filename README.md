@@ -41,6 +41,9 @@ the 65536-byte answer limit and directory-handle cleanup.
 Operation 23 inspects filesystem entry kinds, including dangling symlinks.
 The [entry kind regressions](dev/ENTRY-KIND.md) cover files, directories, links,
 special files and path errors.
+Operation 24 reads a symlink's stored target as raw bytes, including dangling
+and cyclic links. The [symlink target regressions](dev/SYMLINK-TARGET.md)
+cover literal targets, response bounds and request validation.
 
 Function parameters can share a type and quantity:
 

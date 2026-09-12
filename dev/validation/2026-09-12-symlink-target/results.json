@@ -1,0 +1,180 @@
+{
+  "base": "10a97e77bc7c36925317dca44af2f449cb70ab73",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "compiler": {
+    "reuse": "byte-identical to the entry-kind validation",
+    "sha256": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "prior_record": "../2026-09-12-entry-kind/results.json"
+  },
+  "source_sha256": {
+    "README.md": "34c2b7b2eff31e097005f62e19cecadfceeec148f4ed3b6011eb29f952c1c5f9",
+    "REACTOR.md": "e9efeefcd86344cd4e47e670fb2df3dc528b05f46852dd50ef7ef5faa1fdcba3",
+    "runtime/reactor.mjs": "f6c51be6c3ca14640ae3283524d8d59bb9baca0bc4dc11cbf39860c7b117ac23",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d",
+    "dev/reactor-test.mjs": "0d18379aee5296a19561944195a9f9e6c611df9ad7753fda7da78a5344c1b1ee",
+    "test/fixtures/reactor/symlink-target.kan": "04954227ffeb136ebb9978da64edf20803519a1d353917a821947a5b5cc2332c",
+    "dev/SYMLINK-TARGET.md": "1c5ccb146ee5f4265ecfd131e32d1361753b87ffb41fa21b6700224442c55b4a",
+    "dev/REQUEST-ARITY.md": "93a5523d750ab7e2975de26fed5e138d4ed0e626cee77d9b1a0f3a1b9b1f8919",
+    "dev/REACTOR-BUILD-LOG.md": "244771ec34ce67afd7282086a3afe17d1b344b12b8f9b5384cc3c13092e64607",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "before_runtime_sha256": "7c08fe897508f1143136d0003dc940ff266fbbd083fad232d568664a2a226d9d",
+  "captures": {
+    "runtime-before": {
+      "capture": "runtime-before.json",
+      "capture_sha256": "8ddec974031a1f46ecd1685169ed9914e3f6987a9786e5db6c362680304330a3",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-readlink/.kanon-exec/run-HZmPyn",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "389180c7217e5bf4678eeaed6a3be8ec79b0a4f611b3af895acb0a794b313997",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "runtime-parallel-timeout": {
+      "capture": "runtime-parallel-timeout.json",
+      "capture_sha256": "5289b944276a3b76b434c287312ab14095ac828b89f4b4d2eadf8616f0c11162",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-readlink/.kanon-exec/run-o1RsYK",
+      "command": 1,
+      "exit_code": 124,
+      "streams_sha256": {
+        "stdout": "fb0796193f5a9d5c7b2fc84f69a1717f555ad2ae9a29d6735a4a6cc1b3c3ec08",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "reactor-parallel-timeout": {
+      "capture": "reactor-parallel-timeout.json",
+      "capture_sha256": "c7957cfa9f57f3bc9fdf51c4ee9eb958cce0a62c815006d3c8ec6569e5c23b90",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-readlink/.kanon-exec/run-8emlF0",
+      "command": 1,
+      "exit_code": 124,
+      "streams_sha256": {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "runtime": {
+      "capture": "runtime.json",
+      "capture_sha256": "42f18a1a6facac97340a4a06fda0247faad5574dd30fc9d49433ee3742cf5ae3",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-readlink/.kanon-exec/run-e2IjKb",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "3fd0a78e8a92cd2c66ca37a9c117d8e28ddc5806f115c4dbcb8dc674d6e7340a",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "reactor": {
+      "capture": "reactor.json",
+      "capture_sha256": "f68d7f81df22ff85679afd31b786b5a88d79a2941f6f3fe9f127df2c5f7f8741",
+      "artifact": "/Users/oobi/Documents/gpt3/veil-readlink/.kanon-exec/run-UDlsdw",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "b8bd4d4b36bc4e5f0ff539ce094f0d8d56627879721f62b0d2aecd551427b49b",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "capture": "house.json",
+      "capture_sha256": "eac4717b045e3cea2a6fa22c2e5e5511d961970725e095f32742e115baf93cda",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-aEO048",
+      "command": 1,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "9d6a8279d2300fbe2ea6bdf3586059f190c8b203fc35e331be85ef863cbcbf0c",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "trusted-lines": {
+      "capture": "trusted-lines.json",
+      "capture_sha256": "b278abbf3694360bc1b4321f13f05644c4e0697776a36dea4a9513d9a91af923",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-aEO048",
+      "command": 2,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "diff-check": {
+      "capture": "diff-check.json",
+      "capture_sha256": "fc2ce9c5c745100dfcdb3eb4316e2c28189094017e4bc415751fabfadc4876e7",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-aEO048",
+      "command": 3,
+      "exit_code": 0,
+      "streams_sha256": {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "resolve-target": {
+      "capture": "resolve-target.json",
+      "capture_sha256": "6b0c4107bf754561745ad7182ce67ff702de7e5681027c9e7cc01caceebd37bc",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-P1LzSk",
+      "command": 1,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "3232307e91283543a290c7c3f8117ca83f6ac88d76194d84111eb93e10848df2",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "decode-target": {
+      "capture": "decode-target.json",
+      "capture_sha256": "d257778c3c72b137113d9b0724cd5a78f6639a1299e615a706298a09f02ca45f",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-P1LzSk",
+      "command": 2,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "daae2c8d57f444a0e687bae5b1db154e4271c8d227620f335c87642978d17b4d",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "normalize-path": {
+      "capture": "normalize-path.json",
+      "capture_sha256": "15e59d31355f6b124cfcbf460aaf630ba6f27d6327180271c2fe274f49b570fd",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-P1LzSk",
+      "command": 3,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "6a9496d20f1fc03195d3fef957557030698f3167ae1d76c92273077dd2e3d002",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "omit-bound": {
+      "capture": "omit-bound.json",
+      "capture_sha256": "cff94620cadb5c03decd0939d5d0ef52ff6da2dfc78a09e06df111e2e2af1014",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-P1LzSk",
+      "command": 4,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "3ada822b2582a231964d274f32c0a9d468b5446274e4c21ee8cfc07563193499",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "omit-arity": {
+      "capture": "omit-arity.json",
+      "capture_sha256": "80d8fc0c52071de5b0286a79cf0b419acfb90ffce712d962ae446e5a915b1a9b",
+      "artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-P1LzSk",
+      "command": 5,
+      "exit_code": 1,
+      "streams_sha256": {
+        "stdout": "6c85b403c217c3a579f6f2bd59c2ed8848747d216216beaae6a73d066abeb5bc",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "controls_sha256": "7b6610c9704adde5b9bd36a863e5b7ec02e30a40ee7302328b89ac0702895301",
+  "full_gate_ladder_run": false,
+  "initial_parallel_attempts": {
+    "exit_code": 124,
+    "observed_load1_after_completion": 88.3,
+    "recovery": "same commands and sources passed when run individually"
+  }
+}

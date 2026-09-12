@@ -267,3 +267,36 @@ The full milestone and performance battery was not repeated for this runtime
 slice. The [entry kind note](ENTRY-KIND.md) documents the operation, and the
 [validation record](validation/2026-09-12-entry-kind/README.md) retains captures,
 source hashes and the negative-control replacements.
+
+## Symlink targets, 2026-09-12
+
+Base: `10a97e77bc7c36925317dca44af2f449cb70ab73`.
+
+Operation 24 reads a symlink's stored target as raw bytes. It accepts exactly
+one path, preserves literal relative targets and non-UTF-8 answer bytes, and
+does not follow the final target. Dangling, chained and cyclic final links
+succeed. Paths retain OS resolution of parent components and dot segments.
+The response is limited to 65536 bytes; larger responses and OS errors resume
+with status 1 and no partial target.
+
+RUNTIME passes all 96 tests without skips, and REACTOR passes 465 checks.
+Both use their existing 30-second watchdogs. The first concurrent attempts
+timed out while the observed load1 was 88.30; subsequent individual runs of
+the same source passed without changing commands or thresholds. The captures
+retain both timeouts and passing runs. All six new focused tests fail against
+the base runtime with `unknown OS request 24`.
+
+The new import-free Kanon fixture checks raw and 65536-byte response forwarding,
+read and stdout write statuses, and real CLI requests. Native link tests use
+UTF-8 targets. Injected reader results cover arbitrary target bytes and the
+65536/65537-byte boundary, which native filesystems may not permit. Five isolated
+controls are rejected: resolving the target, decoding the target, normalizing
+the request path, omitting the response bound and omitting the arity entry.
+
+HOUSE and TRUSTED-LINES pass. The existing compiler executable matches the
+entry-kind validation record. Compiler sources, gate scripts and thresholds
+are unchanged; the kernel remains 5246/5250 lines and the encoder 246/600.
+The full milestone and performance battery was not repeated for this runtime
+slice. The [symlink target note](SYMLINK-TARGET.md) documents the behavior, and
+the [validation record](validation/2026-09-12-symlink-target/README.md) retains
+completed captures, source hashes and the exact mutation replacements.

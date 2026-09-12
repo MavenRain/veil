@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-readlink",
+  "exit_code": 0,
+  "stdout": "reactor: 465 checks passed\n",
+  "stderr": ""
+}

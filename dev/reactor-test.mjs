@@ -268,6 +268,63 @@ try {
     verify(() => assert.equal(missing.stderr, ''));
   }
   verify(() => assert.equal(readFileSync(entryFile, 'utf8'), 'preserved'));
+  const symlinkTarget = join(scratch, 'symlink-target.wasm');
+  const symlinkTargetBuild = run(['build', shared, fixture('symlink-target'), '-o', symlinkTarget,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(symlinkTargetBuild.status, 0, symlinkTargetBuild.stderr));
+  const symlinkTargetBytes = readFileSync(symlinkTarget);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(symlinkTargetBytes)).length, 0));
+  const { instance: symlinkTargetInstance } = await WebAssembly.instantiate(symlinkTargetBytes);
+  const linkApi = symlinkTargetInstance.exports;
+  const linkPending = linkApi.init(linkApi.emptyWords());
+  verify(() => assert.equal(linkApi.requestCode(linkPending), 24));
+  for (const [status, answer] of [[0, Buffer.from([46, 47, 255, 128, 10, 195, 169])],
+    [0, Buffer.alloc(65536, 255)], [1, Buffer.from('EIO: injected read failure')]]) {
+    let bytes = linkApi.emptyBytes();
+    for (let index = answer.length - 1; index >= 0; index--) bytes = linkApi.consBytes(answer[index], bytes);
+    const reporting = linkApi.resume(linkPending, status, bytes);
+    verify(() => assert.equal(linkApi.requestCode(reporting), 6));
+    verify(() => assert.ok(Buffer.from(decodeBytes(linkApi, linkApi.requestBody(reporting), answer.length)).equals(answer),
+      `symlink target fixture changed ${answer.length} response bytes`));
+    for (const writeStatus of [0, 1]) {
+      const finished = linkApi.resume(reporting, writeStatus, linkApi.emptyBytes());
+      verify(() => assert.equal(linkApi.requestCode(finished), 0));
+      verify(() => assert.equal(linkApi.exitCode(finished), status + writeStatus));
+    }
+  }
+  if (process.platform !== 'win32') {
+    const targets = ['./entry-directory/héllo world\nfile', entryFile, entryDirectory,
+      'missing/../dangling', 'symlink-target-0', 'symlink-target-5'];
+    for (const [index, target] of targets.entries()) {
+      const path = join(scratch, `symlink-target-${index}`);
+      symlinkSync(target, path);
+      for (const argument of [path, basename(path)]) {
+        const read = spawnSync(process.execPath, [join(root, 'runtime/run.mjs'), symlinkTarget, argument],
+          { cwd: scratch, timeout: 20000 });
+        verify(() => assert.equal(read.status, 0, read.error ?? String(read.stderr)));
+        verify(() => assert.deepEqual(read.stdout, Buffer.from(target)));
+        verify(() => assert.equal(read.stderr.length, 0));
+      }
+    }
+    for (const path of [entryFile, entryDirectory]) {
+      const rejected = runModule([symlinkTarget, path]);
+      verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+      verify(() => assert.match(rejected.stdout, /^EINVAL:/));
+      verify(() => assert.equal(rejected.stderr, ''));
+    }
+  }
+  for (const args of [[], [entryFile, 'surplus']]) {
+    const rejected = runModule([symlinkTarget, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 24 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  for (const path of [join(scratch, 'symlink-target-missing'), '']) {
+    const missing = runModule([symlinkTarget, path]);
+    verify(() => assert.equal(missing.status, 1, missing.error ?? missing.stderr));
+    verify(() => assert.match(missing.stdout, /^ENOENT:/));
+    verify(() => assert.equal(missing.stderr, ''));
+  }
   const listing = join(scratch, 'directory-listing.wasm');
   const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,
     ...reactorExports.flatMap(name => ['--export', name])]);

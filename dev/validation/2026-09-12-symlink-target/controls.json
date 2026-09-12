@@ -1,0 +1,32 @@
+{
+  "resolve-target": {
+    "before": "const target = await readlink(args[0], { encoding: 'buffer' });",
+    "after": "const target = Buffer.from(await realpath(args[0]));",
+    "runtime_sha256": "f94236d00f59278d5502f66f69a0414e199e46d4c5e6d1c17a1408c2f3214a14",
+    "test_sha256": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d"
+  },
+  "decode-target": {
+    "before": "const target = await readlink(args[0], { encoding: 'buffer' });",
+    "after": "const target = Buffer.from(await readlink(args[0]));",
+    "runtime_sha256": "01e5c41fb4ea998ebbfc8a943aa4ce475294efd13a5fc619ce00e5c0892d218c",
+    "test_sha256": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d"
+  },
+  "normalize-path": {
+    "before": "const target = await readlink(args[0], { encoding: 'buffer' });",
+    "after": "const target = await readlink(resolve(args[0]), { encoding: 'buffer' });",
+    "runtime_sha256": "814a566bdb47e8c4ee16d2a920ba1d34c0629de64d0630abb64a1ec51c2f94a0",
+    "test_sha256": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d"
+  },
+  "omit-bound": {
+    "before": "if (target.length > MAX_IO) throw new RangeError('symlink target exceeds maximum OS chunk size');",
+    "after": "// Negative control: omit the response bound.",
+    "runtime_sha256": "f25e08bae28dc8b36cbb33e8c9a7989eb9e7282ef434886fca26ff10f88a5bdd",
+    "test_sha256": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d"
+  },
+  "omit-arity": {
+    "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1];",
+    "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1];",
+    "runtime_sha256": "9402bce17e19beb14f52d7f070de24a8717038c5299d16678dfbc342a2d43800",
+    "test_sha256": "55336cd2737d899a8360f1d676bb53683898f21f5b53bc7d1318ede699744b5d"
+  }
+}

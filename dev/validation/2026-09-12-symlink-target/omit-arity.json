@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^symlink target",
+    "/Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-readlink",
+  "exit_code": 1,
+  "stdout": "TAP version 13\n# Subtest: symlink target returns stored bytes for existing, dangling, chained and cyclic links\nok 1 - symlink target returns stored bytes for existing, dangling, chained and cyclic links\n  ---\n  duration_ms: 916.119375\n  type: 'test'\n  ...\n# Subtest: symlink target preserves OS resolution of parent components and trailing separators\nok 2 - symlink target preserves OS resolution of parent components and trailing separators\n  ---\n  duration_ms: 467.232291\n  type: 'test'\n  ...\n# Subtest: symlink target reports path errors and continues with subsequent requests\nok 3 - symlink target reports path errors and continues with subsequent requests\n  ---\n  duration_ms: 168.395542\n  type: 'test'\n  ...\n# Subtest: symlink target preserves raw non-UTF-8 bytes without terminators\nok 4 - symlink target preserves raw non-UTF-8 bytes without terminators\n  ---\n  duration_ms: 241.192666\n  type: 'test'\n  ...\n# Subtest: symlink target accepts 65536 bytes and rejects 65537 without a partial answer\nok 5 - symlink target accepts 65536 bytes and rejects 65537 without a partial answer\n  ---\n  duration_ms: 406.392625\n  type: 'test'\n  ...\n# Subtest: symlink target rejects malformed requests before filesystem access\nnot ok 6 - symlink target rejects malformed requests before filesystem access\n  ---\n  duration_ms: 42.079875\n  type: 'test'\n  location: '/Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs:1173:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 24: target\n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs:714:14)\n    api.resume (file:///Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs:737:12)\n    runReactor (file:///Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/runtime/reactor.mjs:412:19)\n    async slotScript (file:///Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs:741:18)\n    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-readlink-controls/omit-arity/dev/runtime-test.mjs:1175:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 5\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4388.694792\n",
+  "stderr": ""
+}

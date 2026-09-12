@@ -1,0 +1,34 @@
+-- Forward argv to operation 24 and print its answer without decoding it.
+-- The exit status adds the link-read status and the stdout write status.
+-- Compile after runtime/reactor.kan.
+mu LinkState : Type 0 with
+| requested : Words -> LinkState
+| reporting : Nat -> Bytes -> LinkState
+| finished : Nat -> LinkState
+
+def init (argv : Words) : LinkState := requested argv
+def resume (state : LinkState) (status : Nat) (answer : Bytes) : LinkState :=
+  case state as current in LinkState return LinkState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : LinkState) : Nat :=
+  case state as current in LinkState return Nat with
+  | requested args => 24
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : LinkState) : Words :=
+  case state as current in LinkState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : LinkState) : Bytes :=
+  case state as current in LinkState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : LinkState) : Nat :=
+  case state as current in LinkState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result
