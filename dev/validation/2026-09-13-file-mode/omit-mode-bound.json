@@ -1,0 +1,32 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-hrYFNg",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file mode",
+    "/Users/oobi/Documents/gpt3/veil-file-mode-controls/omit-mode-bound/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode-controls/omit-mode-bound",
+  "exit_code": 1,
+  "stdout_sha256": "8af35ba0701af605feb15f1e73a36704b579f031c49fab6b85fd98c282ddd1d4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3180,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 9,
+    "suites": 0,
+    "pass": 8,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file mode rejects malformed modes, argument counts and OS strings before chmod"
+  ]
+}

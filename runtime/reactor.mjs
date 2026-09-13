@@ -220,7 +220,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -339,6 +339,12 @@ async function perform(code, args, body, interrupted, blobs) {
       return Buffer.alloc(0);
     }
     case 30: await truncate(args[0], numeric(args[1])); return Buffer.alloc(0);
+    case 31: {
+      const mode = numeric(args[1]);
+      if (mode > 0o777) throw new RangeError('file mode exceeds permission bit range');
+      await chmod(args[0], mode);
+      return Buffer.alloc(0);
+    }
     default: throw new Error(`unknown OS request ${code}`);
   }
 }

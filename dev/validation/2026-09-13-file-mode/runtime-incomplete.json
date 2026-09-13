@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-mode/.kanon-exec/run-E0CFTP",
+  "wrapper_exit_code": 2,
+  "wrapper_error": "IO: process group cleanup failed",
+  "suite_completed": false,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "sha256": {
+    "manifest.json": "a9f3d09afed6ea378c2a7db7d8a191e1607a633572530f702b1208b3f25ed7f6",
+    "command-0001.stdout": "5d1a02d0e47394c699676840708a9bc917c16c8532c0b0bb203f27e08994621c",
+    "command-0001.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "note": "No complete test verdict. A subsequent unchanged run passed under the same 30-second watchdog."
+}

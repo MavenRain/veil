@@ -1,0 +1,30 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-mode/.kanon-exec/run-dR8qDT",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file mode",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode",
+  "exit_code": 0,
+  "stdout_sha256": "477b9d5450815f92122357c16860effae0f3aafdfa9f91ee77fb768a47046521",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2098,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 9,
+    "suites": 0,
+    "pass": 9,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": []
+}

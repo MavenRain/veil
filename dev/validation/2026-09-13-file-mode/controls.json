@@ -1,0 +1,56 @@
+{
+  "runtime-before": {
+    "before": "current runtime",
+    "after": "HEAD runtime",
+    "runtime_sha256": "97f95e444f70e84b631c75f9b2bcc487384f60bb3d4a69e950c18a974c40e806",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "omit-arity": {
+    "before": "1, 1, 2, 2];",
+    "after": "1, 1, 2];",
+    "runtime_sha256": "59177b4abefafc6896ed22fd3e01b77dce414e53f023f523a13740cea9483bd7",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "omit-mode-bound": {
+    "before": "if (mode > 0o777) throw new RangeError('file mode exceeds permission bit range');",
+    "after": "",
+    "runtime_sha256": "324ad5187142ba5a68faee79d7b3d6ac2d646d60c064374429eef3e8a80fca9d",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "octal-mode": {
+    "before": "const mode = numeric(args[1]);",
+    "after": "const mode = Number.parseInt(args[1], 8);",
+    "runtime_sha256": "0e1de90922d182c5325675af085d8ece6f263feada1e1d349dca9e02904008b2",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "string-mode": {
+    "before": "await chmod(args[0], mode);",
+    "after": "await chmod(args[0], args[1]);",
+    "runtime_sha256": "6d2b2fbf332257c5031cd2133f2c17c92d041282c6003c12bb08b0ecd226656a",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "normalize-path": {
+    "before": "await chmod(args[0], mode);",
+    "after": "await chmod(resolve(args[0]), mode);",
+    "runtime_sha256": "7f2ec0f092a5a18b685da229155ee0c131cba5348aeb3df9693aaca309a10b2c",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "fixed-mode": {
+    "before": "await chmod(args[0], mode);",
+    "after": "await chmod(args[0], 0o600);",
+    "runtime_sha256": "eba24b09d3453329857860acfe7e339fd18a193e8d4659548aa016d3dcf9d4c8",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "skip-chmod": {
+    "before": "await chmod(args[0], mode);",
+    "after": "",
+    "runtime_sha256": "a79debb0d046f8019aac3de958e98735a1ae0ee30516cc3a3f8429e6e7c4378d",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  },
+  "swallow-errors": {
+    "before": "await chmod(args[0], mode);",
+    "after": "await chmod(args[0], mode).catch(() => {});",
+    "runtime_sha256": "6b61f4a87d2806dcf59f2b6a8c1d7e9a06cfb7b463aff89838c9a579390cc2ef",
+    "test_sha256": "d50a10b83a6b5619461ed3d510a63f29566129a586095871d83c33f4541b5e89"
+  }
+}

@@ -62,6 +62,9 @@ file identity, links, payload limits and request failures.
 Operation 30 resizes an existing file, preserving its prefix when shrinking
 and filling an extension with zeros. The [file truncate regressions](dev/FILE-TRUNCATE.md)
 cover lengths, links, path resolution and request failures.
+Operation 31 changes ordinary file and directory permissions, including making
+generated programs executable. The [file mode regressions](dev/FILE-MODE.md)
+cover decimal modes, links, path resolution and request failures.
 
 Function parameters can share a type and quantity:
 

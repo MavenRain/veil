@@ -1,0 +1,33 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-hrYFNg",
+  "command_index": 9,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file mode",
+    "/Users/oobi/Documents/gpt3/veil-file-mode-controls/swallow-errors/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode-controls/swallow-errors",
+  "exit_code": 1,
+  "stdout_sha256": "8868bc46b2bb4c16e4255d0f4fb80705c5fccd49ce65b57b7c15f6a6ddaf45f3",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4242,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 9,
+    "suites": 0,
+    "pass": 7,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file mode reports path failures without creating entries and continues",
+    "file mode forwards OS failures and resumes subsequent requests"
+  ]
+}

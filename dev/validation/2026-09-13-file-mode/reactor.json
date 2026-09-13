@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-mode/.kanon-exec/run-hOdXBj",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "120",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode",
+  "exit_code": 0,
+  "stdout_sha256": "ffffa42c58d0c6099dd7081281b8e1a4e5944fba86bb5a66902cc78bed2478f6",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 1070 checks passed\n",
+  "stderr": ""
+}

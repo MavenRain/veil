@@ -1,0 +1,38 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-hrYFNg",
+  "command_index": 5,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file mode",
+    "/Users/oobi/Documents/gpt3/veil-file-mode-controls/string-mode/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode-controls/string-mode",
+  "exit_code": 1,
+  "stdout_sha256": "1710436602f34c74f23264bbf8c9cdb386e1721f7519710f4d30f3b4a49b30ad",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 113907,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 9,
+    "suites": 0,
+    "pass": 2,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file mode changes permission bits without replacing the file or changing its bytes",
+    "file mode changes directory permissions and composes with directory creation",
+    "file mode makes a generated program executable through the process operation",
+    "file mode follows final symlinks and updates permissions shared by hard links",
+    "file mode preserves relative paths, parent symlinks and dot segments",
+    "file mode reports path failures without creating entries and continues",
+    "file mode forwards every ordinary mode as a decimal number and ignores its payload"
+  ]
+}

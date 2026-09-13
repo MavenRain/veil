@@ -778,6 +778,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['directory creation', 28, [s.marker]],
     ['file append', 29, [s.out]],
     ['file truncate', 30, [s.out, '0']],
+    ['file mode', 31, [s.out, '384']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1090,6 +1091,177 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file mode changes permission bits without replacing the file or changing its bytes', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  const before = await lstat(s.out);
+  try {
+    for (const mode of ['0', '1', '7', '64', '00073', '384', '420', '493', '511', '416', '416']) {
+      await slotScript([{ code: 31, args: [s.out, mode], body: Buffer.from([255, 0]), answer: '' }]);
+      const after = await lstat(s.out);
+      assert.equal(after.mode & 0o777, Number(mode));
+      assert.deepEqual([after.dev, after.ino, after.size, after.nlink],
+        [before.dev, before.ino, before.size, before.nlink]);
+    }
+  } finally { await fsPromises.chmod(s.out, 0o600); }
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file mode changes directory permissions and composes with directory creation', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const child = join(directory, 'child');
+  await slotScript([{ code: 28, args: [directory], answer: '' }]);
+  const before = await lstat(directory);
+  try {
+    for (const mode of ['0', '511', '448']) {
+      await slotScript([{ code: 31, args: [directory + '/', mode], answer: '' }]);
+      const after = await lstat(directory);
+      assert.equal(after.mode & 0o777, Number(mode));
+      assert.ok(after.isDirectory());
+      assert.deepEqual([after.dev, after.ino], [before.dev, before.ino]);
+    }
+    await slotScript([{ code: 28, args: [child], answer: '' }]);
+    assert.deepEqual(await readdir(directory), ['child']);
+  } finally { await fsPromises.chmod(directory, 0o700); }
+});
+
+test('file mode makes a generated program executable through the process operation', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const program = join(s.path, 'program');
+  await slotScript([
+    { code: 3, args: [program], body: '#!/bin/sh\nexit 7\n', answer: '' },
+    { code: 31, args: [program, '448'], answer: '' },
+    { code: 4, args: [s.out, s.err, s.path, '5000', program], answer: /^7\x000\x000\x000\x00$/ },
+  ]);
+  assert.equal((await lstat(program)).mode & 0o777, 0o700);
+  assert.deepEqual(await readFile(s.out), Buffer.alloc(0));
+  assert.deepEqual(await readFile(s.err), Buffer.alloc(0));
+});
+
+test('file mode follows final symlinks and updates permissions shared by hard links', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  await writeFile(s.out, 'kept');
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  const before = await lstat(s.out);
+  const linkBefore = await lstat(live);
+  for (const [path, mode] of [[hard, 0o640], [live, 0o750]]) {
+    await slotScript([{ code: 31, args: [path, String(mode)], answer: '' }]);
+    for (const name of [s.out, hard]) {
+      const after = await lstat(name);
+      assert.equal(after.mode & 0o777, mode);
+      assert.deepEqual([after.dev, after.ino, after.nlink], [before.dev, before.ino, before.nlink]);
+      assert.equal(await readFile(name, 'utf8'), 'kept');
+    }
+  }
+  const linkAfter = await lstat(live);
+  assert.ok(linkAfter.isSymbolicLink());
+  assert.deepEqual([linkAfter.dev, linkAfter.ino, linkAfter.mode],
+    [linkBefore.dev, linkBefore.ino, linkBefore.mode]);
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('file mode preserves relative paths, parent symlinks and dot segments', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const path of [actual, decoy, unicode]) {
+    await writeFile(path, 'kept');
+    await fsPromises.chmod(path, 0o600);
+  }
+  await slotScript([
+    { code: 31, args: [relative(process.cwd(), unicode), '416'], answer: '' },
+    { code: 31, args: [alias + '//../data', '493'], answer: '' },
+  ]);
+  assert.equal((await lstat(unicode)).mode & 0o777, 0o640);
+  assert.equal((await lstat(actual)).mode & 0o777, 0o755);
+  assert.equal((await lstat(decoy)).mode & 0o777, 0o600);
+  assert.equal(await readlink(alias), join(real, 'nested'));
+});
+
+test('file mode reports path failures without creating entries and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await fsPromises.chmod(s.out, 0o600);
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript(requests.map(([path, answer]) => ({ code: 31, args: [path, '493'], status: 1, answer })));
+  assert.equal((await lstat(s.out)).mode & 0o777, 0o600);
+  await slotScript([
+    { code: 31, args: [s.out, '416'], answer: '' },
+    { code: 2, args: [s.out, '0', '8'], answer: 'kept' },
+  ]);
+  assert.equal((await lstat(s.out)).mode & 0o777, 0o640);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file mode rejects malformed modes, argument counts and OS strings before chmod', async t => {
+  const change = t.mock.method(fsPromises, 'chmod', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path'], ['path', '384', 'surplus']].map(args => ({ code: 31, args,
+    status: 1, answer: `IO: OS request 31 expects 2 arguments, got ${args.length}` })));
+  const invalid = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-1', '-0', '+1', '1.5', '1e2', '0x10', '0o755', 'u+x', 'NaN', 'Infinity', '１',
+    '9007199254740992', '9'.repeat(400)];
+  await slotScript(invalid.map(mode => ({ code: 31, args: ['path', mode],
+    status: 1, answer: 'IO: invalid OS numeric argument' })));
+  await slotScript(['512', '644', '0755', '1024', '2048', '4095', '4294967296', '9007199254740991']
+    .map(mode => ({ code: 31, args: ['path', mode], status: 1,
+      answer: 'IO: file mode exceeds permission bit range' })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[bytes, '384'], ['path', bytes]]) {
+      await assert.rejects(slotScript([{ code: 31, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(change.mock.callCount(), 0);
+});
+
+test('file mode forwards every ordinary mode as a decimal number and ignores its payload', async t => {
+  const change = t.mock.method(fsPromises, 'chmod', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  const modes = Array.from({ length: 512 }, (_, mode) => [String(mode), mode]);
+  modes.push(['000493', 493]);
+  await slotScript(modes.map(([mode]) => ({ code: 31, args: [path, mode], answer: '' })));
+  await slotScript([{ code: 31, args: [path, '384'], body: Buffer.alloc(65537, 255), answer: '' }]);
+  assert.deepEqual(change.mock.calls.map(call => call.arguments),
+    [...modes.map(([, mode]) => [path, mode]), [path, 384]]);
+});
+
+test('file mode forwards OS failures and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'EPERM', 'EROFS', 'EIO'];
+  const change = t.mock.method(fsPromises, 'chmod', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected chmod failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 31, args: ['path', '493'],
+    status: 1, answer: `${code}: injected chmod failure` }));
+  await slotScript([...script, { code: 31, args: ['path', '493'], answer: '' }]);
+  assert.equal(change.mock.callCount(), 5);
 });
 
 test('file truncate shrinks, extends with zeros, repeats and composes with append and reads', async t => {

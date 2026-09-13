@@ -163,8 +163,9 @@ the left list's length.
 | 28 | path | Create one private directory under an existing parent; return an empty answer |
 | 29 | path; payload is content | Append at most 65536 raw bytes, creating a private file if absent; return an empty answer |
 | 30 | path, length | Resize an existing file to the decimal byte length; return an empty answer |
+| 31 | path, mode | Change existing permissions to a decimal mode from 0 to 511; return an empty answer |
 
-Operations 1 to 30 check argument counts before performing the operation.
+Operations 1 to 31 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -185,7 +186,8 @@ the [hard-link regressions](dev/HARD-LINK.md) cover operation 26,
 the [file copy regressions](dev/FILE-COPY.md) cover operation 27,
 the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28,
 the [file append regressions](dev/FILE-APPEND.md) cover operation 29,
-and the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30.
+the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30,
+and the [file mode regressions](dev/FILE-MODE.md) cover operation 31.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -399,6 +401,34 @@ and can block. Resizing provides neither concurrency isolation nor crash
 durability, and a failure is not a rollback guarantee. Native tests cover
 macOS; Windows, special files and filesystem size limits were not exercised.
 See the [file truncate contract and tests](dev/FILE-TRUNCATE.md).
+
+Operation 31 calls `chmod(path, mode)` with exactly two arguments. The mode
+uses ASCII decimal digits and the existing OS numeric parser. Leading zeros
+are accepted without changing the base: `493` and `000493` both request
+octal `0755`, while `0755` is decimal 755 and is rejected. The accepted range
+is 0 to 511 (octal `0000` to `0777`), covering the nine ordinary permission
+bits. A malformed or unsafe numeric argument returns status 1 with
+`IO: invalid OS numeric argument`; a safe value above 511 returns
+`IO: file mode exceeds permission bit range`. Both checks precede `chmod`.
+The payload is unused, subject to the existing request traversal rules.
+
+Success returns status 0 with empty bytes. Files and directories retain their
+identity and contents. Hard links share permissions, and final symlinks are
+followed. Missing paths and dangling targets are not created. NUL-free UTF-8
+paths pass unchanged to the host, including relative paths, parent symlinks,
+dot segments and trailing separators. OS failures return status 1 with their
+code and message through `resume`.
+
+Permission changes use native filesystem rules, including ACLs and metadata
+updates. The request cannot set special mode bits. A successful request writes
+the full permission word, so it clears the setuid, setgid and sticky bits that
+the entry already holds. The request gives no path-race isolation: a concurrent
+replacement of the path can change the permissions of a different entry, and a
+failure is not a rollback guarantee. Windows supports changing
+the write permission only, as described in the
+[Node file-mode documentation](https://nodejs.org/api/fs.html#file-modes).
+Native permission and link tests cover macOS; Windows and ACL interactions
+were not exercised. See the [file mode contract and tests](dev/FILE-MODE.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

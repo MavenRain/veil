@@ -1,0 +1,17 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-QiUkow",
+  "command_index": 5,
+  "argv": [
+    "zsh",
+    "dev/house.sh"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-mode",
+  "exit_code": 0,
+  "stdout_sha256": "d7dc0808e54d7b42d419508fbdb075f62962580ccee9a2d8bd100ca78a096016",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 232,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "HOUSE no-exception OK\nHOUSE no-mutable-state OK\nHOUSE one-catch-site OK\n/Users/oobi/Documents/gpt3/veil-file-mode/test/sys_io.ml:19:  try Ok (thunk ()) with Sys_error m -> Error m\nHOUSE no-bool-match OK\nHOUSE no-em-dash OK\nHOUSE OK\n",
+  "stderr": ""
+}

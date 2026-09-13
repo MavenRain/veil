@@ -479,6 +479,93 @@ try {
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
 
+  const fileMode = join(scratch, 'file-mode.wasm');
+  const fileModeBuild = run(['build', shared, fixture('file-mode'), '-o', fileMode,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileModeBuild.status, 0, fileModeBuild.stderr));
+  const fileModeBytes = readFileSync(fileMode);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileModeBytes)).length, 0));
+  const { instance: fileModeInstance } = await WebAssembly.instantiate(fileModeBytes);
+  const fileModeApi = fileModeInstance.exports;
+  const fileModeArguments = ['../héllo//alias/../file', '000493'];
+  let fileModeWords = fileModeApi.emptyWords();
+  for (const text of [...fileModeArguments].reverse()) {
+    let word = fileModeApi.emptyBytes();
+    for (const byte of Buffer.from(text).reverse()) word = fileModeApi.consBytes(byte, word);
+    fileModeWords = fileModeApi.consWords(word, fileModeWords);
+  }
+  const fileModePending = fileModeApi.init(fileModeWords);
+  verify(() => assert.equal(fileModeApi.requestCode(fileModePending), 31));
+  let fileModeForwarded = fileModeApi.requestArgs(fileModePending);
+  for (const text of fileModeArguments) {
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileModeApi,
+      fileModeApi.wordsHead(fileModeForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileModeForwarded = fileModeApi.wordsTail(fileModeForwarded);
+  }
+  verify(() => assert.equal(fileModeApi.wordsEmpty(fileModeForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileModeApi,
+    fileModeApi.requestBody(fileModePending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileModeApi.exitCode(fileModePending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EPERM: injected failure')]]) {
+    let bytes = fileModeApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = fileModeApi.consBytes(byte, bytes);
+    const reporting = fileModeApi.resume(fileModePending, status, bytes);
+    verify(() => assert.equal(fileModeApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileModeApi.wordsEmpty(fileModeApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileModeApi,
+      fileModeApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileModeApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileModeApi.resume(reporting, outputStatus, fileModeApi.emptyBytes());
+      verify(() => assert.equal(fileModeApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileModeApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileModeApi.wordsEmpty(fileModeApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileModeApi.bytesEmpty(fileModeApi.requestBody(finished)), 1));
+      const stillFinished = fileModeApi.resume(finished, 1, bytes);
+      verify(() => assert.equal(fileModeApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileModeApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const fileModePath = join(scratch, 'mode héllo');
+  const fileModeContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(fileModePath, fileModeContent, { mode: 0o600 });
+  const fileModeBefore = lstatSync(fileModePath);
+  for (const args of [[], [fileModePath], [fileModePath, '493', 'surplus']]) {
+    const rejected = runModule([fileMode, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 31 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.equal(lstatSync(fileModePath).mode, fileModeBefore.mode));
+  }
+  for (const [mode, error] of [['', 'invalid OS numeric argument'], ['1\n', 'invalid OS numeric argument'],
+    ['0o755', 'invalid OS numeric argument'], ['9007199254740992', 'invalid OS numeric argument'],
+    ['512', 'file mode exceeds permission bit range'], ['0755', 'file mode exceeds permission bit range']]) {
+    const rejected = runModule([fileMode, fileModePath, mode]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: ${error}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.equal(lstatSync(fileModePath).mode, fileModeBefore.mode));
+  }
+  for (const mode of ['0', '000493', '511', '384']) {
+    const changed = runModule([fileMode, basename(fileModePath), mode]);
+    verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stderr));
+    verify(() => assert.equal(changed.stdout, ''));
+    verify(() => assert.equal(changed.stderr, ''));
+    const after = lstatSync(fileModePath);
+    if (process.platform !== 'win32') verify(() => assert.equal(after.mode & 0o777, Number(mode)));
+    verify(() => assert.deepEqual([after.dev, after.ino, after.size],
+      [fileModeBefore.dev, fileModeBefore.ino, fileModeBefore.size]));
+  }
+  verify(() => assert.deepEqual(readFileSync(fileModePath), fileModeContent));
+  const fileModeMissing = join(scratch, 'mode-missing');
+  for (const path of [fileModeMissing, join(fileModeMissing, 'child'), '']) {
+    const rejected = runModule([fileMode, path, '493']);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, /^ENOENT:/));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.equal(existsSync(fileModeMissing), false));
+
   const fileTruncate = join(scratch, 'file-truncate.wasm');
   const fileTruncateBuild = run(['build', shared, fixture('file-truncate'), '-o', fileTruncate,
     ...reactorExports.flatMap(name => ['--export', name])]);

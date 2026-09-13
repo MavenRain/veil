@@ -517,3 +517,49 @@ boundary. Windows, special files, concurrent mutation, crash durability and
 native resource exhaustion were not exercised. The
 [truncate validation record](validation/2026-09-12-file-truncate/README.md)
 pins final sources, commands, captures and controls.
+
+## Filesystem permission changes, 2026-09-13
+
+Starting from `c3fc553`, operation 31 changes permissions on an existing
+filesystem entry with exactly two arguments, `path, mode`. The mode uses
+the existing decimal parser and must fit 0 to 511, the nine ordinary
+permission bits. Paths pass literally to `chmod`; success returns empty
+bytes, and failures use the existing status and error response. This lets
+generated files become executable and supports permission changes on
+directories and through links.
+
+Nine runtime tests cover native file and directory modes, zero and maximum
+permissions, identity and contents, generated-program execution through
+operation 4, hard and symbolic links, relative and Unicode paths, path
+failures, rejected arguments and injected OS errors. An adapter checks all
+512 accepted numeric modes and the ignored binary payload. The arity matrix
+also includes the new row. A compiled Kanon fixture checks operation 31,
+literal arguments, binary body, response forwarding, output failure and
+stable termination through the normal compiler and runtime.
+
+Validation:
+
+- RUNTIME passed 154 tests with zero failures or skips, including the nine
+  new top-level tests and the new arity subtest. The focused selection passed
+  all nine tests. Both successful runs used 30-second watchdogs.
+- REACTOR passed 1070 checks, an increase of 107 executed checks, under a
+  120-second diagnostic watchdog after two 30-second runs timed out.
+- HOST-NAT passed 16/16. JavaScript syntax, HOUSE, TRUSTED-LINES and tracked
+  whitespace checks passed. Kernel lines remain 5246/5250 and encoder lines
+  remain 246/600.
+- The base runtime and eight isolated defect controls all failed the same
+  focused selection, with failure counts 9, 1, 1, 8, 7, 3, 7, 8 and 2.
+
+The initial full runtime capture ended with a process-group cleanup error
+and no complete verdict; its unchanged rerun passed in about 12.5 seconds.
+Machine load was 50.97 when inspected after the first failed runs. The
+reactor diagnostic establishes functional results, not a pass of its
+30-second gate. No timing waiver is claimed. Gate scripts and thresholds
+are unchanged.
+
+The validated compiler executable is reused by SHA-256 from the truncate
+slice, with compiler sources unchanged. The full compiler and milestone
+battery was not repeated. Native tests ran on macOS; Windows, ACL
+interactions and concurrent path replacement were not exercised. The
+[file mode validation record](validation/2026-09-13-file-mode/README.md)
+pins final source bytes, compiler bytes and each recorded evidence file.
