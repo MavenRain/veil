@@ -1,0 +1,36 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6Sx6Be",
+  "command_index": 5,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "/Users/oobi/Documents/gpt3/veil-directory-create-controls/omit-arity/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create-controls/omit-arity",
+  "exit_code": 1,
+  "stdout_sha256": "a5e9a817c65e19bcf58766d101196f8df9bb3139b47771df5bdcdc15b0c85a3e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2728,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "directory creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 0",
+    "operator: 'strictEqual'"
+  ]
+}

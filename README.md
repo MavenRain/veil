@@ -53,6 +53,9 @@ path errors and interaction with atomic replacement and unlink.
 Operation 27 copies file contents to a new destination with an independent
 file identity. The [file copy regressions](dev/FILE-COPY.md) cover binary data,
 source symlinks, destination preservation and request failures.
+Operation 28 creates a named private directory under an existing parent. The
+[directory creation regressions](dev/DIRECTORY-CREATE.md) cover permissions,
+path resolution, existing entries and composition with file operations.
 
 Function parameters can share a type and quantity:
 

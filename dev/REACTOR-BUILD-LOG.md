@@ -406,3 +406,35 @@ hard-link validation record. Compiler sources, gate scripts and thresholds
 are unchanged; the full compiler and milestone battery was not repeated.
 The [validation record](validation/2026-09-12-file-copy/README.md) pins source
 hashes, command captures, negative controls and this build log after all edits.
+
+## Named directory creation, 2026-09-12
+
+Operation 28 creates one directory under an existing parent. It accepts one
+NUL-free UTF-8 path, requests mode 0700 subject to the host umask, and returns
+an empty answer on success. It preserves existing entries and returns OS
+errors through `resume`. Paths retain native resolution, including relative
+names and parent symlinks followed by dot segments. The payload is unused.
+
+The runtime suite adds seven tests and one arity-matrix row. They cover real
+permission bits under two umasks, composition with file creation and cleanup,
+native path resolution, preserved entries, missing parents, malformed requests
+before filesystem access and continuation after injected OS errors.
+The compiled fixture checks argument and answer forwarding, retained statuses,
+terminal-state stability and actual CLI creation and refusal paths.
+
+Validation at base `7a8bbefdcfc681a7be1b00d93c655c7e2c949368`:
+
+- RUNTIME: 127 passed, zero failures and skips.
+- REACTOR: 789 checks passed.
+- JavaScript syntax, HOUSE and TRUSTED-LINES checks passed. `git diff --check`
+  passed on the modified tracked files; the new files were untracked in the
+  validation tree, and `git diff --cached --check` on the staged tree covers them.
+- The base runtime and five defect controls were all rejected under the same
+  `^directory creation` selection of seven focused tests. The kill counts are
+  not uniform (7, 3, 2, 3, 1, 3).
+
+The compiler was reused by hash from the file-copy record. The full test
+commands retain their 30-second watchdogs. No compiler, gate or milestone
+battery changes were needed. Native validation covers macOS; Windows was
+not exercised. The [directory creation record](validation/2026-09-12-directory-create/README.md)
+retains commands, hashes, captures and controls.

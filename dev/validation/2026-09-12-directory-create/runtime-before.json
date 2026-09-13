@@ -1,0 +1,56 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6Sx6Be",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "/Users/oobi/Documents/gpt3/veil-directory-create-controls/runtime-before/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create-controls/runtime-before",
+  "exit_code": 1,
+  "stdout_sha256": "757f9916aaa7014b9866fa62d197b8aa561c4fe1ed52c61679ddc98359f21e02",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 9963,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 0,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "directory creation uses private permissions subject to umask",
+    "directory creation composes with nested creation, files, listing and cleanup",
+    "directory creation preserves relative paths, parent symlinks and dot segments",
+    "directory creation refuses existing entries and preserves their identity and contents",
+    "directory creation reports path errors without creating parents and continues",
+    "directory creation rejects malformed requests before filesystem access",
+    "directory creation forwards OS failures and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 'IO: unknown OS request 28'",
+    "operator: 'match'",
+    "actual: 'IO: unknown OS request 28'",
+    "operator: 'match'",
+    "- 'IO: OS request 28 expects 1 argument, got 0'",
+    "actual: 'IO: unknown OS request 28'",
+    "operator: 'strictEqual'",
+    "- 'EACCES: injected directory failure'",
+    "actual: 'IO: unknown OS request 28'",
+    "operator: 'strictEqual'"
+  ]
+}

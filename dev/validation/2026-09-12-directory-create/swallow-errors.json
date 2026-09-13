@@ -1,0 +1,42 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6Sx6Be",
+  "command_index": 6,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "/Users/oobi/Documents/gpt3/veil-directory-create-controls/swallow-errors/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create-controls/swallow-errors",
+  "exit_code": 1,
+  "stdout_sha256": "496c590008e4b697354ad418bafa14dcd5d25f11c2009e7def12d80e167f1326",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4968,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 4,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "directory creation refuses existing entries and preserves their identity and contents",
+    "directory creation reports path errors without creating parents and continues",
+    "directory creation forwards OS failures and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual: 0",
+    "operator: 'strictEqual'",
+    "actual: 0",
+    "operator: 'strictEqual'",
+    "actual: 0",
+    "operator: 'strictEqual'"
+  ]
+}

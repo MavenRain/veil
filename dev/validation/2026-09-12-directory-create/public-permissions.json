@@ -1,0 +1,40 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6Sx6Be",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "/Users/oobi/Documents/gpt3/veil-directory-create-controls/public-permissions/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create-controls/public-permissions",
+  "exit_code": 1,
+  "stdout_sha256": "ca6f7ee22adee836245ccc263320bc0462488c28d8af3dea5f936fb4b5c34fa3",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3168,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 5,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "directory creation uses private permissions subject to umask",
+    "directory creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 511",
+    "operator: 'strictEqual'",
+    "-     mode: 448",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

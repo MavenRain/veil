@@ -1,0 +1,31 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-directory-create/.kanon-exec/run-ipgevq",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create",
+  "exit_code": 0,
+  "stdout_sha256": "62d26b4dafea7ae3b7a1782f8a4f0e00b7ecdba08be6e14f7dccd493517645fc",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1649,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [],
+  "diagnostics": []
+}

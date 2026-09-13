@@ -479,6 +479,92 @@ try {
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
 
+  const directoryCreate = join(scratch, 'directory-create.wasm');
+  const directoryCreateBuild = run(['build', shared, fixture('directory-create'), '-o', directoryCreate,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(directoryCreateBuild.status, 0, directoryCreateBuild.stderr));
+  const directoryCreateBytes = readFileSync(directoryCreate);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(directoryCreateBytes)).length, 0));
+  const { instance: directoryCreateInstance } = await WebAssembly.instantiate(directoryCreateBytes);
+  const directoryCreateApi = directoryCreateInstance.exports;
+  const directoryCreateArgument = '../héllo//directory/';
+  let directoryCreateWord = directoryCreateApi.emptyBytes();
+  for (const byte of Buffer.from(directoryCreateArgument).reverse()) {
+    directoryCreateWord = directoryCreateApi.consBytes(byte, directoryCreateWord);
+  }
+  const directoryCreatePending = directoryCreateApi.init(
+    directoryCreateApi.consWords(directoryCreateWord, directoryCreateApi.emptyWords()));
+  verify(() => assert.equal(directoryCreateApi.requestCode(directoryCreatePending), 28));
+  const directoryCreateForwarded = directoryCreateApi.requestArgs(directoryCreatePending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(directoryCreateApi,
+    directoryCreateApi.wordsHead(directoryCreateForwarded), Buffer.byteLength(directoryCreateArgument))),
+  Buffer.from(directoryCreateArgument)));
+  verify(() => assert.equal(directoryCreateApi.wordsEmpty(directoryCreateApi.wordsTail(directoryCreateForwarded)), 1));
+  verify(() => assert.equal(directoryCreateApi.bytesEmpty(directoryCreateApi.requestBody(directoryCreatePending)), 1));
+  verify(() => assert.equal(directoryCreateApi.exitCode(directoryCreatePending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EACCES: injected failure')]]) {
+    let bytes = directoryCreateApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = directoryCreateApi.consBytes(byte, bytes);
+    const reporting = directoryCreateApi.resume(directoryCreatePending, status, bytes);
+    verify(() => assert.equal(directoryCreateApi.requestCode(reporting), 6));
+    verify(() => assert.equal(directoryCreateApi.wordsEmpty(directoryCreateApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(directoryCreateApi,
+      directoryCreateApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(directoryCreateApi.exitCode(reporting), status));
+    for (const writeStatus of [0, 1]) {
+      const finished = directoryCreateApi.resume(reporting, writeStatus, directoryCreateApi.emptyBytes());
+      verify(() => assert.equal(directoryCreateApi.requestCode(finished), 0));
+      verify(() => assert.equal(directoryCreateApi.exitCode(finished), status + writeStatus));
+      verify(() => assert.equal(directoryCreateApi.wordsEmpty(directoryCreateApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(directoryCreateApi.bytesEmpty(directoryCreateApi.requestBody(finished)), 1));
+      const stillFinished = directoryCreateApi.resume(finished, 1, bytes);
+      verify(() => assert.equal(directoryCreateApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(directoryCreateApi.exitCode(stillFinished), status + writeStatus));
+    }
+  }
+  const directoryCreatePath = join(scratch, 'created héllo');
+  for (const args of [[], [directoryCreatePath, 'surplus']]) {
+    const rejected = runModule([directoryCreate, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 28 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.throws(() => lstatSync(directoryCreatePath), { code: 'ENOENT' }));
+  }
+  const directoryCreated = runModule([directoryCreate, basename(directoryCreatePath)]);
+  verify(() => assert.equal(directoryCreated.status, 0, directoryCreated.error ?? directoryCreated.stderr));
+  verify(() => assert.equal(directoryCreated.stdout, ''));
+  verify(() => assert.equal(directoryCreated.stderr, ''));
+  verify(() => assert.ok(lstatSync(directoryCreatePath).isDirectory()));
+  verify(() => assert.deepEqual(readdirSync(directoryCreatePath), []));
+  if (process.platform !== 'win32') {
+    verify(() => assert.equal(lstatSync(directoryCreatePath).mode & 0o777, 0o700 & ~process.umask()));
+  }
+  const directoryCreateExisting = lstatSync(directoryCreatePath);
+  const directoryCreateFile = join(scratch, 'create-existing-file');
+  const directoryCreateMissing = join(scratch, 'create-missing-parent');
+  writeFileSync(directoryCreateFile, 'kept');
+  for (const [path, error] of [[directoryCreatePath, /^EEXIST:/], [directoryCreateFile, /^EEXIST:/],
+    [join(directoryCreateMissing, 'child'), /^ENOENT:/], ['', /^ENOENT:/]]) {
+    const rejected = runModule([directoryCreate, path]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.equal(lstatSync(directoryCreatePath).ino, directoryCreateExisting.ino));
+  verify(() => assert.equal(lstatSync(directoryCreatePath).mode, directoryCreateExisting.mode));
+  verify(() => assert.equal(readFileSync(directoryCreateFile, 'utf8'), 'kept'));
+  verify(() => assert.throws(() => lstatSync(directoryCreateMissing), { code: 'ENOENT' }));
+  if (process.platform !== 'win32') {
+    const dangling = join(scratch, 'create-dangling');
+    symlinkSync('create-missing-parent', dangling);
+    const rejected = runModule([directoryCreate, dangling]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, /^EEXIST:/));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.equal(readlinkSync(dangling), 'create-missing-parent'));
+    verify(() => assert.throws(() => lstatSync(directoryCreateMissing), { code: 'ENOENT' }));
+  }
+
   const fileCopy = join(scratch, 'file-copy.wasm');
   const fileCopyBuild = run(['build', shared, fixture('file-copy'), '-o', fileCopy,
     ...reactorExports.flatMap(name => ['--export', name])]);

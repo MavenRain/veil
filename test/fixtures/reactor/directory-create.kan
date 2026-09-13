@@ -1,0 +1,33 @@
+-- Create one named directory, report the host answer, and retain both statuses.
+
+mu DirectoryCreateState : Type 0 with
+| requested : Words -> DirectoryCreateState
+| reporting : Nat -> Bytes -> DirectoryCreateState
+| finished : Nat -> DirectoryCreateState
+
+def init (argv : Words) : DirectoryCreateState := requested argv
+def resume (state : DirectoryCreateState) (status : Nat) (answer : Bytes) : DirectoryCreateState :=
+  case state as current in DirectoryCreateState return DirectoryCreateState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : DirectoryCreateState) : Nat :=
+  case state as current in DirectoryCreateState return Nat with
+  | requested args => 28
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : DirectoryCreateState) : Words :=
+  case state as current in DirectoryCreateState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : DirectoryCreateState) : Bytes :=
+  case state as current in DirectoryCreateState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : DirectoryCreateState) : Nat :=
+  case state as current in DirectoryCreateState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

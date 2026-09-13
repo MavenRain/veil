@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-directory-create/.kanon-exec/run-dsOUlR",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create",
+  "exit_code": 0,
+  "stdout_sha256": "5c2d2154670f2fcca924fbc379aaf2b1fc9052f562cc1e244b0033ebb3fc85dc",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 24295,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 127,
+    "suites": 0,
+    "pass": 127,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [],
+  "diagnostics": []
+}

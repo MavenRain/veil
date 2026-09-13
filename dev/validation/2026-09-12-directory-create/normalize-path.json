@@ -1,0 +1,41 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-6Sx6Be",
+  "command_index": 4,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^directory creation",
+    "/Users/oobi/Documents/gpt3/veil-directory-create-controls/normalize-path/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create-controls/normalize-path",
+  "exit_code": 1,
+  "stdout_sha256": "9f3c207ad52d4d40c49e91c71565eff5824a070bfafd9911ff9568edca2e1471",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4659,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 4,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "directory creation preserves relative paths, parent symlinks and dot segments",
+    "directory creation reports path errors without creating parents and continues",
+    "directory creation rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: \"EEXIST: EEXIST: file already exists, mkdir '/Users/oobi/Documents/gpt3/veil-directory-create-controls/normalize-path'\"",
+    "operator: 'match'",
+    "-   '../h\u00e9llo//alias/../directory/',",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

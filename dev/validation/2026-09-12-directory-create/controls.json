@@ -1,0 +1,38 @@
+{
+  "runtime-before": {
+    "before": "current runtime",
+    "after": "HEAD runtime",
+    "runtime_sha256": "95125e7228894a45cad779bb2651ec0be5206349565bcf5d6acd37577da49115",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  },
+  "recursive-creation": {
+    "before": "case 28: await mkdir(args[0], { mode: 0o700 }); return Buffer.alloc(0);",
+    "after": "case 28: await mkdir(args[0], { recursive: true, mode: 0o700 }); return Buffer.alloc(0);",
+    "runtime_sha256": "5f702960230fadb02152a91dc17178c4cbe5d38420e53c63abb8941885ff74e8",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  },
+  "public-permissions": {
+    "before": "case 28: await mkdir(args[0], { mode: 0o700 }); return Buffer.alloc(0);",
+    "after": "case 28: await mkdir(args[0], { mode: 0o777 }); return Buffer.alloc(0);",
+    "runtime_sha256": "7354585c5db8ab17b62d1b38913c2ba5ef7127776bd4cb2d6fde2d6aa0154d8f",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  },
+  "normalize-path": {
+    "before": "case 28: await mkdir(args[0], { mode: 0o700 }); return Buffer.alloc(0);",
+    "after": "case 28: await mkdir(resolve(args[0]), { mode: 0o700 }); return Buffer.alloc(0);",
+    "runtime_sha256": "8cfd08b478f9c77ee2426b7a42625442e5dde64c04148136a5b6542faab91e6b",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  },
+  "omit-arity": {
+    "before": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1];",
+    "after": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2];",
+    "runtime_sha256": "e86af559d9e82426328af8bc777d8005d9146cf3b201a90498bc36c9abd9819a",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  },
+  "swallow-errors": {
+    "before": "case 28: await mkdir(args[0], { mode: 0o700 }); return Buffer.alloc(0);",
+    "after": "case 28: await mkdir(args[0], { mode: 0o700 }).catch(() => {}); return Buffer.alloc(0);",
+    "runtime_sha256": "b2ddaa2a50afa7ad3ff5e77326e09127708ceee318ad4b0acd1a7799b9d2805f",
+    "test_sha256": "c3fd949ac6ab2ecc95012c60130c767d71a3012c3db339959b92e5f44dfdf9ab"
+  }
+}

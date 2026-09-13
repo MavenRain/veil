@@ -773,6 +773,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['symlink creation', 25, [s.out, s.marker]],
     ['hard-link creation', 26, [s.out, s.marker]],
     ['file copy', 27, [s.out, s.marker]],
+    ['directory creation', 28, [s.marker]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1085,6 +1086,138 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('directory creation uses private permissions subject to umask', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const originalMask = process.umask();
+  for (const mask of [0, 0o277]) {
+    const path = join(s.path, `private-${mask}`);
+    try {
+      process.umask(mask);
+      await slotScript([{ code: 28, args: [path], body: Buffer.from([0, 255]), answer: '' }]);
+    } finally { process.umask(originalMask); }
+    const info = await lstat(path);
+    assert.ok(info.isDirectory());
+    assert.equal(info.mode & 0o777, 0o700 & ~mask);
+    assert.deepEqual(await readdir(path), []);
+  }
+});
+
+test('directory creation composes with nested creation, files, listing and cleanup', async t => {
+  const s = await sandbox(t);
+  const parent = join(s.path, 'parent');
+  const child = join(parent, 'child');
+  const file = join(child, 'data');
+  await slotScript([
+    { code: 28, args: [parent], answer: '' },
+    { code: 28, args: [child], answer: '' },
+    { code: 23, args: [child], answer: 'directory' },
+    { code: 22, args: [child], answer: '' },
+    { code: 3, args: [file], body: Buffer.from([0, 255, 65]), answer: '' },
+    { code: 22, args: [parent], answer: Buffer.from('child\0') },
+    { code: 22, args: [child], answer: Buffer.from('data\0') },
+    { code: 2, args: [file, '0', '3'], answer: Buffer.from([0, 255, 65]) },
+    { code: 19, args: [file], answer: '' },
+    { code: 20, args: [child], answer: '' },
+    { code: 20, args: [parent], answer: '' },
+  ]);
+  await absent(parent);
+  assert.deepEqual(await readdir(s.path), []);
+});
+
+test('directory creation preserves relative paths, parent symlinks and dot segments', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  const alias = join(s.path, 'alias');
+  await symlink(join(real, 'nested'), alias);
+  const relativePath = relative(process.cwd(), join(s.path, 'héllo space'));
+  await slotScript([
+    { code: 28, args: [relativePath + '//'], answer: '' },
+    { code: 28, args: [alias + '/../created'], answer: '' },
+  ]);
+  assert.ok((await lstat(join(s.path, 'héllo space'))).isDirectory());
+  assert.ok((await lstat(join(real, 'created'))).isDirectory());
+  await absent(join(s.path, 'created'));
+  assert.equal(await readlink(alias), join(real, 'nested'));
+});
+
+test('directory creation refuses existing entries and preserves their identity and contents', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'existing');
+  const live = join(s.path, 'live');
+  const dangling = join(s.path, 'dangling');
+  await mkdir(directory, { mode: 0o750 });
+  await writeFile(join(directory, 'kept'), 'contents');
+  await writeFile(s.out, 'file contents');
+  await symlink('existing', live);
+  await symlink('missing', dangling);
+  for (const path of [directory, s.out, live, dangling, directory + '/.', directory + '/']) {
+    const before = await lstat(path);
+    await slotScript([{ code: 28, args: [path], status: 1, answer: /^EEXIST:/ }]);
+    const after = await lstat(path);
+    assert.deepEqual([after.dev, after.ino, after.mode], [before.dev, before.ino, before.mode]);
+  }
+  assert.equal(await readFile(join(directory, 'kept'), 'utf8'), 'contents');
+  assert.equal(await readFile(s.out, 'utf8'), 'file contents');
+  assert.equal(await readlink(live), 'existing');
+  assert.equal(await readlink(dangling), 'missing');
+  await absent(join(s.path, 'missing'));
+});
+
+test('directory creation reports path errors without creating parents and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('loop', loop);
+  const requests = [
+    [join(missing, 'child'), /^ENOENT:/],
+    [join(s.out, 'child'), /^ENOTDIR:/],
+    [join(loop, 'child'), /^ELOOP:/],
+    ['', /^ENOENT:/],
+  ];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 28, args: [path], status: 1, answer })),
+    { code: 28, args: [s.marker], answer: '' },
+  ]);
+  await absent(missing);
+  assert.ok((await lstat(s.marker)).isDirectory());
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('directory creation rejects malformed requests before filesystem access', async t => {
+  const create = t.mock.method(fsPromises, 'mkdir', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { create.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({
+    code: 28, args, status: 1, answer: `IO: OS request 28 expects 1 argument, got ${args.length}`,
+  })));
+  for (const [invalid, message] of [[Buffer.from('path\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 28, args: [invalid], answer: '' }]), { message });
+  }
+  assert.equal(create.mock.callCount(), 0);
+  const path = '../héllo//alias/../directory/';
+  await slotScript([{ code: 28, args: [path], body: Buffer.from([0, 255]), answer: '' }]);
+  assert.equal(create.mock.callCount(), 1);
+  assert.deepEqual(create.mock.calls[0].arguments, [path, { mode: 0o700 }]);
+});
+
+test('directory creation forwards OS failures and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'ENOSPC', 'EROFS', 'EIO'];
+  const create = t.mock.method(fsPromises, 'mkdir', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected directory failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { create.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 28, args: ['path'], status: 1,
+    answer: `${code}: injected directory failure` }));
+  await slotScript([...script, { code: 28, args: ['path'], answer: '' }]);
+  assert.equal(create.mock.callCount(), 5);
 });
 
 test('file copy preserves empty and large binary contents with independent file identities', async t => {

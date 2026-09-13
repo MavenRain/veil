@@ -160,8 +160,9 @@ the left list's length.
 | 25 | target, destination | Create a symlink without replacing an existing entry; return an empty answer |
 | 26 | source, destination | Create a hard link without replacing an existing entry; return an empty answer |
 | 27 | source, destination | Copy a file without replacing an existing entry; return an empty answer |
+| 28 | path | Create one private directory under an existing parent; return an empty answer |
 
-Operations 1 to 27 check argument counts before performing the operation.
+Operations 1 to 28 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -179,7 +180,8 @@ the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23,
 the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24,
 the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25,
 the [hard-link regressions](dev/HARD-LINK.md) cover operation 26,
-and the [file copy regressions](dev/FILE-COPY.md) cover operation 27.
+the [file copy regressions](dev/FILE-COPY.md) cover operation 27,
+and the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -330,6 +332,20 @@ if copying fails after creation, Node attempts to remove it, but removal is not
 guaranteed. No test in this suite creates a partial destination, so that
 attempted removal is unverified Node behavior. No crash durability
 or cleanup guarantee is added. See the [file copy contract and tests](dev/FILE-COPY.md).
+
+Operation 28 calls `mkdir(path, { mode: 0o700 })` with exactly one NUL-free
+UTF-8 path. Success returns status 0 with an empty answer. The payload is unused.
+On POSIX hosts the new directory's permission bits are `0700 & ~umask`;
+the operation 28 arm makes no `umask` or `chmod` call, and the tests observe
+the resulting mode bits only. Parent
+directories must exist. An existing entry, including a directory or a dangling
+symlink, returns an OS error and is preserved. No recursive creation is used.
+Paths are passed unchanged, so relative paths use the host working directory
+and parent symlinks, dot segments and trailing separators use OS resolution.
+OS failures return status 1 with their code and message through `resume`.
+The application can then continue. Native tests cover macOS; Windows permission
+semantics were not exercised. See the
+[directory creation contract and tests](dev/DIRECTORY-CREATE.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

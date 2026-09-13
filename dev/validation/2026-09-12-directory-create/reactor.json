@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-directory-create/.kanon-exec/run-MFWzf7",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-directory-create",
+  "exit_code": 0,
+  "stdout_sha256": "94d61d58546c0d034dba7fd96391479a177d1ed4211065f788772d77c7975a06",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 27,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 789 checks passed\n",
+  "stderr": ""
+}
