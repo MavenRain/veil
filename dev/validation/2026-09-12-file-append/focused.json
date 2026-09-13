@@ -1,0 +1,30 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-append/.kanon-exec/run-8W1mLQ",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append",
+  "exit_code": 0,
+  "stdout_sha256": "cfbdb43afc9448ce3a7c75b20b167ef51094b20c5013580b14f7b528334a6882",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1820,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 8,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": []
+}

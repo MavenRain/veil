@@ -1,0 +1,28 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-append/.kanon-exec/run-IZhp27",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append",
+  "exit_code": 0,
+  "stdout_sha256": "49e7a4c9f8c5578baec0c14deb81268d6e3f5cf2618d057ceb88b9cd321881f8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 26142,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 136,
+    "suites": 0,
+    "pass": 136,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": []
+}

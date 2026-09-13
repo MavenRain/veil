@@ -161,8 +161,9 @@ the left list's length.
 | 26 | source, destination | Create a hard link without replacing an existing entry; return an empty answer |
 | 27 | source, destination | Copy a file without replacing an existing entry; return an empty answer |
 | 28 | path | Create one private directory under an existing parent; return an empty answer |
+| 29 | path; payload is content | Append at most 65536 raw bytes, creating a private file if absent; return an empty answer |
 
-Operations 1 to 28 check argument counts before performing the operation.
+Operations 1 to 29 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -181,7 +182,8 @@ the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24,
 the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25,
 the [hard-link regressions](dev/HARD-LINK.md) cover operation 26,
 the [file copy regressions](dev/FILE-COPY.md) cover operation 27,
-and the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28.
+the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28,
+and the [file append regressions](dev/FILE-APPEND.md) cover operation 29.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -346,6 +348,30 @@ OS failures return status 1 with their code and message through `resume`.
 The application can then continue. Native tests cover macOS; Windows permission
 semantics were not exercised. See the
 [directory creation contract and tests](dev/DIRECTORY-CREATE.md).
+
+Operation 29 calls `appendFile(path, body, { flag: 'a', mode: 0o600 })` with
+exactly one NUL-free UTF-8 path. It appends the raw payload at the end of the
+file and returns status 0 with an empty answer. A decoded payload over 65536 bytes
+returns status 1 with `IO: append exceeds maximum OS chunk size` before the
+filesystem call. The application may continue with a smaller request.
+An empty payload still opens the path and creates a missing file.
+
+On POSIX hosts a newly created file has permission bits `0600 & ~umask`.
+Existing files keep their identity and ordinary permission bits; the runtime
+makes no `chmod` call. Normal host rules still govern special mode bits.
+Hard links observe the appended bytes, and final symlinks are followed,
+including a dangling link whose target can be created. Parent directories
+must exist. Paths are passed unchanged, so relative paths, parent symlinks,
+dot segments and trailing separators retain OS resolution. Directories,
+missing parents and other OS failures return status 1 with the host error
+code and message through `resume`.
+
+This operation adds no regular-file check: special files retain host behavior
+and can block. A request can involve multiple writes; the runtime promises
+neither whole-payload atomicity under concurrent writers nor crash durability.
+A failed append can leave a newly created file or a partial append, with no
+rollback. Native tests cover macOS; Windows and special files were not
+exercised. See the [file append contract and tests](dev/FILE-APPEND.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

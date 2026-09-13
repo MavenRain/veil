@@ -479,6 +479,86 @@ try {
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
 
+  const fileAppend = join(scratch, 'file-append.wasm');
+  const fileAppendBuild = run(['build', shared, fixture('file-append'), '-o', fileAppend,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileAppendBuild.status, 0, fileAppendBuild.stderr));
+  const fileAppendBytes = readFileSync(fileAppend);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileAppendBytes)).length, 0));
+  const { instance: fileAppendInstance } = await WebAssembly.instantiate(fileAppendBytes);
+  const fileAppendApi = fileAppendInstance.exports;
+  const fileAppendArgument = '../héllo//alias/../file';
+  const fileAppendBody = Buffer.from([0, 255, 65]);
+  let fileAppendWord = fileAppendApi.emptyBytes();
+  for (const byte of Buffer.from(fileAppendArgument).reverse()) {
+    fileAppendWord = fileAppendApi.consBytes(byte, fileAppendWord);
+  }
+  const fileAppendPending = fileAppendApi.init(
+    fileAppendApi.consWords(fileAppendWord, fileAppendApi.emptyWords()));
+  verify(() => assert.equal(fileAppendApi.requestCode(fileAppendPending), 29));
+  const fileAppendForwarded = fileAppendApi.requestArgs(fileAppendPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAppendApi,
+    fileAppendApi.wordsHead(fileAppendForwarded), Buffer.byteLength(fileAppendArgument))),
+  Buffer.from(fileAppendArgument)));
+  verify(() => assert.equal(fileAppendApi.wordsEmpty(fileAppendApi.wordsTail(fileAppendForwarded)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAppendApi,
+    fileAppendApi.requestBody(fileAppendPending), fileAppendBody.length)), fileAppendBody));
+  verify(() => assert.equal(fileAppendApi.exitCode(fileAppendPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('ENOSPC: injected failure')]]) {
+    let bytes = fileAppendApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = fileAppendApi.consBytes(byte, bytes);
+    const reporting = fileAppendApi.resume(fileAppendPending, status, bytes);
+    verify(() => assert.equal(fileAppendApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileAppendApi.wordsEmpty(fileAppendApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAppendApi,
+      fileAppendApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileAppendApi.exitCode(reporting), status));
+    for (const writeStatus of [0, 1]) {
+      const finished = fileAppendApi.resume(reporting, writeStatus, fileAppendApi.emptyBytes());
+      verify(() => assert.equal(fileAppendApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileAppendApi.exitCode(finished), status + writeStatus));
+      verify(() => assert.equal(fileAppendApi.wordsEmpty(fileAppendApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileAppendApi.bytesEmpty(fileAppendApi.requestBody(finished)), 1));
+      const stillFinished = fileAppendApi.resume(finished, 1, bytes);
+      verify(() => assert.equal(fileAppendApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileAppendApi.exitCode(stillFinished), status + writeStatus));
+    }
+  }
+  const fileAppendPath = join(scratch, 'append héllo');
+  for (const args of [[], [fileAppendPath, 'surplus']]) {
+    const rejected = runModule([fileAppend, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 29 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.throws(() => lstatSync(fileAppendPath), { code: 'ENOENT' }));
+  }
+  const fileAppendCreated = runModule([fileAppend, basename(fileAppendPath)]);
+  verify(() => assert.equal(fileAppendCreated.status, 0, fileAppendCreated.error ?? fileAppendCreated.stderr));
+  verify(() => assert.equal(fileAppendCreated.stdout, ''));
+  verify(() => assert.equal(fileAppendCreated.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(fileAppendPath), fileAppendBody));
+  const fileAppendOriginal = lstatSync(fileAppendPath);
+  if (process.platform !== 'win32') {
+    verify(() => assert.equal(fileAppendOriginal.mode & 0o777, 0o600 & ~process.umask()));
+  }
+  const fileAppendRepeated = runModule([fileAppend, fileAppendPath]);
+  verify(() => assert.equal(fileAppendRepeated.status, 0, fileAppendRepeated.error ?? fileAppendRepeated.stderr));
+  verify(() => assert.equal(fileAppendRepeated.stdout, ''));
+  verify(() => assert.equal(fileAppendRepeated.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(fileAppendPath), Buffer.concat([fileAppendBody, fileAppendBody])));
+  const fileAppendAfter = lstatSync(fileAppendPath);
+  verify(() => assert.deepEqual([fileAppendAfter.dev, fileAppendAfter.ino, fileAppendAfter.mode],
+    [fileAppendOriginal.dev, fileAppendOriginal.ino, fileAppendOriginal.mode]));
+  const fileAppendMissing = join(scratch, 'append-missing-parent');
+  for (const [path, error] of [[scratch, /^EISDIR:/], [join(fileAppendMissing, 'child'), /^ENOENT:/], ['', /^ENOENT:/]]) {
+    const rejected = runModule([fileAppend, path]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.throws(() => lstatSync(fileAppendMissing), { code: 'ENOENT' }));
+  verify(() => assert.deepEqual(readFileSync(fileAppendPath), Buffer.concat([fileAppendBody, fileAppendBody])));
+
   const directoryCreate = join(scratch, 'directory-create.wasm');
   const directoryCreateBuild = run(['build', shared, fixture('directory-create'), '-o', directoryCreate,
     ...reactorExports.flatMap(name => ['--export', name])]);

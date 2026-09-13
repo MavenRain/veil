@@ -1,0 +1,50 @@
+{
+  "runtime-before": {
+    "before": "current runtime",
+    "after": "HEAD runtime",
+    "runtime_sha256": "95af51d5ec081581c668245b5f15f6b52e2c90457fbe129218af8802e677c615",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "truncate-file": {
+    "before": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 });",
+    "after": "await appendFile(args[0], body, { flag: 'w', mode: 0o600 });",
+    "runtime_sha256": "20c2eb2fecb0beb0bc21bbc4b1df573de3645dba1536703a6293726e615183db",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "text-payload": {
+    "before": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 });",
+    "after": "await appendFile(args[0], body.toString('utf8'), { flag: 'a', mode: 0o600 });",
+    "runtime_sha256": "4c192f9db3bb5cbaae7a471b063d4234f185b5a510bed3519453bcb6769ebcf8",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "public-permissions": {
+    "before": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 });",
+    "after": "await appendFile(args[0], body, { flag: 'a', mode: 0o666 });",
+    "runtime_sha256": "e07efeb0054e957c522b02285ecab026aaed10b19451a5b853646dfb0c09c1b0",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "normalize-path": {
+    "before": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 });",
+    "after": "await appendFile(resolve(args[0]), body, { flag: 'a', mode: 0o600 });",
+    "runtime_sha256": "89608b971d4afa5af25a86ee397c5405f1a43e785c0b959d9b28c22a84ccf082",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "omit-size-bound": {
+    "before": "if (body.length > MAX_IO) throw new RangeError('append exceeds maximum OS chunk size');",
+    "after": "",
+    "runtime_sha256": "a875bf5984a8b1a4447394198ad9ba4306e1dd0ac435a67b59d8832be6b5e0e1",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "omit-arity": {
+    "before": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1];",
+    "after": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1];",
+    "runtime_sha256": "d51be1c42a1d9e0210abcc59acea343eeb3b080c61bd8bd2e773082ef67edef1",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  },
+  "swallow-errors": {
+    "before": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 });",
+    "after": "await appendFile(args[0], body, { flag: 'a', mode: 0o600 }).catch(() => {});",
+    "runtime_sha256": "68880ed6e6563048d7b22940e80cdb556a441754b761a33f7c069b49341d6aa4",
+    "test_sha256": "48b86d3a80dca7adab65691e8355bbdeabc5d4fdf57ab4c653201eb9b6407edd"
+  }
+}

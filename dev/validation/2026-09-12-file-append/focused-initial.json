@@ -1,0 +1,41 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-append/.kanon-exec/run-7L2T4J",
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append",
+  "wrapper_exit_code": 2,
+  "wrapper_error": "IO: process group cleanup failed",
+  "command_verdict": null,
+  "manifest": {
+    "schemaVersion": 2,
+    "artifact": "/Users/oobi/Documents/gpt3/veil-file-append/.kanon-exec/run-7L2T4J",
+    "status": "running",
+    "exitCode": 0,
+    "counts": {
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "stdout_lines": 0,
+      "stderr_lines": 0,
+      "error_lines": 0,
+      "warning_lines": 0
+    },
+    "commands": []
+  },
+  "runtime_sha256": "3a87b21a40d121d47ba87c64acf11d4d8688ec2d111761811428747931cca3bf",
+  "test_sha256": "e0d11300f57e59f00d004316879c69b39d127a1526dc0961b8764a9853aca51c",
+  "partial_stdout_sha256": "94261265c61e2cd6b18989442a596d4f33f89712276a8f7ff603d6854f7b1205",
+  "partial_stdout": "TAP version 13\n# Subtest: file append preserves binary contents across empty and maximum-size chunks\nok 1 - file append preserves binary contents across empty and maximum-size chunks\n  ---\n  duration_ms: 16100.71525\n  type: 'test'\n  ...\n# Subtest: file append creates private files subject to umask even for empty payloads\nok 2 - file append creates private files subject to umask even for empty payloads\n  ---\n  duration_ms: 17.900917\n  type: 'test'\n  ...\n# Subtest: file append preserves existing identity, permissions, hard links and symlinks\nok 3 - file append preserves existing identity, permissions, hard links and symlinks\n  ---\n  duration_ms: 16.303292\n  type: 'test'\n  ...\n# Subtest: file append preserves relative paths, parent symlinks and dot segments\nok 4 - file append preserves relative paths, parent symlinks and dot segments\n  ---\n  duration_ms: 11.059417\n  type: 'test'\n  ...\n# Subtest: file append reports path errors without creating parents and continues\nok 5 - file append reports path errors without creating parents and continues\n  ---\n  duration_ms: 9.392875\n  type: 'test'\n  ...\n",
+  "stderr": "",
+  "superseded_by": [
+    "focused.json",
+    "runtime.json"
+  ]
+}

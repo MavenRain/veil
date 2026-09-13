@@ -726,6 +726,8 @@ const slotScriptApi = script => {
 const slotScript = async script => {
   const engine = globalThis.WebAssembly;
   const { api, answers } = slotScriptApi(script);
+  // Buffer tails are views, keeping full-size request decoding linear too.
+  api.requestBody = state => Buffer.from(script.at(state).body ?? '');
   // Requests use the array ABI above. Build responses by constant-time cons
   // so the full 64 KiB answer does not trigger quadratic array copying.
   api.emptyBytes = () => null;
@@ -774,6 +776,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['hard-link creation', 26, [s.out, s.marker]],
     ['file copy', 27, [s.out, s.marker]],
     ['directory creation', 28, [s.marker]],
+    ['file append', 29, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1086,6 +1089,166 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file append preserves binary contents across empty and maximum-size chunks', async t => {
+  const s = await sandbox(t);
+  const prefix = Buffer.from([0, 255, 65]);
+  const chunk = Buffer.from(Array.from({ length: 65536 }, (_, index) => index % 256));
+  await writeFile(s.out, prefix);
+  await slotScript([
+    { code: 29, args: [s.out], body: Buffer.alloc(0), answer: '' },
+    { code: 29, args: [s.out], body: chunk, answer: '' },
+    { code: 29, args: [s.out], body: prefix, answer: '' },
+    { code: 5, args: [s.out], answer: String(prefix.length * 2 + chunk.length) },
+    { code: 2, args: [s.out, String(prefix.length), '65536'], answer: chunk },
+  ]);
+  assert.deepEqual(await readFile(s.out), Buffer.concat([prefix, chunk, prefix]));
+  await slotScript([{ code: 19, args: [s.out], answer: '' }]);
+  await absent(s.out);
+});
+
+test('file append creates private files subject to umask even for empty payloads', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const originalMask = process.umask();
+  for (const mask of [0, 0o277]) {
+    for (const body of [Buffer.alloc(0), Buffer.from([0, 255])]) {
+      const path = join(s.path, `private-${mask}-${body.length}`);
+      try {
+        process.umask(mask);
+        await slotScript([{ code: 29, args: [path], body, answer: '' }]);
+      } finally { process.umask(originalMask); }
+      const info = await lstat(path);
+      assert.ok(info.isFile());
+      assert.equal(info.mode & 0o777, 0o600 & ~mask);
+      assert.deepEqual(await readFile(path), body);
+    }
+  }
+});
+
+test('file append preserves existing identity, permissions, hard links and symlinks', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  const dangling = join(s.path, 'dangling');
+  const prefix = Buffer.from([254, 0]);
+  const chunk = Buffer.from([255, 65]);
+  await writeFile(s.out, prefix);
+  await fsPromises.chmod(s.out, 0o640);
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  await symlink('new-target', dangling);
+  const before = await lstat(s.out);
+  const liveBefore = await lstat(live);
+  const danglingBefore = await lstat(dangling);
+  await slotScript([s.out, hard, live, dangling].map(path => ({ code: 29, args: [path], body: chunk, answer: '' })));
+  const expected = Buffer.concat([prefix, chunk, chunk, chunk]);
+  for (const path of [s.out, hard]) {
+    const after = await lstat(path);
+    assert.deepEqual([after.dev, after.ino, after.mode], [before.dev, before.ino, before.mode]);
+    assert.deepEqual(await readFile(path), expected);
+  }
+  for (const [path, target, previous] of [[live, 'stdout', liveBefore], [dangling, 'new-target', danglingBefore]]) {
+    const after = await lstat(path);
+    assert.ok(after.isSymbolicLink());
+    assert.deepEqual([after.dev, after.ino], [previous.dev, previous.ino]);
+    assert.equal(await readlink(path), target);
+  }
+  assert.deepEqual(await readFile(join(s.path, 'new-target')), chunk);
+  assert.equal((await stat(dangling)).mode & 0o777, 0o600 & ~process.umask());
+});
+
+test('file append preserves relative paths, parent symlinks and dot segments', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  await writeFile(actual, 'actual');
+  await writeFile(decoy, 'decoy');
+  const relativePath = relative(process.cwd(), join(s.path, 'héllo space'));
+  await slotScript([
+    { code: 29, args: [relativePath], body: Buffer.from([0, 255]), answer: '' },
+    { code: 29, args: [alias + '/../data'], body: Buffer.from(' appended'), answer: '' },
+  ]);
+  assert.deepEqual(await readFile(join(s.path, 'héllo space')), Buffer.from([0, 255]));
+  assert.equal(await readFile(actual, 'utf8'), 'actual appended');
+  assert.equal(await readFile(decoy, 'utf8'), 'decoy');
+  assert.equal(await readlink(alias), join(real, 'nested'));
+});
+
+test('file append reports path errors without creating parents and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('loop', loop);
+  const requests = [
+    [s.path, /^EISDIR:/],
+    [join(missing, 'child'), /^ENOENT:/],
+    [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/],
+    [loop, /^ELOOP:/],
+    ['', /^ENOENT:/],
+  ];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 29, args: [path], body: Buffer.from('unwritten'), status: 1, answer })),
+    { code: 29, args: [s.marker], body: Buffer.from('continued'), answer: '' },
+  ]);
+  await absent(missing);
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+  assert.equal(await readFile(s.marker, 'utf8'), 'continued');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file append rejects oversized payloads before creating or changing files', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  await slotScript([
+    ...[s.out, s.marker].map(path => ({ code: 29, args: [path], body: Buffer.alloc(65537, 255),
+      status: 1, answer: 'IO: append exceeds maximum OS chunk size' })),
+    { code: 29, args: [s.out], body: Buffer.from([0, 255]), answer: '' },
+  ]);
+  assert.deepEqual(await readFile(s.out), Buffer.concat([Buffer.from('kept'), Buffer.from([0, 255])]));
+  await absent(s.marker);
+});
+
+test('file append rejects malformed requests before filesystem access', async t => {
+  const append = t.mock.method(fsPromises, 'appendFile', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { append.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({
+    code: 29, args, body: Buffer.from([255]), status: 1,
+    answer: `IO: OS request 29 expects 1 argument, got ${args.length}`,
+  })));
+  for (const [invalid, message] of [[Buffer.from('path\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 29, args: [invalid], answer: '' }]), { message });
+  }
+  await slotScript([{ code: 29, args: ['path'], body: Buffer.alloc(65537), status: 1,
+    answer: 'IO: append exceeds maximum OS chunk size' }]);
+  assert.equal(append.mock.callCount(), 0);
+  const path = '../héllo//alias/../file';
+  const body = Buffer.from([0, 255, 65]);
+  await slotScript([{ code: 29, args: [path], body, answer: '' }]);
+  assert.equal(append.mock.callCount(), 1);
+  assert.deepEqual(append.mock.calls[0].arguments, [path, body, { flag: 'a', mode: 0o600 }]);
+});
+
+test('file append forwards OS failures and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'ENOSPC', 'EROFS', 'EIO'];
+  const append = t.mock.method(fsPromises, 'appendFile', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected append failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { append.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 29, args: ['path'], body: Buffer.from([0, 255]),
+    status: 1, answer: `${code}: injected append failure` }));
+  await slotScript([...script, { code: 29, args: ['path'], answer: '' }]);
+  assert.equal(append.mock.callCount(), 5);
 });
 
 test('directory creation uses private permissions subject to umask', { skip: process.platform === 'win32' }, async t => {

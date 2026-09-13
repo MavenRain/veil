@@ -1,0 +1,36 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-kOdRcp",
+  "command_index": 2,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "/Users/oobi/Documents/gpt3/veil-file-append-controls/truncate-file/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append-controls/truncate-file",
+  "exit_code": 1,
+  "stdout_sha256": "8048781c15f3cd7bf022440a77c046502c0eb2a998f1190c2732f6e5e94ef9f5",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 6413,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 3,
+    "fail": 5,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file append preserves binary contents across empty and maximum-size chunks",
+    "file append preserves existing identity, permissions, hard links and symlinks",
+    "file append preserves relative paths, parent symlinks and dot segments",
+    "file append rejects oversized payloads before creating or changing files",
+    "file append rejects malformed requests before filesystem access"
+  ]
+}

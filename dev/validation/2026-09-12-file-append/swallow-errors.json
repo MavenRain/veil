@@ -1,0 +1,33 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-kOdRcp",
+  "command_index": 8,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "/Users/oobi/Documents/gpt3/veil-file-append-controls/swallow-errors/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append-controls/swallow-errors",
+  "exit_code": 1,
+  "stdout_sha256": "755855200c105812ef3690438c3c91005328f7d5a55be30877bde4473aceb529",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3974,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 6,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file append reports path errors without creating parents and continues",
+    "file append forwards OS failures and resumes subsequent requests"
+  ]
+}

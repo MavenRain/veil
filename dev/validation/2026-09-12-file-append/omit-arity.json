@@ -1,0 +1,32 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-kOdRcp",
+  "command_index": 7,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "/Users/oobi/Documents/gpt3/veil-file-append-controls/omit-arity/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append-controls/omit-arity",
+  "exit_code": 1,
+  "stdout_sha256": "0a9422e56ac9da159a7e9e6a78dae7eb8137933203d6087043bd51d0c95f553f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2873,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 7,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file append rejects malformed requests before filesystem access"
+  ]
+}

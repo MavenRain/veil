@@ -1,0 +1,33 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-kOdRcp",
+  "command_index": 6,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "/Users/oobi/Documents/gpt3/veil-file-append-controls/omit-size-bound/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append-controls/omit-size-bound",
+  "exit_code": 1,
+  "stdout_sha256": "a3d1a40df78334ee46853da57b0cc726abc1a61ad83801360042230194320663",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3983,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 6,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file append rejects oversized payloads before creating or changing files",
+    "file append rejects malformed requests before filesystem access"
+  ]
+}

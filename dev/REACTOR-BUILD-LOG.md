@@ -438,3 +438,46 @@ commands retain their 30-second watchdogs. No compiler, gate or milestone
 battery changes were needed. Native validation covers macOS; Windows was
 not exercised. The [directory creation record](validation/2026-09-12-directory-create/README.md)
 retains commands, hashes, captures and controls.
+
+## Binary file append, 2026-09-12
+
+Operation 29 appends up to 65536 raw payload bytes to one path, using append
+mode and private creation permissions. Empty payloads create missing files.
+Existing file identities and ordinary permission bits survive append, hard
+links share the result, and final symlinks are followed. Paths retain native
+resolution. The operation adds no rollback or whole-payload atomicity promise.
+
+The runtime adds eight tests and one arity-matrix row for binary chunks,
+private creation under two umasks, identities and links, relative paths,
+path errors, size limits, malformed requests and injected OS failures.
+The new compiled fixture checks exact argument and binary payload forwarding,
+reporting and terminal states, both status combinations, creation, repeated
+append and CLI errors.
+
+Validation at base `67255e5eacb091a0341872572c9249b8db34bb1a`:
+
+- RUNTIME: 136 passed, zero failures, cancellations or skips.
+- REACTOR: 857 checks passed.
+- The anchored `^file append` selection passed all eight tests.
+- The base runtime and seven isolated defect controls were rejected under
+  that same selection, with failure counts 8, 5, 6, 3, 3, 2, 1 and 2.
+- JavaScript syntax, HOUSE and TRUSTED-LINES checks passed. The kernel stays
+  at 5246/5250 lines and the encoder at 246/600.
+- `git diff --check` passed for modified tracked files. Staging checks cover
+  all added paths as well, including the fixture and validation records.
+
+The first focused run used a test adapter that copied each remaining payload
+tail. Its command wrapper failed during process-group cleanup and produced
+no complete capture or trustworthy test verdict. The retained initial record
+does not count as a passed run. Request bodies in the script adapter now use
+Buffer views; the final focused and full runtime runs use those tested bytes.
+Production decoding is unchanged.
+
+The compiler executable matches the directory-creation validation record.
+Compiler sources, gate scripts and thresholds are unchanged. RUNTIME and
+REACTOR retained their 30-second watchdogs; the full compiler and milestone
+battery was not repeated. Native filesystem tests cover macOS, with injected
+permission, full-disk and read-only-filesystem failures. Windows, special
+files, concurrent writers and partial writes were not exercised. The
+[append validation record](validation/2026-09-12-file-append/README.md) pins
+commands, source hashes, captures and controls after all documentation edits.

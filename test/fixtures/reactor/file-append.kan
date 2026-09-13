@@ -1,0 +1,33 @@
+-- Append a fixed binary chunk to the supplied path, then report the host answer.
+
+mu FileAppendState : Type 0 with
+| requested : Words -> FileAppendState
+| reporting : Nat -> Bytes -> FileAppendState
+| finished : Nat -> FileAppendState
+
+def init (argv : Words) : FileAppendState := requested argv
+def resume (state : FileAppendState) (status : Nat) (answer : Bytes) : FileAppendState :=
+  case state as current in FileAppendState return FileAppendState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileAppendState) : Nat :=
+  case state as current in FileAppendState return Nat with
+  | requested args => 29
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileAppendState) : Words :=
+  case state as current in FileAppendState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileAppendState) : Bytes :=
+  case state as current in FileAppendState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileAppendState) : Nat :=
+  case state as current in FileAppendState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

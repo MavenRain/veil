@@ -56,6 +56,9 @@ source symlinks, destination preservation and request failures.
 Operation 28 creates a named private directory under an existing parent. The
 [directory creation regressions](dev/DIRECTORY-CREATE.md) cover permissions,
 path resolution, existing entries and composition with file operations.
+Operation 29 appends bounded binary chunks and creates missing files with private
+permissions. The [file append regressions](dev/FILE-APPEND.md) cover contents,
+file identity, links, payload limits and request failures.
 
 Function parameters can share a type and quantity:
 

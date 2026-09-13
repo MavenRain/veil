@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-append/.kanon-exec/run-nRQynZ",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append",
+  "exit_code": 0,
+  "stdout_sha256": "33c3cbfda19f8be4bdfae4c9f0c6c63f5b92171a6284d8e3fcf5e0f69115fa56",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 27,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 857 checks passed\n",
+  "stderr": ""
+}

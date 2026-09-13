@@ -1,0 +1,37 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-kOdRcp",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file append",
+    "/Users/oobi/Documents/gpt3/veil-file-append-controls/text-payload/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-append-controls/text-payload",
+  "exit_code": 1,
+  "stdout_sha256": "520cdfa15d173407e7a5dc8eda496bb84c533b03a0906f1a7015b833143b1c26",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 7672,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 2,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file append preserves binary contents across empty and maximum-size chunks",
+    "file append creates private files subject to umask even for empty payloads",
+    "file append preserves existing identity, permissions, hard links and symlinks",
+    "file append preserves relative paths, parent symlinks and dot segments",
+    "file append rejects oversized payloads before creating or changing files",
+    "file append rejects malformed requests before filesystem access"
+  ]
+}
