@@ -1,0 +1,44 @@
+{
+  "runtime-before": {
+    "before": "current runtime",
+    "after": "HEAD runtime",
+    "runtime_sha256": "216fcb1a39c16fdefdfc737cce556ea7ff7583f2ad785428d5a3e6f287055866",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "overwrite-destination": {
+    "before": "case 27: await copyFile(args[0], args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "after": "case 27: await copyFile(args[0], args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "c58403a291aa2842f7a4787d9a529316085d6769b1487de5a52388afef0de2c2",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "hard-link-instead": {
+    "before": "case 27: await copyFile(args[0], args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "after": "case 27: await link(args[0], args[1]); return Buffer.alloc(0);",
+    "runtime_sha256": "2876112d43ac50dc9d5d97324356377d0f1ff4ac245ef12209a770d60e66c893",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "normalize-source": {
+    "before": "case 27: await copyFile(args[0], args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "after": "case 27: await copyFile(resolve(args[0]), args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "runtime_sha256": "cf4008355ee9135e6ca051ae9bec84a6406458576cb032b1cd694ec12f8a356e",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "normalize-destination": {
+    "before": "case 27: await copyFile(args[0], args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "after": "case 27: await copyFile(args[0], resolve(args[1]), fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "runtime_sha256": "f47f45064a6074f3972ef0a8baa8639354941fa37fc6f38225275c80987919af",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "reverse-arguments": {
+    "before": "case 27: await copyFile(args[0], args[1], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "after": "case 27: await copyFile(args[1], args[0], fsConstants.COPYFILE_EXCL); return Buffer.alloc(0);",
+    "runtime_sha256": "cdb4e6aa39638fb20ebbdc5701b442b5d3fa5f02f98dd667aa25779b6a6f72bf",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  },
+  "omit-arity": {
+    "before": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2];",
+    "after": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2];",
+    "runtime_sha256": "469f260c83a7eca1a6196295585b5fffaa957ef02565375845425072a89af3db",
+    "test_sha256": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682"
+  }
+}

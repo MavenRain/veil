@@ -1,0 +1,46 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0X5gqa",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file copy",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-controls/hard-link-instead/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy-controls/hard-link-instead",
+  "exit_code": 1,
+  "stdout_sha256": "ff33b123e20cfe23493310dec06e063d9b4b2be6c907292c811b7edc33a37919",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 5483,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 3,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file copy preserves empty and large binary contents with independent file identities",
+    "file copy follows source symlinks and preserves OS path resolution and relative names",
+    "file copy rejects malformed requests before filesystem access",
+    "file copy forwards OS failures and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual:",
+    "operator: 'notDeepStrictEqual'",
+    "actual: 550569045",
+    "operator: 'notStrictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "- 'ENOSPC: injected copy failure'",
+    "actual: \"ENOENT: ENOENT: no such file or directory, link 'source' -> 'destination'\"",
+    "operator: 'strictEqual'"
+  ]
+}

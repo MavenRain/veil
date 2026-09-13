@@ -1,0 +1,52 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0X5gqa",
+  "command_index": 6,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file copy",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-controls/reverse-arguments/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy-controls/reverse-arguments",
+  "exit_code": 1,
+  "stdout_sha256": "bc172e09631a3cffd360d83e90df3d574988742ea37a0fb1fd0313b475e0b782",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 9362,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 1,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file copy preserves empty and large binary contents with independent file identities",
+    "file copy composes with atomic replacement, size, read and cleanup",
+    "file copy follows source symlinks and preserves OS path resolution and relative names",
+    "file copy refuses existing destinations including symlinks and the source itself",
+    "file copy reports path errors without creating parents and continues",
+    "file copy rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: \"ENOENT: ENOENT: no such file or directory, copyfile '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-7EA6IY/dangling' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-7EA6IY/stdout'\"",
+    "operator: 'match'",
+    "actual: \"ENOENT: ENOENT: no such file or directory, copyfile '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-FVxu9r/marker' -> '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-runtime-FVxu9r/directory'\"",
+    "operator: 'match'",
+    "-   './alias/../destination',",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

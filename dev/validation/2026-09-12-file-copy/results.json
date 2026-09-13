@@ -1,0 +1,210 @@
+{
+  "base": "addeb7a814c65e2c965e56a79d92f18cb704dd99",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "95125e7228894a45cad779bb2651ec0be5206349565bcf5d6acd37577da49115",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "929e2616f03360b5d36633890aaaafde571e8a10ab68126f47bb461b18e88682",
+    "dev/reactor-test.mjs": "416b4eecb53b3cfbe466abd20741274508632c2e20e608ccf92cdafe434b4dbe",
+    "test/fixtures/reactor/file-copy.kan": "fc291d65a960d9a23ffa3cf1acbb07ba6b9e1e31a10e917508422d8ccb9015eb",
+    "test/fixtures/reactor/hard-link.kan": "7ce7180f0ec4480980a5d09793e03d980d4dafe96aacd83ef9e8e21f584c8ffc",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "README.md": "59ec51cfcaaaf223a0c12d126b4468a35b6313dbd3fc24d07c2a731e343771c9",
+    "REACTOR.md": "85316b59a3e7daf2035e8bcc8eed0a8d7c73b4cce938fb91a0a893d85e6c7a4e",
+    "dev/REQUEST-ARITY.md": "1bbcafb162e71adfd6262ef0be3781625b58fdf6854a5173245e910f08dbba37",
+    "dev/FILE-COPY.md": "33cce694566fb296cf43f9e24474aa4c22db7b7a69c46cd7ba4e319c3ace0dbc",
+    "dev/REACTOR-BUILD-LOG.md": "e1b176d2ba7c8c95c664e9dd2c6e25dc6b9236539be3687dbfdcf85c10388010",
+    "dev/validation/2026-09-12-file-copy/README.md": "d3385b2b875d5daa8c101ee271c7c743c0a9792341bccd23f50a780ad90c3a0b"
+  },
+  "capture_sha256": {
+    "README.md": "d3385b2b875d5daa8c101ee271c7c743c0a9792341bccd23f50a780ad90c3a0b",
+    "controls.json": "2cd0bcfa512004492483571a206b537ec5a76af7d3712abb143b770cdfb08183",
+    "diff-check.json": "827119646f657c8b86ca26ece52dfa19bb3578165ea08e07cee36dc1596bf2d2",
+    "focused-initial.json": "4cd7ade6236510a1c121337ab008523946dd3e3502b50a2f22251a1c199f9d6c",
+    "hard-link-instead.json": "91d37d1aadf3b3b4ce322f3f52389f10ea6a75034f993c8755ecf11c21f01d83",
+    "house.json": "c44243cd54b2570e74f1ee20e4871e04160b2b58a27cf3d5b9eb7a69757c4ef6",
+    "normalize-destination.json": "c65ccfcbbded9d46ef95231bbec19d547416e1fb213b539b8d51e71ba383b00e",
+    "normalize-source.json": "79cd878880f4a0a48ce51f85ca3f093d3c33f62fae5d10028d0bb74e92f00cbd",
+    "omit-arity.json": "bbd62ae5266f040a7f3856de3db63879341342884be911703ff33e983d448f67",
+    "overwrite-destination.json": "b355d38b9e08d25c64c513ab8ab0edc919d91f7760cacb27aabf71406508d4a2",
+    "reactor-base-timeout.json": "7601d255e2d32104400090e3a6b4cfb9058a1a0f7ce09b3da408cc7f8618e214",
+    "reactor-initial.json": "f17cba6ecd2b9e082b7cd68828e1847c0ffb0055748a94c85b2fe9ad59757da7",
+    "reactor.json": "9dc04cf9b60a373994ee171c55ed05fdffce56e4f46982801076b43926a33a5d",
+    "reporting-before.json": "d347997d8b3abd6cf31207ee44b1e0af4e1983ba8c7244d081c9a924d71c299f",
+    "reporting-control.json": "8e9bf101d6058c4fcf6c11cfe395e081ae06d0af71995e3e03ae5dea98be8832",
+    "reporting-fixed.json": "72020105e6eb3436c27dbf74bdd859e6cdc9907a1de05893a237368367d651d5",
+    "reporting-state.mjs": "af0f59df8da3507ecb3b067b82298687fee1a25685028aa8f95786ae0c7325c6",
+    "reverse-arguments.json": "922b4241a8a654a9e137b8b1d781d336fdf97708a00de826e475c61d1537f7c5",
+    "runtime-before.json": "74f38e818e596d218cbaca38b060a9cd1061ba0a54db57f7d871eac83b421eac",
+    "runtime.json": "cc19dd77ce37209246f026b4da2d9097ac51d891526a58a5b2cd6c445146e879",
+    "syntax-reactor-tests.json": "13594653476e8063f3b16e6b61d24acc182b0ecd238e376ca7399a880206be0c",
+    "syntax-runtime-tests.json": "b8e267e194acea3a48ef546321dd436c574858a80cf0e1745121393770a34ee9",
+    "syntax-runtime.json": "4e4f5e19d3d3e0599934b607fb413819266f954dface41443258326da1a8269e",
+    "trusted-lines.json": "88a8f4a34c13bcc4465fca50ff0bf169eff6e692dac31b92f6c7b49fd9ceced3"
+  },
+  "summary": {
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 119,
+        "suites": 0,
+        "pass": 119,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reactor": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "runtime-before": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 0,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "overwrite-destination": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 5,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "hard-link-instead": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 3,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "normalize-source": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 4,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "normalize-destination": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 4,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reverse-arguments": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "omit-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reporting-fixed": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "reporting-before": {
+      "exit_code": 1,
+      "counts": {}
+    },
+    "focused-initial": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reactor-initial": {
+      "exit_code": 124,
+      "counts": {}
+    },
+    "reactor-base-timeout": {
+      "exit_code": 124,
+      "counts": {}
+    }
+  },
+  "validation_scope": "RUNTIME and REACTOR with unchanged 30-second watchdogs; HOUSE, TRUSTED-LINES and JavaScript syntax checks; compiler reused by hash. No full compiler or milestone battery rerun.",
+  "superseded_runs": {
+    "focused-initial": "The directory-source test initially omitted macOS ENOTSUP. The final full RUNTIME pass uses the corrected test.",
+    "reactor-initial": "Modified suite timed out in the sandbox at high load; the same command passed with normal child-process access and the same watchdog.",
+    "reactor-base-timeout": "Unchanged base suite also timed out in the sandbox with empty streams."
+  }
+}

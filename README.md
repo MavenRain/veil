@@ -50,6 +50,9 @@ destination conflicts, path errors and composition with file reads and cleanup.
 Operation 26 creates hard links to existing filesystem entries. The
 [hard-link regressions](dev/HARD-LINK.md) cover shared file contents, conflicts,
 path errors and interaction with atomic replacement and unlink.
+Operation 27 copies file contents to a new destination with an independent
+file identity. The [file copy regressions](dev/FILE-COPY.md) cover binary data,
+source symlinks, destination preservation and request failures.
 
 Function parameters can share a type and quantity:
 

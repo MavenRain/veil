@@ -1,0 +1,36 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0X5gqa",
+  "command_index": 7,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file copy",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-controls/omit-arity/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy-controls/omit-arity",
+  "exit_code": 1,
+  "stdout_sha256": "17668bb0a34bc056140aaf92c8b1591df20d6db2d54ecfce5faddc45a20b18e1",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2678,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file copy rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 0",
+    "operator: 'strictEqual'"
+  ]
+}

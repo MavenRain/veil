@@ -1,0 +1,34 @@
+-- Copy source contents to a new destination, report the host answer, and
+-- include both the copy status and the output status in the final exit code.
+
+mu FileCopyState : Type 0 with
+| requested : Words -> FileCopyState
+| reporting : Nat -> Bytes -> FileCopyState
+| finished : Nat -> FileCopyState
+
+def init (argv : Words) : FileCopyState := requested argv
+def resume (state : FileCopyState) (status : Nat) (answer : Bytes) : FileCopyState :=
+  case state as current in FileCopyState return FileCopyState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileCopyState) : Nat :=
+  case state as current in FileCopyState return Nat with
+  | requested args => 27
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileCopyState) : Words :=
+  case state as current in FileCopyState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileCopyState) : Bytes :=
+  case state as current in FileCopyState return Bytes with
+  | requested args => bytesNil
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileCopyState) : Nat :=
+  case state as current in FileCopyState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

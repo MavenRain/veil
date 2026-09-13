@@ -1,0 +1,56 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0X5gqa",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file copy",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-controls/runtime-before/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy-controls/runtime-before",
+  "exit_code": 1,
+  "stdout_sha256": "ac73c463c3eb6374fc7fcc18a0e40f929fd4a850dd49e88e535112a05ad70e6e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 9644,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 0,
+    "fail": 7,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file copy preserves empty and large binary contents with independent file identities",
+    "file copy composes with atomic replacement, size, read and cleanup",
+    "file copy follows source symlinks and preserves OS path resolution and relative names",
+    "file copy refuses existing destinations including symlinks and the source itself",
+    "file copy reports path errors without creating parents and continues",
+    "file copy rejects malformed requests before filesystem access",
+    "file copy forwards OS failures and resumes subsequent requests"
+  ],
+  "diagnostics": [
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 1",
+    "operator: 'strictEqual'",
+    "actual: 'IO: unknown OS request 27'",
+    "operator: 'match'",
+    "actual: 'IO: unknown OS request 27'",
+    "operator: 'match'",
+    "- 'IO: OS request 27 expects 2 arguments, got 0'",
+    "actual: 'IO: unknown OS request 27'",
+    "operator: 'strictEqual'",
+    "- 'ENOSPC: injected copy failure'",
+    "actual: 'IO: unknown OS request 27'",
+    "operator: 'strictEqual'"
+  ]
+}

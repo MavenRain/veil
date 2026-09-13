@@ -1,0 +1,40 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-0X5gqa",
+  "command_index": 2,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file copy",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-controls/overwrite-destination/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy-controls/overwrite-destination",
+  "exit_code": 1,
+  "stdout_sha256": "bc740a335fe28d873210e0f649e706dc6748f2d79fb4e90f6844ea8b570b5008",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3583,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 5,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file copy refuses existing destinations including symlinks and the source itself",
+    "file copy rejects malformed requests before filesystem access"
+  ],
+  "diagnostics": [
+    "actual: 0",
+    "operator: 'strictEqual'",
+    "-   1",
+    "actual:",
+    "operator: 'deepStrictEqual'"
+  ]
+}

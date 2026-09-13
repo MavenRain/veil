@@ -367,3 +367,42 @@ and thresholds are unchanged, so the full milestone battery was not repeated.
 The [hard-link note](HARD-LINK.md) documents the contract, and the
 [validation record](validation/2026-09-12-hard-link/README.md) retains the
 commands, capture references, source hashes and exact mutation replacements.
+
+## File copying, 2026-09-12
+
+Base: `addeb7a814c65e2c965e56a79d92f18cb704dd99`.
+
+Operation 27 copies file contents to a new destination using the host's
+exclusive-create flag. The files have independent identities and contents;
+source symlinks are followed, existing destination entries are preserved, and
+missing parents are not created. Both paths retain OS resolution and the
+existing arity, NUL and UTF-8 checks. Copies do not pass through the response
+buffer, so files may exceed 65536 bytes. The host retains its copy permission,
+metadata and partial-failure behavior, as documented in [FILE-COPY.md](FILE-COPY.md).
+
+RUNTIME passes 119 tests with no skips. REACTOR passes 715 checks, including
+the new import-free fixture, all fixture states, byte and argument forwarding,
+status propagation and real CLI copying. The hard-link fixture's reporting
+state now preserves the operation status, resolving review D-1; direct compiled
+checks cover both statuses. A separate control passes on the repaired fixture
+and fails on its previous constant-1 arm.
+
+Both suites keep the existing 30-second watchdog. The modified and unchanged
+REACTOR suites first timed out in the sandbox with empty streams at high load
+(a nearby load1 reading was 91.32). The modified suite passed with normal
+child-process access under the same limit. Both timeout captures are retained;
+they are not passing evidence or waived assertions. The first focused RUNTIME
+run also caught a test expectation: macOS reports ENOTSUP for a directory
+source. The test now accepts that native refusal, and the full suite passes.
+
+The seven focused copy tests reject the base runtime. Six isolated mutations
+are also rejected: overwriting a destination, creating a hard link, normalizing
+either path, reversing arguments and omitting the arity entry. Native filesystem
+cases cover macOS; ENOSPC, EIO and EACCES failures use injection.
+
+JavaScript syntax, HOUSE and TRUSTED-LINES checks pass. The kernel remains
+5246/5250 lines and the encoder 246/600. The compiler executable matches the
+hard-link validation record. Compiler sources, gate scripts and thresholds
+are unchanged; the full compiler and milestone battery was not repeated.
+The [validation record](validation/2026-09-12-file-copy/README.md) pins source
+hashes, command captures, negative controls and this build log after all edits.

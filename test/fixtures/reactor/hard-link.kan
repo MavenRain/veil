@@ -30,5 +30,5 @@ def requestBody (state : HardLinkState) : Bytes :=
 def exitCode (state : HardLinkState) : Nat :=
   case state as current in HardLinkState return Nat with
   | requested args => 1
-  | reporting result body => 1
+  | reporting result body => result
   | finished result => result

@@ -424,6 +424,7 @@ try {
     let bytes = hardLinkApi.emptyBytes();
     for (const byte of Buffer.from(answer).reverse()) bytes = hardLinkApi.consBytes(byte, bytes);
     const reporting = hardLinkApi.resume(hardLinkPending, status, bytes);
+    verify(() => assert.equal(hardLinkApi.exitCode(reporting), status));
     verify(() => assert.equal(hardLinkApi.requestCode(reporting), 6));
     verify(() => assert.equal(hardLinkApi.wordsEmpty(hardLinkApi.requestArgs(reporting)), 1));
     verify(() => assert.deepEqual(Buffer.from(decodeBytes(hardLinkApi, hardLinkApi.requestBody(reporting), answer.length)), answer));
@@ -477,6 +478,110 @@ try {
   }
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
+
+  const fileCopy = join(scratch, 'file-copy.wasm');
+  const fileCopyBuild = run(['build', shared, fixture('file-copy'), '-o', fileCopy,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileCopyBuild.status, 0, fileCopyBuild.stderr));
+  const fileCopyBytes = readFileSync(fileCopy);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileCopyBytes)).length, 0));
+  const { instance: fileCopyInstance } = await WebAssembly.instantiate(fileCopyBytes);
+  const fileCopyApi = fileCopyInstance.exports;
+  let fileCopyArgs = fileCopyApi.emptyWords();
+  for (const argument of ['./destination', '../héllo//source']) {
+    let bytes = fileCopyApi.emptyBytes();
+    for (const byte of Buffer.from(argument).reverse()) bytes = fileCopyApi.consBytes(byte, bytes);
+    fileCopyArgs = fileCopyApi.consWords(bytes, fileCopyArgs);
+  }
+  const fileCopyPending = fileCopyApi.init(fileCopyArgs);
+  verify(() => assert.equal(fileCopyApi.requestCode(fileCopyPending), 27));
+  let fileCopyForwarded = fileCopyApi.requestArgs(fileCopyPending);
+  for (const expected of ['../héllo//source', './destination']) {
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileCopyApi, fileCopyApi.wordsHead(fileCopyForwarded), Buffer.byteLength(expected))), Buffer.from(expected)));
+    fileCopyForwarded = fileCopyApi.wordsTail(fileCopyForwarded);
+  }
+  verify(() => assert.equal(fileCopyApi.wordsEmpty(fileCopyForwarded), 1));
+  verify(() => assert.equal(fileCopyApi.bytesEmpty(fileCopyApi.requestBody(fileCopyPending)), 1));
+  verify(() => assert.equal(fileCopyApi.exitCode(fileCopyPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('ENOSPC: injected failure')]]) {
+    let bytes = fileCopyApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = fileCopyApi.consBytes(byte, bytes);
+    const reporting = fileCopyApi.resume(fileCopyPending, status, bytes);
+    verify(() => assert.equal(fileCopyApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileCopyApi.wordsEmpty(fileCopyApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileCopyApi, fileCopyApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileCopyApi.exitCode(reporting), status));
+    for (const writeStatus of [0, 1]) {
+      const finished = fileCopyApi.resume(reporting, writeStatus, fileCopyApi.emptyBytes());
+      verify(() => assert.equal(fileCopyApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileCopyApi.exitCode(finished), status + writeStatus));
+      verify(() => assert.equal(fileCopyApi.wordsEmpty(fileCopyApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileCopyApi.bytesEmpty(fileCopyApi.requestBody(finished)), 1));
+      const stillFinished = fileCopyApi.resume(finished, 1, bytes);
+      verify(() => assert.equal(fileCopyApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileCopyApi.exitCode(stillFinished), status + writeStatus));
+    }
+  }
+  const fileCopySource = join(scratch, 'copy-source');
+  const fileCopyDestination = join(scratch, 'copy-destination');
+  const fileCopyContent = Buffer.from(Array.from({ length: 65537 }, (_, index) => index % 256));
+  writeFileSync(fileCopySource, fileCopyContent);
+  for (const args of [[], [fileCopySource], [fileCopySource, fileCopyDestination, 'surplus']]) {
+    const rejected = runModule([fileCopy, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 27 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.throws(() => lstatSync(fileCopyDestination), { code: 'ENOENT' }));
+  }
+  const copied = runModule([fileCopy, basename(fileCopySource), basename(fileCopyDestination)]);
+  verify(() => assert.equal(copied.status, 0, copied.error ?? copied.stderr));
+  verify(() => assert.equal(copied.stdout, ''));
+  verify(() => assert.equal(copied.stderr, ''));
+  verify(() => assert.ok(lstatSync(fileCopyDestination).isFile()));
+  verify(() => assert.notEqual(lstatSync(fileCopyDestination).ino, lstatSync(fileCopySource).ino));
+  verify(() => assert.deepEqual(readFileSync(fileCopyDestination), fileCopyContent));
+  writeFileSync(fileCopySource, 'source update');
+  verify(() => assert.deepEqual(readFileSync(fileCopyDestination), fileCopyContent));
+  writeFileSync(fileCopyDestination, 'copy update');
+  verify(() => assert.equal(readFileSync(fileCopySource, 'utf8'), 'source update'));
+  const fileCopyDuplicate = runModule([fileCopy, fileCopySource, fileCopyDestination]);
+  verify(() => assert.equal(fileCopyDuplicate.status, 1, fileCopyDuplicate.error ?? fileCopyDuplicate.stderr));
+  verify(() => assert.match(fileCopyDuplicate.stdout, /^EEXIST:/));
+  verify(() => assert.equal(fileCopyDuplicate.stderr, ''));
+  verify(() => assert.equal(readFileSync(fileCopyDestination, 'utf8'), 'copy update'));
+  if (process.platform !== 'win32') {
+    const sourceLink = join(scratch, 'copy-source-link');
+    const linkCopy = join(scratch, 'copy-from-link');
+    symlinkSync('copy-source', sourceLink);
+    const copiedLink = runModule([fileCopy, sourceLink, linkCopy]);
+    verify(() => assert.equal(copiedLink.status, 0, copiedLink.error ?? copiedLink.stderr));
+    verify(() => assert.equal(copiedLink.stdout, ''));
+    verify(() => assert.equal(copiedLink.stderr, ''));
+    verify(() => assert.ok(lstatSync(linkCopy).isFile()));
+    verify(() => assert.equal(readFileSync(linkCopy, 'utf8'), 'source update'));
+    const refusedLink = runModule([fileCopy, fileCopyDestination, sourceLink]);
+    verify(() => assert.equal(refusedLink.status, 1, refusedLink.error ?? refusedLink.stderr));
+    verify(() => assert.match(refusedLink.stdout, /^EEXIST:/));
+    verify(() => assert.equal(refusedLink.stderr, ''));
+    verify(() => assert.equal(readlinkSync(sourceLink), 'copy-source'));
+    verify(() => assert.equal(readFileSync(fileCopySource, 'utf8'), 'source update'));
+  }
+  rmSync(fileCopySource);
+  verify(() => assert.equal(readFileSync(fileCopyDestination, 'utf8'), 'copy update'));
+  const fileCopyMissing = join(scratch, 'copy-missing');
+  const fileCopyMissingParent = join(scratch, 'copy-absent-parent');
+  for (const [source, destination, error] of [
+    [fileCopySource, fileCopyMissing, /^ENOENT:/],
+    [fileCopyDestination, join(fileCopyMissingParent, 'child'), /^ENOENT:/],
+    [fileCopyDestination, '', /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileCopy, source, destination]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.throws(() => lstatSync(fileCopyMissing), { code: 'ENOENT' }));
+  verify(() => assert.throws(() => lstatSync(fileCopyMissingParent), { code: 'ENOENT' }));
 
   const listing = join(scratch, 'directory-listing.wasm');
   const listingBuild = run(['build', shared, fixture('directory-listing'), '-o', listing,

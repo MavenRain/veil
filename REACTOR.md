@@ -159,8 +159,9 @@ the left list's length.
 | 24 | path | Read a symlink's stored target as raw bytes; at most 65536 bytes |
 | 25 | target, destination | Create a symlink without replacing an existing entry; return an empty answer |
 | 26 | source, destination | Create a hard link without replacing an existing entry; return an empty answer |
+| 27 | source, destination | Copy a file without replacing an existing entry; return an empty answer |
 
-Operations 1 to 26 check argument counts before performing the operation.
+Operations 1 to 27 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -177,7 +178,8 @@ the [directory listing regressions](dev/DIRECTORY-LISTING.md) cover operation 22
 the [entry kind regressions](dev/ENTRY-KIND.md) cover operation 23,
 the [symlink target regressions](dev/SYMLINK-TARGET.md) cover operation 24,
 the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25,
-and the [hard-link regressions](dev/HARD-LINK.md) cover operation 26.
+the [hard-link regressions](dev/HARD-LINK.md) cover operation 26,
+and the [file copy regressions](dev/FILE-COPY.md) cover operation 27.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -305,6 +307,29 @@ through `resume` with their error code and message, and the application may
 continue. Native validation covers macOS; injected failures cover cross-device
 and link-limit errors. The [hard-link regressions](dev/HARD-LINK.md) also
 exercise operation 26 through a compiled Wasm fixture.
+
+Operation 27 calls `copyFile(source, destination, COPYFILE_EXCL)` and returns
+status 0 with an empty answer on success. Both arguments must be NUL-free
+UTF-8; the payload is unused. The host copies file contents directly, without
+the 65536-byte response limit. Source and destination have independent file
+identities and can be modified or unlinked separately. A source symlink is
+followed and its target contents are copied to a regular file.
+
+An existing destination, including a symlink or dangling link, is refused
+without replacement. Missing parents are not created, and directories are
+not copied recursively. OS errors return status 1 with their code and message.
+Both paths are passed unchanged: relative paths use the host working directory,
+and parent symlinks, dot segments and trailing separators retain OS resolution.
+
+The copy uses the host's native permissions and metadata behavior; it does not
+force a private mode. No test in this suite reads the destination mode or its
+metadata, so that sentence records host behavior that the suite does not
+observe. It is not an atomic publication or a snapshot of a source
+that changes during the copy. Readers can observe an incomplete new destination;
+if copying fails after creation, Node attempts to remove it, but removal is not
+guaranteed. No test in this suite creates a partial destination, so that
+attempted removal is unverified Node behavior. No crash durability
+or cleanup guarantee is added. See the [file copy contract and tests](dev/FILE-COPY.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

@@ -1,0 +1,22 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-diLKDO",
+  "command_index": 2,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-fixture-control.mjs",
+    "/Users/oobi/Documents/gpt3/veil-file-copy/_build/default/bin/kanon.exe",
+    "/Users/oobi/Documents/gpt3/veil-file-copy/runtime/reactor.kan",
+    "/Users/oobi/Documents/veil/test/fixtures/reactor/hard-link.kan"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy",
+  "exit_code": 1,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "4d9d83b25212008308ba2f2feded527bf978f42c573b21e35a23662b5f84289b",
+  "stdout_bytes": 0,
+  "stderr_bytes": 375,
+  "counts": {},
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:104\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: reporting state must preserve the operation status\n\n1 !== 0\n\n    at file:///Users/oobi/Documents/gpt3/veil-file-copy-fixture-control.mjs:18:12 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 1,\n  expected: 0,\n  operator: 'strictEqual'\n}\n\nNode.js v23.10.0\n"
+}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Dir, existsSync } from 'node:fs';
+import { Dir, existsSync, constants as fsConstants } from 'node:fs';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm, access, stat, lstat, symlink, readlink, rename } from 'node:fs/promises';
 import fsPromises from 'node:fs/promises';
 import { syncBuiltinESMExports } from 'node:module';
@@ -772,6 +772,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['symlink target', 24, [s.out]],
     ['symlink creation', 25, [s.out, s.marker]],
     ['hard-link creation', 26, [s.out, s.marker]],
+    ['file copy', 27, [s.out, s.marker]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1084,6 +1085,163 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file copy preserves empty and large binary contents with independent file identities', async t => {
+  const s = await sandbox(t);
+  for (const size of [0, 65536, 131077]) {
+    const source = join(s.path, `source-${size}`);
+    const destination = join(s.path, `copy-${size}`);
+    const bytes = Buffer.from(Array.from({ length: size }, (_, index) => index % 256));
+    await writeFile(source, bytes);
+    const original = await lstat(source);
+    await slotScript([{ code: 27, args: [source, destination], body: Buffer.from([0, 255]), answer: '' }]);
+    const copied = await lstat(destination);
+    assert.ok(copied.isFile());
+    assert.notDeepEqual([copied.dev, copied.ino], [original.dev, original.ino]);
+    assert.equal((await lstat(source)).nlink, original.nlink);
+    assert.deepEqual(await readFile(source), bytes);
+    assert.deepEqual(await readFile(destination), bytes);
+    await writeFile(source, 'source update');
+    assert.deepEqual(await readFile(destination), bytes);
+    await writeFile(destination, 'copy update');
+    assert.equal(await readFile(source, 'utf8'), 'source update');
+    await slotScript([
+      { code: 19, args: [source], answer: '' },
+      { code: 2, args: [destination, '0', '32'], answer: 'copy update' },
+    ]);
+    await absent(source);
+  }
+});
+
+test('file copy composes with atomic replacement, size, read and cleanup', async t => {
+  const s = await sandbox(t);
+  await slotScript([
+    { code: 3, args: [s.out], body: 'original', answer: '' },
+    { code: 27, args: [s.out, s.marker], answer: '' },
+    { code: 5, args: [s.marker], answer: '8' },
+    { code: 3, args: [s.out], body: 'replacement', answer: '' },
+    { code: 2, args: [s.marker, '0', '32'], answer: 'original' },
+    { code: 19, args: [s.marker], answer: '' },
+    { code: 2, args: [s.out, '0', '32'], answer: 'replacement' },
+  ]);
+  await absent(s.marker);
+});
+
+test('file copy follows source symlinks and preserves OS path resolution and relative names', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const actual = join(s.path, 'actual');
+  const nested = join(actual, 'nested');
+  const alias = join(s.path, 'alias');
+  await mkdir(nested, { recursive: true });
+  await symlink(nested, alias);
+  await writeFile(join(actual, 'source'), 'correct');
+  await writeFile(join(s.path, 'source'), 'decoy');
+  const sourceLink = join(actual, 'source-link');
+  await symlink('source', sourceLink);
+  const relativeCopy = join(nested, 'héllo world\nfile');
+  await slotScript([
+    { code: 27, args: [alias + '/../source-link', alias + '/../created'], answer: '' },
+    { code: 27, args: [relative(process.cwd(), sourceLink), relative(process.cwd(), relativeCopy)], answer: '' },
+  ]);
+  for (const path of [join(actual, 'created'), relativeCopy]) {
+    const info = await lstat(path);
+    assert.ok(info.isFile());
+    assert.notEqual(info.ino, (await lstat(join(actual, 'source'))).ino);
+    assert.equal(await readFile(path, 'utf8'), 'correct');
+  }
+  await absent(join(s.path, 'created'));
+  assert.equal(await readFile(join(s.path, 'source'), 'utf8'), 'decoy');
+  assert.equal(await readlink(sourceLink), 'source');
+  assert.equal(await readlink(alias), nested);
+});
+
+test('file copy refuses existing destinations including symlinks and the source itself', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const link = join(s.path, 'link');
+  const dangling = join(s.path, 'dangling');
+  await writeFile(s.out, 'source');
+  await writeFile(s.err, 'destination');
+  await mkdir(directory);
+  await symlink('stderr', link);
+  await symlink('absent', dangling);
+  const paths = [s.out, s.err, directory, link, dangling];
+  const identities = await Promise.all(paths.map(path => lstat(path)));
+  await slotScript(paths.map(path => ({ code: 27, args: [s.out, path], status: 1, answer: /^EEXIST:/ })));
+  assert.deepEqual(await Promise.all(paths.map(async path => (await lstat(path)).ino)), identities.map(info => info.ino));
+  assert.equal(await readFile(s.out, 'utf8'), 'source');
+  assert.equal(await readFile(s.err, 'utf8'), 'destination');
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readlink(link), 'stderr');
+  assert.equal(await readlink(dangling), 'absent');
+  await absent(join(s.path, 'absent'));
+});
+
+test('file copy reports path errors without creating parents and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'directory');
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await mkdir(directory);
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const rejected = [
+    [missing, s.marker, /^ENOENT:/], [s.out, join(missing, 'child'), /^ENOENT:/],
+    [directory, s.marker, /^(EISDIR|EPERM|EACCES|ENOTSUP):/],
+    [dangling, s.marker, /^ENOENT:/], [loop, s.marker, /^ELOOP:/],
+    [s.out, join(s.out, 'child'), /^ENOTDIR:/], [join(s.out, 'child'), s.marker, /^ENOTDIR:/],
+    [s.out, join(loop, 'child'), /^ELOOP:/],
+    ['', s.marker, /^ENOENT:/], [s.out, '', /^ENOENT:/],
+    [s.out + '/', s.marker, /^ENOTDIR:/], [s.out, s.marker + '/', /^(ENOENT|ENOTDIR):/],
+  ];
+  await slotScript([
+    ...rejected.map(([source, destination, answer]) => ({ code: 27, args: [source, destination], status: 1, answer })),
+    { code: 27, args: [s.out, s.err], answer: '' },
+    { code: 2, args: [s.err, '0', '4'], answer: 'kept' },
+  ]);
+  await absent(s.marker);
+  await absent(missing);
+  assert.deepEqual(await readdir(directory), []);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file copy rejects malformed requests before filesystem access', async t => {
+  const copy = t.mock.method(fsPromises, 'copyFile', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { copy.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['source'], ['source', 'destination', 'surplus']].map(args => ({
+    code: 27, args, status: 1, answer: `IO: OS request 27 expects 2 arguments, got ${args.length}`,
+  })));
+  for (const [invalid, message] of [[Buffer.from('path\0suffix'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[invalid, 'destination'], ['source', invalid]]) {
+      await assert.rejects(slotScript([{ code: 27, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(copy.mock.callCount(), 0);
+  const args = ['../héllo//source', './alias/../destination'];
+  await slotScript([{ code: 27, args, body: Buffer.from([0, 255]), answer: '' }]);
+  assert.equal(copy.mock.callCount(), 1);
+  assert.deepEqual(copy.mock.calls[0].arguments, [...args, fsConstants.COPYFILE_EXCL]);
+});
+
+test('file copy forwards OS failures and resumes subsequent requests', async t => {
+  const failures = ['ENOSPC', 'EIO', 'EACCES'];
+  const copy = t.mock.method(fsPromises, 'copyFile', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected copy failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { copy.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 27, args: ['source', 'destination'], status: 1,
+    answer: `${code}: injected copy failure` }));
+  await slotScript([...script, { code: 27, args: ['source', 'destination'], answer: '' }]);
+  assert.equal(copy.mock.callCount(), 4);
 });
 
 test('hard-link creation shares file identity and contents and survives unlinking either name', async t => {

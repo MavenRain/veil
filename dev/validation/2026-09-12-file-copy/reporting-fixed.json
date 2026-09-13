@@ -1,0 +1,22 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-diLKDO",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "/Users/oobi/Documents/gpt3/veil-file-copy-fixture-control.mjs",
+    "/Users/oobi/Documents/gpt3/veil-file-copy/_build/default/bin/kanon.exe",
+    "/Users/oobi/Documents/gpt3/veil-file-copy/runtime/reactor.kan",
+    "/Users/oobi/Documents/gpt3/veil-file-copy/test/fixtures/reactor/hard-link.kan"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy",
+  "exit_code": 0,
+  "stdout_sha256": "3aed94fcf968de700f0f7b0dd7be4f582dba2eed448aed68aa42469f52058093",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 33,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reporting state: 2 checks passed\n",
+  "stderr": ""
+}

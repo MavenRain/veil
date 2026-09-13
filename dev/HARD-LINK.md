@@ -73,10 +73,11 @@ retains the exact commands, source hashes, results and negative controls.
   `dev/HARD-LINK.md` and `dev/REACTOR-BUILD-LOG.md`, and that a review edit
   refreshes those rows after the edit, never before it.
   Files: `dev/validation/2026-09-12-hard-link/README.md`.
-- D-1, medium, carried for a user ruling: the `reporting` arm of the fixture
-  exit code returns the constant 1 and no check covers it, because the repair
-  edits the pinned fixture and `dev/reactor-test.mjs` inside the frozen
-  627-check capture. No file changed.
+- D-1, medium, resolved by the 2026-09-12 file copy slice: the `reporting` arm
+  now returns the retained operation status
+  (`test/fixtures/reactor/hard-link.kan:33`), and `dev/reactor-test.mjs` checks
+  that state for both the success and the failure status. The 627-check capture
+  of this slice stays frozen and remains historical evidence.
 - B-2, low: the record now states that the arity matrix row at
   `dev/runtime-test.mjs:774` is a subtest that the anchored focused pattern
   does not select, so only the full RUNTIME run covers it.

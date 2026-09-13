@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-copy/.kanon-exec/run-ehyffr",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-copy",
+  "exit_code": 0,
+  "stdout_sha256": "b44def443fc6bb0dce3a6976c92efe0d706b3751c04fb4ac0f989c7139e5ce18",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 22584,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 119,
+    "suites": 0,
+    "pass": 119,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [],
+  "diagnostics": []
+}
