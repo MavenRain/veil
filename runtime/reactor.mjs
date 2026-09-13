@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -220,7 +220,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -338,6 +338,7 @@ async function perform(code, args, body, interrupted, blobs) {
       await appendFile(args[0], body, { flag: 'a', mode: 0o600 });
       return Buffer.alloc(0);
     }
+    case 30: await truncate(args[0], numeric(args[1])); return Buffer.alloc(0);
     default: throw new Error(`unknown OS request ${code}`);
   }
 }

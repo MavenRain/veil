@@ -1,0 +1,28 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-truncate/.kanon-exec/run-ekFM4f",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate",
+  "exit_code": 0,
+  "stdout_sha256": "d32430272a0dc83f8b5d2a134e37d35e8a84c865632b480a93532da0d4c20d08",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 27832,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 144,
+    "suites": 0,
+    "pass": 144,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": []
+}

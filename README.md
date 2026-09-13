@@ -59,6 +59,9 @@ path resolution, existing entries and composition with file operations.
 Operation 29 appends bounded binary chunks and creates missing files with private
 permissions. The [file append regressions](dev/FILE-APPEND.md) cover contents,
 file identity, links, payload limits and request failures.
+Operation 30 resizes an existing file, preserving its prefix when shrinking
+and filling an extension with zeros. The [file truncate regressions](dev/FILE-TRUNCATE.md)
+cover lengths, links, path resolution and request failures.
 
 Function parameters can share a type and quantity:
 

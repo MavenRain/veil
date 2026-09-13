@@ -481,3 +481,39 @@ permission, full-disk and read-only-filesystem failures. Windows, special
 files, concurrent writers and partial writes were not exercised. The
 [append validation record](validation/2026-09-12-file-append/README.md) pins
 commands, source hashes, captures and controls after all documentation edits.
+
+## File truncation and extension, 2026-09-12
+
+Operation 30 resizes an existing file to an ASCII decimal byte length. It
+uses the existing OS numeric parser and `truncate`, preserving literal path
+resolution and file identity. Shrinking retains the prefix, extension fills
+with zeros, hard links share the result and final symlinks are followed.
+Missing files and dangling targets are not created. The unused request body
+and file length are independent of the 65536-byte transfer bound.
+
+Seven runtime tests and one arity-matrix row cover binary contents, repeated
+lengths, zero extension through 65537 bytes, links and ordinary permissions,
+relative paths, parent symlinks, malformed requests, exact safe-integer
+forwarding and OS errors. The new compiled fixture covers argument and body
+forwarding, reporting and terminal states, host/output status combinations,
+CLI resizing and request failures.
+
+Validation at base `1a88d6f7e84f6d27e8775e5a0657a20229fca53e`:
+
+- RUNTIME: 144 passed, zero failures, cancellations or skips.
+- REACTOR: 963 checks passed. HOST-NAT: 16/16.
+- The anchored `^file truncate` selection passed all seven tests.
+- The base runtime and six isolated defect controls were rejected under
+  that same selection, with failure counts 7, 6, 3, 1, 2, 1 and 2.
+- JavaScript syntax, HOUSE, TRUSTED-LINES and tracked-file whitespace checks
+  passed. Kernel lines remain 5246/5250; encoder lines remain 246/600.
+
+The validated compiler executable is reused by hash from the file-append
+slice. Compiler sources, gate scripts and thresholds are unchanged. RUNTIME,
+REACTOR and HOST-NAT ran with 30-second watchdogs. The full compiler and
+milestone battery was not repeated. Native tests ran on macOS; lengths above
+65537 and EACCES, ENOSPC, EFBIG, EROFS and EIO failures used a mocked filesystem
+boundary. Windows, special files, concurrent mutation, crash durability and
+native resource exhaustion were not exercised. The
+[truncate validation record](validation/2026-09-12-file-truncate/README.md)
+pins final sources, commands, captures and controls.

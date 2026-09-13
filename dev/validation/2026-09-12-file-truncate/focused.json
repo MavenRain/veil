@@ -1,0 +1,30 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-CP19BQ",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate",
+  "exit_code": 0,
+  "stdout_sha256": "a03c2df5469a110509aa4c6322f5193ec53577eff2a3af8e70d66bfee5c1b994",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1699,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": []
+}

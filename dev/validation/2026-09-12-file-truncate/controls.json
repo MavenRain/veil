@@ -1,0 +1,44 @@
+{
+  "runtime-before": {
+    "before": "current runtime",
+    "after": "HEAD runtime",
+    "runtime_sha256": "3a87b21a40d121d47ba87c64acf11d4d8688ec2d111761811428747931cca3bf",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "zero-length": {
+    "before": "await truncate(args[0], numeric(args[1]));",
+    "after": "await truncate(args[0], 0);",
+    "runtime_sha256": "8fd39a2e375928c118b48d8ed5ab6d76d983f4caf6c98d32dee84e94f78e38ab",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "normalize-path": {
+    "before": "await truncate(args[0], numeric(args[1]));",
+    "after": "await truncate(resolve(args[0]), numeric(args[1]));",
+    "runtime_sha256": "320453b7477c54dadfecff457aca2c0bf4b463d2d0b43644585be08bf154de7c",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "unchecked-length": {
+    "before": "await truncate(args[0], numeric(args[1]));",
+    "after": "await truncate(args[0], Number(args[1]));",
+    "runtime_sha256": "0c6b5667c4b622431cd8a933cf7648a878c79f5ecc262f83148778b15aa8276b",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "transfer-size-bound": {
+    "before": "await truncate(args[0], numeric(args[1]));",
+    "after": "if (numeric(args[1]) > MAX_IO) throw new RangeError('length exceeds chunk size'); await truncate(args[0], numeric(args[1]));",
+    "runtime_sha256": "a40fa74d2d2c252e542daa842e1966ba3880e27b0e57154e292850f41f6b2bf6",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "omit-arity": {
+    "before": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2];",
+    "after": "1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1];",
+    "runtime_sha256": "ebcd5cff5f7715bc7be5a2ac7821d069c2948f35b6e686651fb13aebd2100482",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  },
+  "swallow-errors": {
+    "before": "await truncate(args[0], numeric(args[1]));",
+    "after": "await truncate(args[0], numeric(args[1])).catch(() => {});",
+    "runtime_sha256": "3d4378843193a2f067e918a877b15f3bd1f36096c637a7740f4ca4cad126d625",
+    "test_sha256": "b06f71b1f597e355ee5cf0e852dd79c70a68825e5009b9481b2c0467b913fd18"
+  }
+}

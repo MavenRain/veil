@@ -162,8 +162,9 @@ the left list's length.
 | 27 | source, destination | Copy a file without replacing an existing entry; return an empty answer |
 | 28 | path | Create one private directory under an existing parent; return an empty answer |
 | 29 | path; payload is content | Append at most 65536 raw bytes, creating a private file if absent; return an empty answer |
+| 30 | path, length | Resize an existing file to the decimal byte length; return an empty answer |
 
-Operations 1 to 29 check argument counts before performing the operation.
+Operations 1 to 30 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -183,7 +184,8 @@ the [symlink creation regressions](dev/SYMLINK-CREATE.md) cover operation 25,
 the [hard-link regressions](dev/HARD-LINK.md) cover operation 26,
 the [file copy regressions](dev/FILE-COPY.md) cover operation 27,
 the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28,
-and the [file append regressions](dev/FILE-APPEND.md) cover operation 29.
+the [file append regressions](dev/FILE-APPEND.md) cover operation 29,
+and the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -372,6 +374,31 @@ neither whole-payload atomicity under concurrent writers nor crash durability.
 A failed append can leave a newly created file or a partial append, with no
 rollback. Native tests cover macOS; Windows and special files were not
 exercised. See the [file append contract and tests](dev/FILE-APPEND.md).
+
+Operation 30 calls `truncate(path, length)` with exactly two arguments. The
+length must contain only ASCII decimal digits and fit the safe integer range
+0 to 9007199254740991. Leading zeros are accepted. Signs, whitespace, line
+terminators, fractions and larger values return status 1 with
+`IO: invalid OS numeric argument` before filesystem access, using the existing
+OS numeric parser. The 65536-byte transfer limit does not limit file size;
+the filesystem may impose a smaller maximum.
+The payload is unused, subject to the existing request traversal rules.
+
+Success returns status 0 with empty bytes. A shorter length retains the file
+prefix, zero clears it, and a longer length extends it with zero bytes.
+Resizing preserves the existing file identity and ordinary permission bits;
+host rules govern special mode bits and timestamps. Hard links share the
+result. Final symlinks are followed, but missing files and dangling targets
+are not created. Paths remain NUL-free UTF-8 and are passed unchanged, so
+relative paths, parent symlinks, dot segments and trailing separators use
+native resolution. Missing paths, directories and other OS failures return
+status 1 with their code and message through `resume`.
+
+The runtime adds no regular-file check, so special files retain host behavior
+and can block. Resizing provides neither concurrency isolation nor crash
+durability, and a failure is not a rollback guarantee. Native tests cover
+macOS; Windows, special files and filesystem size limits were not exercised.
+See the [file truncate contract and tests](dev/FILE-TRUNCATE.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

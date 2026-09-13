@@ -1,0 +1,34 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Dh2NOD",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/normalize-path/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/normalize-path",
+  "exit_code": 1,
+  "stdout_sha256": "d398b4351da757fa0402a7ed9fdfb790294edd01161c386158ffa8aeaa673d6f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 6459,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 4,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file truncate preserves relative paths, parent symlinks and dot segments",
+    "file truncate reports path failures without creating entries and continues",
+    "file truncate forwards exact safe lengths and ignores its binary payload"
+  ]
+}

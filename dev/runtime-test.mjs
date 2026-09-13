@@ -777,6 +777,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file copy', 27, [s.out, s.marker]],
     ['directory creation', 28, [s.marker]],
     ['file append', 29, [s.out]],
+    ['file truncate', 30, [s.out, '0']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1089,6 +1090,143 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file truncate shrinks, extends with zeros, repeats and composes with append and reads', async t => {
+  const s = await sandbox(t);
+  const bytes = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, bytes);
+  await slotScript([
+    { code: 30, args: [s.out, '3'], body: Buffer.from([255]), answer: '' },
+    { code: 2, args: [s.out, '0', '8'], answer: bytes.subarray(0, 3) },
+    { code: 30, args: [s.out, '3'], answer: '' },
+    { code: 2, args: [s.out, '0', '8'], answer: bytes.subarray(0, 3) },
+    { code: 30, args: [s.out, '65537'], answer: '' },
+    { code: 5, args: [s.out], answer: '65537' },
+    { code: 2, args: [s.out, '0', '3'], answer: bytes.subarray(0, 3) },
+    { code: 2, args: [s.out, '3', '65534'], answer: Buffer.alloc(65534) },
+    { code: 30, args: [s.out, '0'], answer: '' },
+    { code: 5, args: [s.out], answer: '0' },
+    { code: 2, args: [s.out, '0', '8'], answer: '' },
+    { code: 29, args: [s.out], body: bytes, answer: '' },
+    { code: 2, args: [s.out, '0', '8'], answer: bytes },
+    { code: 19, args: [s.out], answer: '' },
+  ]);
+  await absent(s.out);
+});
+
+test('file truncate preserves identity, permissions, hard links and final symlinks', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  await writeFile(s.out, Buffer.from([255, 0, 65, 254]));
+  await fsPromises.chmod(s.out, 0o640);
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  const before = await lstat(s.out);
+  const linkBefore = await lstat(live);
+  await slotScript([{ code: 30, args: [hard, '2'], answer: '' }]);
+  assert.deepEqual(await readFile(s.out), Buffer.from([255, 0]));
+  await slotScript([{ code: 30, args: [live, '5'], answer: '' }]);
+  for (const path of [s.out, hard]) {
+    const after = await lstat(path);
+    assert.deepEqual([after.dev, after.ino, after.mode, after.nlink],
+      [before.dev, before.ino, before.mode, before.nlink]);
+    assert.deepEqual(await readFile(path), Buffer.from([255, 0, 0, 0, 0]));
+  }
+  const linkAfter = await lstat(live);
+  assert.ok(linkAfter.isSymbolicLink());
+  assert.deepEqual([linkAfter.dev, linkAfter.ino], [linkBefore.dev, linkBefore.ino]);
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('file truncate preserves relative paths, parent symlinks and dot segments', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  const unicode = join(s.path, 'héllo space');
+  await writeFile(actual, 'actual');
+  await writeFile(decoy, 'decoy');
+  await writeFile(unicode, Buffer.from([0, 255, 65]));
+  await slotScript([
+    { code: 30, args: [relative(process.cwd(), unicode), '2'], answer: '' },
+    { code: 30, args: [alias + '//../data', '3'], answer: '' },
+  ]);
+  assert.deepEqual(await readFile(unicode), Buffer.from([0, 255]));
+  assert.equal(await readFile(actual, 'utf8'), 'act');
+  assert.equal(await readFile(decoy, 'utf8'), 'decoy');
+  assert.equal(await readlink(alias), join(real, 'nested'));
+});
+
+test('file truncate reports path failures without creating entries and continues', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [s.path, /^EISDIR:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 30, args: [path, '0'], status: 1, answer })),
+    { code: 2, args: [s.out, '0', '8'], answer: 'kept' },
+    { code: 30, args: [s.out, '2'], answer: '' },
+  ]);
+  await absent(missing);
+  assert.equal(await readFile(s.out, 'utf8'), 'ke');
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file truncate rejects malformed lengths, argument counts and OS strings before filesystem access', async t => {
+  const resize = t.mock.method(fsPromises, 'truncate', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { resize.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path'], ['path', '0', 'surplus']].map(args => ({ code: 30, args,
+    status: 1, answer: `IO: OS request 30 expects 2 arguments, got ${args.length}` })));
+  const invalid = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-1', '-0', '+1', '1.5', '1e2', '0x10', 'NaN', 'Infinity', '１', '9007199254740992', '9'.repeat(400)];
+  await slotScript(invalid.map(length => ({ code: 30, args: ['path', length],
+    status: 1, answer: 'IO: invalid OS numeric argument' })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (const args of [[bytes, '0'], ['path', bytes]]) {
+      await assert.rejects(slotScript([{ code: 30, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(resize.mock.callCount(), 0);
+});
+
+test('file truncate forwards exact safe lengths and ignores its binary payload', async t => {
+  const resize = t.mock.method(fsPromises, 'truncate', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { resize.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  const lengths = [['0', 0], ['0007', 7], ['65537', 65537], ['1073741824', 1073741824],
+    ['2147483648', 2147483648], ['4294967296', 4294967296], ['9007199254740991', 9007199254740991]];
+  await slotScript(lengths.map(([length]) => ({ code: 30, args: [path, length],
+    body: Buffer.alloc(65537, 255), answer: '' })));
+  assert.deepEqual(resize.mock.calls.map(call => call.arguments), lengths.map(([, length]) => [path, length]));
+});
+
+test('file truncate forwards OS failures and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'ENOSPC', 'EFBIG', 'EROFS', 'EIO'];
+  const resize = t.mock.method(fsPromises, 'truncate', async () => {
+    const code = failures.shift();
+    if (code) throw Object.assign(new Error('injected truncate failure'), { code });
+  });
+  syncBuiltinESMExports();
+  t.after(() => { resize.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 30, args: ['path', '3'],
+    status: 1, answer: `${code}: injected truncate failure` }));
+  await slotScript([...script, { code: 30, args: ['path', '3'], answer: '' }]);
+  assert.equal(resize.mock.callCount(), 6);
 });
 
 test('file append preserves binary contents across empty and maximum-size chunks', async t => {

@@ -1,0 +1,33 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Dh2NOD",
+  "command_index": 5,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/transfer-size-bound/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/transfer-size-bound",
+  "exit_code": 1,
+  "stdout_sha256": "dafb2d77b76c1f2e63390bd29b1a2579f859137d91ea2a9f2d4cb239bedeb7da",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 4073,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 5,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file truncate shrinks, extends with zeros, repeats and composes with append and reads",
+    "file truncate forwards exact safe lengths and ignores its binary payload"
+  ]
+}

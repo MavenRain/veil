@@ -1,0 +1,32 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Dh2NOD",
+  "command_index": 4,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/unchecked-length/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/unchecked-length",
+  "exit_code": 1,
+  "stdout_sha256": "2973b249d28d300d00e9199cb61d8a29ae4e82b4218c3b57e123d6a42dbc79bf",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2841,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file truncate rejects malformed lengths, argument counts and OS strings before filesystem access"
+  ]
+}

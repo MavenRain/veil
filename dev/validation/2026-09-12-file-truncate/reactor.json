@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-file-truncate/.kanon-exec/run-SGS6RK",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate",
+  "exit_code": 0,
+  "stdout_sha256": "375f30e79d59bd7703ae5eee39a0a63d91f52501bbe4a3a8486f36425d602707",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 27,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 963 checks passed\n",
+  "stderr": ""
+}

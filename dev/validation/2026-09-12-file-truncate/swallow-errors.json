@@ -1,0 +1,33 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Dh2NOD",
+  "command_index": 7,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/swallow-errors/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/swallow-errors",
+  "exit_code": 1,
+  "stdout_sha256": "09b1bc97ed7c225acc1f0abe16d83f2a4fbc32d84da9cbf4321e4fa67e203f16",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 3948,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 5,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file truncate reports path failures without creating entries and continues",
+    "file truncate forwards OS failures and resumes subsequent requests"
+  ]
+}

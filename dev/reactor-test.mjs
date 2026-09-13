@@ -479,6 +479,95 @@ try {
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
 
+  const fileTruncate = join(scratch, 'file-truncate.wasm');
+  const fileTruncateBuild = run(['build', shared, fixture('file-truncate'), '-o', fileTruncate,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileTruncateBuild.status, 0, fileTruncateBuild.stderr));
+  const fileTruncateBytes = readFileSync(fileTruncate);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileTruncateBytes)).length, 0));
+  const { instance: fileTruncateInstance } = await WebAssembly.instantiate(fileTruncateBytes);
+  const fileTruncateApi = fileTruncateInstance.exports;
+  const fileTruncateArguments = ['../héllo//alias/../file', '0003'];
+  let fileTruncateWords = fileTruncateApi.emptyWords();
+  for (const text of [...fileTruncateArguments].reverse()) {
+    let word = fileTruncateApi.emptyBytes();
+    for (const byte of Buffer.from(text).reverse()) word = fileTruncateApi.consBytes(byte, word);
+    fileTruncateWords = fileTruncateApi.consWords(word, fileTruncateWords);
+  }
+  const fileTruncatePending = fileTruncateApi.init(fileTruncateWords);
+  verify(() => assert.equal(fileTruncateApi.requestCode(fileTruncatePending), 30));
+  let fileTruncateForwarded = fileTruncateApi.requestArgs(fileTruncatePending);
+  for (const text of fileTruncateArguments) {
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTruncateApi,
+      fileTruncateApi.wordsHead(fileTruncateForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileTruncateForwarded = fileTruncateApi.wordsTail(fileTruncateForwarded);
+  }
+  verify(() => assert.equal(fileTruncateApi.wordsEmpty(fileTruncateForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTruncateApi,
+    fileTruncateApi.requestBody(fileTruncatePending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileTruncateApi.exitCode(fileTruncatePending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EFBIG: injected failure')]]) {
+    let bytes = fileTruncateApi.emptyBytes();
+    for (const byte of Buffer.from(answer).reverse()) bytes = fileTruncateApi.consBytes(byte, bytes);
+    const reporting = fileTruncateApi.resume(fileTruncatePending, status, bytes);
+    verify(() => assert.equal(fileTruncateApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileTruncateApi.wordsEmpty(fileTruncateApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTruncateApi,
+      fileTruncateApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileTruncateApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileTruncateApi.resume(reporting, outputStatus, fileTruncateApi.emptyBytes());
+      verify(() => assert.equal(fileTruncateApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileTruncateApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileTruncateApi.wordsEmpty(fileTruncateApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileTruncateApi.bytesEmpty(fileTruncateApi.requestBody(finished)), 1));
+      const stillFinished = fileTruncateApi.resume(finished, 1, bytes);
+      verify(() => assert.equal(fileTruncateApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileTruncateApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const fileTruncatePath = join(scratch, 'truncate héllo');
+  const fileTruncatePrefix = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(fileTruncatePath, fileTruncatePrefix, { mode: 0o640 });
+  const fileTruncateBefore = lstatSync(fileTruncatePath);
+  for (const args of [[], [fileTruncatePath], [fileTruncatePath, '0', 'surplus']]) {
+    const rejected = runModule([fileTruncate, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 30 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.deepEqual(readFileSync(fileTruncatePath), fileTruncatePrefix));
+  }
+  for (const length of ['', '-1', '1.5', '9007199254740992', '1\n']) {
+    const rejected = runModule([fileTruncate, fileTruncatePath, length]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, 'IO: invalid OS numeric argument'));
+    verify(() => assert.equal(rejected.stderr, ''));
+    verify(() => assert.deepEqual(readFileSync(fileTruncatePath), fileTruncatePrefix));
+  }
+  for (const [length, expected] of [['0003', fileTruncatePrefix.subarray(0, 3)],
+    ['3', fileTruncatePrefix.subarray(0, 3)],
+    ['65537', Buffer.concat([fileTruncatePrefix.subarray(0, 3), Buffer.alloc(65534)])],
+    ['0', Buffer.alloc(0)]]) {
+    const resized = runModule([fileTruncate, basename(fileTruncatePath), length]);
+    verify(() => assert.equal(resized.status, 0, resized.error ?? resized.stderr));
+    verify(() => assert.equal(resized.stdout, ''));
+    verify(() => assert.equal(resized.stderr, ''));
+    verify(() => assert.deepEqual(readFileSync(fileTruncatePath), expected));
+    const after = lstatSync(fileTruncatePath);
+    verify(() => assert.deepEqual([after.dev, after.ino, after.mode],
+      [fileTruncateBefore.dev, fileTruncateBefore.ino, fileTruncateBefore.mode]));
+  }
+  const fileTruncateMissing = join(scratch, 'truncate-missing');
+  for (const [path, error] of [[fileTruncateMissing, /^ENOENT:/],
+    [join(fileTruncateMissing, 'child'), /^ENOENT:/], [scratch, /^EISDIR:/], ['', /^ENOENT:/]]) {
+    const rejected = runModule([fileTruncate, path, '0']);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, error));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.equal(existsSync(fileTruncateMissing), false));
+  verify(() => assert.deepEqual(readFileSync(fileTruncatePath), Buffer.alloc(0)));
+
   const fileAppend = join(scratch, 'file-append.wasm');
   const fileAppendBuild = run(['build', shared, fixture('file-append'), '-o', fileAppend,
     ...reactorExports.flatMap(name => ['--export', name])]);

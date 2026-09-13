@@ -1,0 +1,37 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-Dh2NOD",
+  "command_index": 2,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file truncate",
+    "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/zero-length/dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-truncate-final-controls/zero-length",
+  "exit_code": 1,
+  "stdout_sha256": "8bdfc8b2bd3906903e5f1a0bada471f04edafcaad6553d0c022362cedb6e85d1",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 8111,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 7,
+    "suites": 0,
+    "pass": 1,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failed_tests": [
+    "file truncate shrinks, extends with zeros, repeats and composes with append and reads",
+    "file truncate preserves identity, permissions, hard links and final symlinks",
+    "file truncate preserves relative paths, parent symlinks and dot segments",
+    "file truncate reports path failures without creating entries and continues",
+    "file truncate rejects malformed lengths, argument counts and OS strings before filesystem access",
+    "file truncate forwards exact safe lengths and ignores its binary payload"
+  ]
+}
