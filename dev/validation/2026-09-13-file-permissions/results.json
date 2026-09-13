@@ -1,0 +1,95 @@
+{
+  "base": "27de049e758872ca077215a8ba1e365d68829d72",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "f55b5fdcfc5ba180227ff44aa4f18fe84e61e483a21e26b2cc101018434f6e5b",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "ef2c24bf7147fbba01956012d26a13ed059da14450bd71881d81b93b288c10ec",
+    "dev/reactor-test.mjs": "040f0326ccea827f76c32632e30a85bc15557a91eb77c579cbfbd25693f2e93c",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "test/fixtures/reactor/file-permissions.kan": "1959e5aa7a2c8fcaa6d97e56503a30145b2c6961b587a2683c9f29c14c74ef33",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "README.md": "e9b3533e4b94866f6e32e83c8fcae9d32bf06a7f44fb0f2b92dc9b6ecfb6b17e",
+    "REACTOR.md": "0d3928b5e4d572f9503c30c020bd73049f9b111e7f957eb3fe0780dc1189fd64",
+    "dev/REQUEST-ARITY.md": "b449a5e36d82b5d8d485c65812ea09c21be38c8e661e26b4e8f4eea239fe4d70",
+    "dev/FILE-PERMISSIONS.md": "282fd2c871749c5ac94104fcf0d2d0c962f2bba9751982a247bc2960ea0caaa8",
+    "dev/REACTOR-BUILD-LOG.md": "0d85393bed81fbde497331088bbaa8a34636f058bffe82894f468679c22ba476"
+  },
+  "capture_sha256": {
+    "README.md": "feafe17ad498e45f7a3dd04ab820db4c97afb39b398dd84a9b7fa1974ff66609",
+    "diff-check.json": "be4cb67ab8f6bcc8bd231809936ed39dadf3a45ca08bffcfb037c0a06632f52f",
+    "focused.json": "3d2b3b4ac5df8e59d2ff38cae92ef479be24d74a7b9e5d43c5ca7bf6126ab923",
+    "host-nat.json": "7b778a7f11cadbeff74ab66691a38af5c490761de879f018ecda0173e293b2ef",
+    "house.json": "cbeb5c29f09c083c441fe91888d63c9fa352cfd426672fbe231a2e7138fcff4c",
+    "reactor.json": "9337fc16b92259dab70223727240a84767567ce4ca296d511b88dc22fb855555",
+    "runtime.json": "c92b7d2f354ab73f379cead168624ede1d1de767b523b6340ae38653f622a219",
+    "syntax-reactor-tests.json": "89b63a0d45816e7815b237d9b3f772577998a2471a85060533364ee071c34e2b",
+    "syntax-runtime-tests.json": "db691a0597f1332b22d125e4807c8728cb2b750edae0c4c4bd0b97c10a314d08",
+    "syntax-runtime.json": "33be695bcfd4009e7edc63ba2b1ce764932284da875cd4bd5d279dca6b23a094",
+    "trusted-lines.json": "972e807e090d8f5c8a77fb6adc9055d39917d99fc2386f950b0c89cb99e19705"
+  },
+  "summary": {
+    "focused": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 163,
+        "suites": 0,
+        "pass": 163,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reactor": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "host-nat": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    }
+  },
+  "validation_scope": "Focused, RUNTIME, REACTOR and HOST-NAT under the existing 30-second watchdogs; HOUSE, TRUSTED-LINES, JavaScript syntax and tracked whitespace checks. Compiler reused by hash. No full compiler or milestone battery rerun; no timing waiver."
+}

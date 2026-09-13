@@ -779,6 +779,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file append', 29, [s.out]],
     ['file truncate', 30, [s.out, '0']],
     ['file mode', 31, [s.out, '384']],
+    ['file permissions', 32, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1091,6 +1092,148 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file permissions reads decimal bits including zero without changing the entry', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  try {
+    for (const mode of [0, 1, 0o111, 0o600, 0o644, 0o755, 0o777]) {
+      await fsPromises.chmod(s.out, mode);
+      const before = await stat(s.out);
+      await slotScript([{ code: 32, args: [s.out], body: Buffer.from([255, 0]), answer: String(mode) }]);
+      const after = await stat(s.out);
+      assert.deepEqual([after.mode, after.dev, after.ino, after.size, after.nlink, after.mtimeMs, after.ctimeMs],
+        [before.mode, before.dev, before.ino, before.size, before.nlink, before.mtimeMs, before.ctimeMs]);
+    }
+  } finally { await fsPromises.chmod(s.out, 0o600); }
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file permissions reads directories and special files while preserving special bits', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const directory = join(s.path, 'sticky');
+  await mkdir(directory);
+  await fsPromises.chmod(directory, 0o1750);
+  const before = await stat(directory);
+  assert.equal(before.mode & 0o7777, 0o1750);
+  const device = await stat('/dev/null');
+  assert.ok(device.isCharacterDevice());
+  await slotScript([
+    { code: 32, args: [directory + '/'], answer: '488' },
+    { code: 32, args: ['/dev/null'], answer: String(device.mode & 0o777) },
+  ]);
+  const after = await stat(directory);
+  assert.deepEqual([after.mode, after.ino, after.ctimeMs], [before.mode, before.ino, before.ctimeMs]);
+  assert.deepEqual(await readdir(directory), []);
+});
+
+test('file permissions follows symlinks and supports saving and restoring shared permissions', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  await writeFile(s.out, 'kept');
+  await fsPromises.chmod(s.out, 0o640);
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  const before = await lstat(live);
+  const [saved] = await slotScript([{ code: 32, args: [live], answer: '416' }]);
+  await slotScript([
+    { code: 31, args: [hard, '493'], answer: '' },
+    { code: 32, args: [live], answer: '493' },
+    { code: 31, args: [live, saved], answer: '' },
+    { code: 32, args: [hard], answer: saved },
+    { code: 32, args: [s.out], answer: saved },
+  ]);
+  const after = await lstat(live);
+  assert.deepEqual([after.mode, after.ino, after.ctimeMs], [before.mode, before.ino, before.ctimeMs]);
+  assert.equal(await readlink(live), 'stdout');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file permissions preserves relative Unicode paths and native parent symlink resolution', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const [path, mode] of [[actual, 0o755], [decoy, 0o600], [unicode, 0o640]]) {
+    await writeFile(path, 'kept');
+    await fsPromises.chmod(path, mode);
+  }
+  await slotScript([
+    { code: 32, args: [relative(process.cwd(), unicode)], answer: '416' },
+    { code: 32, args: [alias + '//../data'], answer: '493' },
+    { code: 32, args: [decoy], answer: '384' },
+  ]);
+});
+
+test('file permissions reports native path errors and continues without creating entries', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await fsPromises.chmod(s.out, 0o600);
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 32, args: [path], status: 1, answer })),
+    { code: 32, args: [s.out], answer: '384' },
+  ]);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file permissions rejects argument counts and undecodable paths before stat', async t => {
+  const inspect = t.mock.method(fsPromises, 'stat', async () => ({ mode: 0o100600 }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 32, args,
+    status: 1, answer: `IO: OS request 32 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 32, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('file permissions excludes file type and special bits and forwards the literal path', async t => {
+  const modes = [0o107755, 0o047700, 0o020000, 0o147777];
+  const inspect = t.mock.method(fsPromises, 'stat', async () => ({ mode: modes.shift() }));
+  const opened = t.mock.method(fsPromises, 'open');
+  const read = t.mock.method(fsPromises, 'readFile');
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); opened.mock.restore(); read.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  await slotScript(['493', '448', '0', '511'].map(answer => ({ code: 32, args: [path],
+    body: Buffer.alloc(65537, 255), answer })));
+  assert.deepEqual(inspect.mock.calls.map(call => call.arguments), Array.from({ length: 4 }, () => [path]));
+  const contentCalls = [opened, read].flatMap(spy => spy.mock.calls)
+    .filter(call => call.arguments.at(0) === path);
+  assert.deepEqual(contentCalls, []);
+});
+
+test('file permissions forwards host errors and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'EPERM', 'EIO', undefined];
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    if (failures.length) throw Object.assign(new Error('injected stat failure'), { code: failures.shift() });
+    return { mode: 0o100640 };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  const script = failures.map(code => ({ code: 32, args: ['path'],
+    status: 1, answer: `${code ?? 'IO'}: injected stat failure` }));
+  await slotScript([...script, { code: 32, args: ['path'], answer: '416' }]);
+  assert.equal(inspect.mock.callCount(), 5);
 });
 
 test('file mode changes permission bits without replacing the file or changing its bytes', { skip: process.platform === 'win32' }, async t => {

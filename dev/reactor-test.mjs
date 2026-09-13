@@ -479,6 +479,49 @@ try {
   verify(() => assert.throws(() => lstatSync(hardLinkMissing), { code: 'ENOENT' }));
   verify(() => assert.throws(() => lstatSync(join(scratch, 'hard-link-absent-parent')), { code: 'ENOENT' }));
 
+  const filePermissions = join(scratch, 'file-permissions.wasm');
+  const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(filePermissionsBuild.status, 0, filePermissionsBuild.stderr));
+  const filePermissionsBytes = readFileSync(filePermissions);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(filePermissionsBytes)).length, 0));
+  const { instance: filePermissionsInstance } = await WebAssembly.instantiate(filePermissionsBytes);
+  const permissionsApi = filePermissionsInstance.exports;
+  const permissionsPath = '../héllo//alias/../file';
+  const permissionsBytes = bytes => {
+    let result = permissionsApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = permissionsApi.consBytes(byte, result);
+    return result;
+  };
+  const permissionsPending = permissionsApi.init(permissionsApi.consWords(
+    permissionsBytes(permissionsPath), permissionsApi.emptyWords()));
+  verify(() => assert.equal(permissionsApi.requestCode(permissionsPending), 32));
+  const permissionsArgs = permissionsApi.requestArgs(permissionsPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(permissionsApi,
+    permissionsApi.wordsHead(permissionsArgs), Buffer.byteLength(permissionsPath))), Buffer.from(permissionsPath)));
+  verify(() => assert.equal(permissionsApi.wordsEmpty(permissionsApi.wordsTail(permissionsArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(permissionsApi,
+    permissionsApi.requestBody(permissionsPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(permissionsApi.exitCode(permissionsPending), 1));
+  for (const [status, answer] of [[0, '493'], [1, 'EACCES: injected failure']]) {
+    const reporting = permissionsApi.resume(permissionsPending, status, permissionsBytes(answer));
+    verify(() => assert.equal(permissionsApi.requestCode(reporting), 6));
+    verify(() => assert.equal(permissionsApi.wordsEmpty(permissionsApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(permissionsApi,
+      permissionsApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(permissionsApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = permissionsApi.resume(reporting, outputStatus, permissionsApi.emptyBytes());
+      verify(() => assert.equal(permissionsApi.requestCode(finished), 0));
+      verify(() => assert.equal(permissionsApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(permissionsApi.wordsEmpty(permissionsApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(permissionsApi.bytesEmpty(permissionsApi.requestBody(finished)), 1));
+      const stillFinished = permissionsApi.resume(finished, 1, permissionsBytes('ignored'));
+      verify(() => assert.equal(permissionsApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(permissionsApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
   const fileMode = join(scratch, 'file-mode.wasm');
   const fileModeBuild = run(['build', shared, fixture('file-mode'), '-o', fileMode,
     ...reactorExports.flatMap(name => ['--export', name])]);
@@ -555,8 +598,39 @@ try {
     if (process.platform !== 'win32') verify(() => assert.equal(after.mode & 0o777, Number(mode)));
     verify(() => assert.deepEqual([after.dev, after.ino, after.size],
       [fileModeBefore.dev, fileModeBefore.ino, fileModeBefore.size]));
+    const inspected = runModule([filePermissions, basename(fileModePath)]);
+    verify(() => assert.equal(inspected.status, 0, inspected.error ?? inspected.stderr));
+    verify(() => assert.equal(inspected.stdout, String(after.mode & 0o777)));
+    verify(() => assert.equal(inspected.stderr, ''));
+    verify(() => assert.equal(lstatSync(fileModePath).mode, after.mode));
   }
   verify(() => assert.deepEqual(readFileSync(fileModePath), fileModeContent));
+  const permissionsDirectory = join(scratch, 'permissions-directory');
+  mkdirSync(permissionsDirectory, { mode: 0o700 });
+  const permissionsTargets = [permissionsDirectory + '/'];
+  if (process.platform !== 'win32') {
+    const permissionsLink = join(scratch, 'permissions-link');
+    symlinkSync(basename(fileModePath), permissionsLink);
+    permissionsTargets.push(permissionsLink);
+  }
+  for (const path of permissionsTargets) {
+    const inspected = runModule([filePermissions, path]);
+    verify(() => assert.equal(inspected.status, 0, inspected.error ?? inspected.stderr));
+    verify(() => assert.equal(inspected.stdout, String(statSync(path).mode & 0o777)));
+    verify(() => assert.equal(inspected.stderr, ''));
+  }
+  for (const args of [[], [fileModePath, 'surplus']]) {
+    const rejected = runModule([filePermissions, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.equal(rejected.stdout, `IO: OS request 32 expects 1 argument, got ${args.length}`));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  const permissionsMissing = join(scratch, 'permissions-missing');
+  const permissionsRejected = runModule([filePermissions, permissionsMissing]);
+  verify(() => assert.equal(permissionsRejected.status, 1, permissionsRejected.error ?? permissionsRejected.stderr));
+  verify(() => assert.match(permissionsRejected.stdout, /^ENOENT:/));
+  verify(() => assert.equal(permissionsRejected.stderr, ''));
+  verify(() => assert.equal(existsSync(permissionsMissing), false));
   const fileModeMissing = join(scratch, 'mode-missing');
   for (const path of [fileModeMissing, join(fileModeMissing, 'child'), '']) {
     const rejected = runModule([fileMode, path, '493']);

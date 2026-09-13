@@ -1,0 +1,18 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-dEzMCd",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "--check",
+    "runtime/reactor.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-permissions",
+  "exit_code": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "",
+  "stderr": ""
+}

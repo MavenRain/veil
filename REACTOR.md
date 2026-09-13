@@ -164,8 +164,9 @@ the left list's length.
 | 29 | path; payload is content | Append at most 65536 raw bytes, creating a private file if absent; return an empty answer |
 | 30 | path, length | Resize an existing file to the decimal byte length; return an empty answer |
 | 31 | path, mode | Change existing permissions to a decimal mode from 0 to 511; return an empty answer |
+| 32 | path | Read ordinary permission bits as a decimal value from 0 to 511 |
 
-Operations 1 to 31 check argument counts before performing the operation.
+Operations 1 to 32 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -187,7 +188,8 @@ the [file copy regressions](dev/FILE-COPY.md) cover operation 27,
 the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28,
 the [file append regressions](dev/FILE-APPEND.md) cover operation 29,
 the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30,
-and the [file mode regressions](dev/FILE-MODE.md) cover operation 31.
+the [file mode regressions](dev/FILE-MODE.md) cover operation 31,
+and the [permission inspection regressions](dev/FILE-PERMISSIONS.md) cover operation 32.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -429,6 +431,29 @@ the write permission only, as described in the
 [Node file-mode documentation](https://nodejs.org/api/fs.html#file-modes).
 Native permission and link tests cover macOS; Windows and ACL interactions
 were not exercised. See the [file mode contract and tests](dev/FILE-MODE.md).
+
+Operation 32 calls `stat(path)` with exactly one argument and returns the nine
+ordinary permission bits as ASCII decimal bytes from `0` to `511`, without
+leading zeros, a newline or a NUL terminator. For example, octal `0755` returns
+`493`. File-type bits and the setuid, setgid and sticky bits are excluded.
+The request observes metadata without changing permissions or opening the
+entry's contents. It accepts directories and special files as well as regular
+files, and follows final symlinks to their targets.
+
+The path is passed unchanged after NUL-free UTF-8 decoding, preserving native
+resolution of relative paths, parent symlinks, dot segments and trailing
+separators. Missing paths, dangling targets, symlink loops and other host
+failures return status 1 and `CODE: message` through `resume`. No missing entry
+is created. The payload is unused, while normal request decoding limits still
+apply. A successful answer records the mode at the time of the metadata read;
+a later request can observe a changed or replaced entry. These bits do not
+describe ACLs or guarantee that another filesystem operation will succeed.
+
+Programs can save and restore ordinary bits by passing the answer to operation
+31. That operation clears special bits, so this pair does not preserve an
+entry's full permission word. Native permission and link tests cover macOS;
+Windows and ACL interactions were not exercised. See the
+[permission inspection contract and tests](dev/FILE-PERMISSIONS.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

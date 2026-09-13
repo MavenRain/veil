@@ -1,0 +1,33 @@
+-- Read existing permissions, then report the host answer and output status.
+
+mu FilePermissionsState : Type 0 with
+| requested : Words -> FilePermissionsState
+| reporting : Nat -> Bytes -> FilePermissionsState
+| finished : Nat -> FilePermissionsState
+
+def init (argv : Words) : FilePermissionsState := requested argv
+def resume (state : FilePermissionsState) (status : Nat) (answer : Bytes) : FilePermissionsState :=
+  case state as current in FilePermissionsState return FilePermissionsState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FilePermissionsState) : Nat :=
+  case state as current in FilePermissionsState return Nat with
+  | requested args => 32
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FilePermissionsState) : Words :=
+  case state as current in FilePermissionsState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FilePermissionsState) : Bytes :=
+  case state as current in FilePermissionsState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FilePermissionsState) : Nat :=
+  case state as current in FilePermissionsState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

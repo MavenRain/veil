@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-permissions/.kanon-exec/run-MXjVzx",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-permissions",
+  "exit_code": 0,
+  "stdout_sha256": "cb84a1b02890efc4ffba45356d784263dbe3358697997968abc6653865199cee",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 1141 checks passed\n",
+  "stderr": ""
+}

@@ -1,0 +1,27 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-permissions/.kanon-exec/run-QlgUMZ",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-permissions",
+  "exit_code": 0,
+  "stdout_sha256": "68574147f1616f5d80bb5839c3002ae071e667d5f30707b5d98664abe450baaf",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 31873,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 163,
+    "suites": 0,
+    "pass": 163,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

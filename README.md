@@ -65,6 +65,9 @@ cover lengths, links, path resolution and request failures.
 Operation 31 changes ordinary file and directory permissions, including making
 generated programs executable. The [file mode regressions](dev/FILE-MODE.md)
 cover decimal modes, links, path resolution and request failures.
+Operation 32 reads ordinary permission bits as a decimal value that operation 31
+can accept. The [permission inspection regressions](dev/FILE-PERMISSIONS.md)
+cover files, directories, links, special bits and request failures.
 
 Function parameters can share a type and quantity:
 

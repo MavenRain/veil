@@ -563,3 +563,30 @@ battery was not repeated. Native tests ran on macOS; Windows, ACL
 interactions and concurrent path replacement were not exercised. The
 [file mode validation record](validation/2026-09-13-file-mode/README.md)
 pins final source bytes, compiler bytes and each recorded evidence file.
+
+## Filesystem permission inspection, 2026-09-13
+
+Operation 32 reads the nine ordinary permission bits of an existing entry
+as decimal bytes from 0 to 511. It accepts exactly one path, follows final
+symlinks and leaves file-type and special bits out of the answer. Programs
+can pass the answer to operation 31 to restore ordinary permissions; that
+operation clears special bits. Host errors resume with status 1.
+
+Eight focused runtime tests cover files, directories, a character device,
+unchanged contents and identity, preservation of sticky bits, symlink
+resolution, hard links, save/change/restore composition, relative Unicode
+paths, request validation and error propagation. A compiled Kanon fixture
+checks request bytes, answer forwarding, output failure, terminal stability
+and native filesystem behavior. The shared arity matrix includes operation 32.
+
+The focused selection passed 8/8 tests, RUNTIME passed 163/163 with no skips,
+REACTOR passed 1141 checks, and HOST-NAT passed 16/16. All four commands used
+the existing 30-second watchdogs. The compiler executable was reused by
+SHA-256 from the preceding slice, with compiler sources unchanged. The full
+compiler and milestone battery was not rerun. Native tests ran on macOS.
+No defect controls were run for this slice, and the record holds no
+`controls.json` and no capture of a mutated runtime.
+
+The [permission inspection validation record](validation/2026-09-13-file-permissions/README.md)
+records the remaining static checks, command captures, final source hashes
+and validation scope.
