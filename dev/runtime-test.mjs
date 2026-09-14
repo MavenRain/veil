@@ -789,6 +789,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file modified', 33, [s.out]],
     ['file accessed', 34, [s.out]],
     ['file changed', 35, [s.out]],
+    ['file created', 36, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1573,6 +1574,156 @@ test('file changed forwards host errors and resumes subsequent requests', async 
   syncBuiltinESMExports();
   t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...requests, { code: 35, args: ['path'], answer: '-1' }]);
+  assert.equal(inspect.mock.callCount(), 5);
+});
+
+test('file created returns native birth nanoseconds without changing contents or metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  await fsPromises.utimes(s.out, 1, 2);
+  const metadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  const before = await stat(s.out, { bigint: true });
+  await slotScript([
+    { code: 36, args: [s.out], answer: String(before.birthtimeNs) },
+    { code: 36, args: [s.out], body: Buffer.from([255, 0]), answer: String(before.birthtimeNs) },
+  ]);
+  assert.deepEqual(metadata(await stat(s.out, { bigint: true })), metadata(before));
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file created reads current host metadata after append and permission changes', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept', { mode: 0o600 });
+  const before = await stat(s.out, { bigint: true });
+  await slotScript([
+    { code: 36, args: [s.out], answer: String(before.birthtimeNs) },
+    { code: 29, args: [s.out], body: Buffer.from(' appended'), answer: '' },
+    { code: 31, args: [s.out, '420'], answer: '' },
+  ]);
+  // Some hosts substitute ctime or revise birthtime. Compare with fresh metadata.
+  const after = await stat(s.out, { bigint: true });
+  await slotScript([{ code: 36, args: [s.out], answer: String(after.birthtimeNs) }]);
+  assert.equal(after.ino, before.ino);
+  assert.equal(after.mode & 0o777n, 0o644n);
+  assert.equal(await readFile(s.out, 'utf8'), 'kept appended');
+});
+
+test('file created supports private special files and directories and follows final symlinks and hard links', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  const directoryLink = join(s.path, 'directory-link');
+  await writeFile(s.out, 'kept');
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  await symlink('.', directoryLink);
+  const special = privateFifo(join(s.path, 'fifo'));
+  assert.ok((await stat(special)).isFIFO());
+  const expected = (await stat(s.out, { bigint: true })).birthtimeNs;
+  assert.equal((await stat(hard, { bigint: true })).birthtimeNs, expected);
+  const requests = [s.out, hard, live].map(path => ({ code: 36, args: [path], answer: String(expected) }));
+  for (const path of [s.path + '/', directoryLink, special]) requests.push({ code: 36, args: [path],
+    answer: String((await stat(path, { bigint: true })).birthtimeNs) });
+  await slotScript(requests);
+  assert.equal(await readlink(live), 'stdout');
+  assert.equal(await readFile(hard, 'utf8'), 'kept');
+});
+
+test('file created preserves relative Unicode paths and native parent symlink resolution', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const path of [actual, decoy, unicode]) await writeFile(path, 'kept');
+  await slotScript([
+    { code: 36, args: [relative(process.cwd(), unicode)],
+      answer: String((await stat(unicode, { bigint: true })).birthtimeNs) },
+    { code: 36, args: [alias + '//../data'],
+      answer: String((await stat(actual, { bigint: true })).birthtimeNs) },
+    { code: 36, args: [decoy], answer: String((await stat(decoy, { bigint: true })).birthtimeNs) },
+  ]);
+});
+
+test('file created reports native path errors and continues without creating entries', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 36, args: [path], status: 1, answer })),
+    { code: 36, args: [s.out], answer: String((await stat(s.out, { bigint: true })).birthtimeNs) },
+  ]);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file created rejects argument counts and undecodable paths before stat', async t => {
+  const inspect = t.mock.method(fsPromises, 'stat', async () => ({ birthtimeNs: 0n }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 36, args,
+    status: 1, answer: `IO: OS request 36 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 36, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('file created preserves exact signed nanoseconds and literal paths without opening contents', async t => {
+  const values = [0n, 1n, 999999n, 1000001n, 9007199254740993n, 1700000000123456789n,
+    -1n, -1700000000123456789n, -(2n ** 63n), 2n ** 63n - 1n, 33n, 0n];
+  const pending = [...values];
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    const birthtimeNs = pending.shift();
+    return { birthtimeNs, birthtimeMs: Number(birthtimeNs) / 1000000,
+      atimeNs: 11n, mtimeNs: 22n, ctimeNs: 33n };
+  });
+  const originalRead = fsPromises.readFile;
+  const read = t.mock.method(fsPromises, 'readFile', async (path, ...args) => {
+    assert.equal(path.href, new URL('../runtime/reactor.mjs', import.meta.url).href);
+    return originalRead(path, ...args);
+  });
+  const opened = t.mock.method(fsPromises, 'open', () => assert.fail('timestamp inspection opened contents'));
+  syncBuiltinESMExports();
+  t.after(() => {
+    for (const mock of [inspect, read, opened]) mock.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const path = '../héllo//alias/../file';
+  await slotScript(values.map(value => ({ code: 36, args: [path],
+    body: Buffer.alloc(65537, 255), answer: String(value) })));
+  assert.equal(inspect.mock.callCount(), values.length);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [path, { bigint: true }]);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal(opened.mock.callCount(), 0);
+});
+
+test('file created forwards host errors and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'EIO', 'EOVERFLOW'].map(code => Object.assign(new Error('injected failure'), { code }));
+  failures.push(new Error('injected failure'));
+  const requests = failures.map(error => ({ code: 36, args: ['path'], status: 1,
+    answer: `${error.code ?? 'IO'}: injected failure` }));
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    if (failures.length) throw failures.shift();
+    return { birthtimeNs: -1n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...requests, { code: 36, args: ['path'], answer: '-1' }]);
   assert.equal(inspect.mock.callCount(), 5);
 });
 

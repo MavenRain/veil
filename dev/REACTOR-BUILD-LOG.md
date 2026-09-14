@@ -709,3 +709,43 @@ milestone gate ladder was not rerun, and no timing waiver is claimed. Native
 tests ran on macOS; Windows was not exercised. The
 [status-change time validation record](validation/2026-09-13-file-changed/README.md)
 contains commands, full captures, source hashes and a control reproducer.
+
+## File creation time, 2026-09-14
+
+Operation 36 accepts exactly one path and returns the host's `birthtimeNs`
+from bigint stat as signed decimal nanoseconds since the Unix epoch. It
+preserves the integer and literal path, follows final symlinks, and performs
+metadata inspection without opening contents or setting timestamps. Host
+errors resume with status 1; the request body is unused. Zero and values
+equal to ctime pass through unchanged, including host fallback values.
+The contract records the host's resolution and update limitations.
+
+Eight focused runtime tests cover native observations, composition with
+append and chmod, files and directories, private FIFOs, links, path errors,
+request validation, exact signed formatting and error recovery. The shared
+arity matrix includes operation 36. The compiled fixture checks the request
+and response bytes, signed endpoints, output failures and terminal states,
+then runs through the native host. Its scratch filenames are distinct from
+the directory-creation fixture, correcting a collision caught by the first
+compiled test run.
+
+Validation against the compiler reused by hash from base `9654b0d` passed:
+
+- Focused creation-time tests: 8/8. Complete runtime suite: 199/199, with no
+  failures, cancellations or skips.
+- Compiled reactor: 1631 checks, 162 more than the preceding slice, under a
+  120-second watchdog. This direct run does not establish the separate
+  30-second gate verdict.
+- HOST-NAT: 16/16. JavaScript syntax, HOUSE, TRUSTED-LINES and tracked
+  whitespace checks passed. Kernel lines remain 5246/5250; encoder lines
+  remain 246/600.
+- All 12 isolated defect controls were rejected: the base runtime, wrong
+  modification or status field, Number rounding, missing bigint options,
+  final-symlink inspection, missing arity, path normalization, content opening
+  or reading, rejecting zero and rejecting equality with ctime.
+
+Compiler sources and gate definitions are unchanged. The full compiler and
+milestone gate ladder was not rerun. Native tests ran on macOS; other host
+fallback policies and signed endpoints use injected metadata. The
+[creation time validation record](validation/2026-09-14-file-created/README.md)
+contains commands, full captures, source hashes and the control reproducer.

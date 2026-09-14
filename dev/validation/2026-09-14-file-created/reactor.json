@@ -1,0 +1,19 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-created/.kanon-exec/run-XW8bCe",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-created",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "72eb764c87db49749cd15de6b191da91e4c0670c51f7668379a68b511edc1136",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "stdout": "reactor: 1631 checks passed\n",
+  "stderr": ""
+}

@@ -77,6 +77,9 @@ pre-epoch values, links, precision and request failures.
 Operation 35 reads filesystem status-change time in the same format. The
 [status-change time regressions](dev/FILE-CHANGED.md) cover permission changes,
 native metadata, exact signed formatting, links and request failures.
+Operation 36 reads the host's creation-time field in the same format. The
+[creation time regressions](dev/FILE-CREATED.md) cover native metadata,
+host fallback values, exact signed formatting, links and request failures.
 
 Function parameters can share a type and quantity:
 

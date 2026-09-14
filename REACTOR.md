@@ -168,8 +168,9 @@ the left list's length.
 | 33 | path | Read modification time as signed decimal nanoseconds since the Unix epoch |
 | 34 | path | Read access time as signed decimal nanoseconds since the Unix epoch |
 | 35 | path | Read status-change time as signed decimal nanoseconds since the Unix epoch |
+| 36 | path | Read host creation time as signed decimal nanoseconds since the Unix epoch |
 
-Operations 1 to 35 check argument counts before performing the operation.
+Operations 1 to 36 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -194,8 +195,9 @@ the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30,
 the [file mode regressions](dev/FILE-MODE.md) cover operation 31,
 the [permission inspection regressions](dev/FILE-PERMISSIONS.md) cover operation 32,
 the [modification time regressions](dev/FILE-MODIFIED.md) cover operation 33,
-the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34, and
-the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35.
+the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34,
+the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35,
+and the [creation time regressions](dev/FILE-CREATED.md) cover operation 36.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -510,6 +512,26 @@ Native timestamps, permission changes, links and paths were tested on macOS.
 Pre-epoch values and signed 64-bit endpoints use injected filesystem results;
 Windows was not exercised. See the
 [status-change time contract and tests](dev/FILE-CHANGED.md).
+
+Operation 36 requires exactly one path and returns `birthtimeNs` from
+`stat(path, { bigint: true })` as signed ASCII decimal nanoseconds since the
+Unix epoch, with no leading zeros, plus sign, newline or terminator. The host
+formats the integer directly, follows final symlinks, accepts directories
+and special files, and leaves paths literal for native resolution. The body
+is unused, subject to shared decoding limits. Errors resume with status 1
+and `CODE: message`. The request does not open contents, create entries or
+set timestamps.
+
+This returns the host's creation-time field, including its fallback values.
+When unavailable, Node may report status-change time or zero; neither is
+rejected or reinterpreted. Darwin can also revise birthtime when an earlier
+modification time is set through `utimes`. Resolution and update behavior
+depend on the host and filesystem, so this is not an immutable creation
+record or unique file identity. See the
+[Node timestamp semantics](https://nodejs.org/api/fs.html#stat-time-values)
+and [creation time contract and tests](dev/FILE-CREATED.md). Native tests ran
+on macOS; fallback values and signed endpoints use injected metadata.
+Windows was not exercised.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

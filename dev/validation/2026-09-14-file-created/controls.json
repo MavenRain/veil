@@ -1,0 +1,199 @@
+{
+  "base": "9654b0de0b07669b4950fef5fe225254e24520a4",
+  "runtime_sha256": "6097dc779c434dba3efdc35c178da98baefa3ee3a2790cc2eefcdce38db4108e",
+  "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+  "controls": [
+    {
+      "name": "base-runtime",
+      "description": "Runtime from the base commit lacks operation 36.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 0,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "68f7a0b3a7a98398252d2204843c8f3bed1aa09da9c8f44a38c25ddd0e1c7aaf",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "base-runtime.json",
+      "capture_sha256": "a14320fbee46a6d4a324803e155f229d8e260230c4038d3c9c5bb334bb5273f9"
+    },
+    {
+      "name": "modification-time",
+      "description": "Return modification time instead of the creation-time field.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "33851e28e81164813c4ce5ac06a4fdff1887036239a428ac07150d475b38d8a6",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "modification-time.json",
+      "capture_sha256": "2662ae2c1adedf5ecd2f093073136e6caff318f7466dfde9055c2e45938a7759"
+    },
+    {
+      "name": "status-time",
+      "description": "Return status-change time instead of the creation-time field.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "83b96fc37f91c4a7f1a6b685ffc52e03a486fb4b9ee07a5e43914fd7914c6b74",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "status-time.json",
+      "capture_sha256": "227c94152562c787c17b81c7edaabe7995bb4fb16e2b4dc0cfc69b873940ed33"
+    },
+    {
+      "name": "rounded-number",
+      "description": "Round the creation timestamp through Number before formatting.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "0692a77dab215d44198df04c16178ff3bd48b01f9a67def9555ec2b48c5a5943",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "rounded-number.json",
+      "capture_sha256": "0d07871a1c3c46ae7d463c24ae4ac24525edeb31577faac373c046b913860cc6"
+    },
+    {
+      "name": "omit-bigint",
+      "description": "Omit the bigint option required for native nanosecond fields.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "3a79f62c86f1650653010defb8604751e3aed62cd3edceb83b5706c991504b9c",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "omit-bigint.json",
+      "capture_sha256": "f29e317b5991b0a18be50cf260efc993d5ad0f10b4c46f71c8ba098819fc9dc4"
+    },
+    {
+      "name": "inspect-symlink",
+      "description": "Inspect the final symlink instead of following it.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "4cd760e0d739641ab58956c0a32d6573297276aed0ed44a9955e30a460234a0d",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "inspect-symlink.json",
+      "capture_sha256": "d796acc6dbf5e6682644529bc290f280847f1aef228faa9c70b33caa027b1c29"
+    },
+    {
+      "name": "omit-arity",
+      "description": "Remove the arity entry for operation 36.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "fa257f34cc4b62e4cfdaacf61c1feb36408fc1fc8de3a293934c5e8570fc4560",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "omit-arity.json",
+      "capture_sha256": "45292bf0b547ba1c21f501d3cc8b1d28c8fe8fec7e035ab4e70cc3f49e722653"
+    },
+    {
+      "name": "normalize-path",
+      "description": "Lexically normalize paths before native symlink resolution.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "6ac9f24c029211f8bc8c15d3ccd8d7859a28a69acf750d427549783db31e99c7",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "normalize-path.json",
+      "capture_sha256": "07a18cfe6a667bbb9ebd96b2efd18514a2f447dcf1f991ee9a6b0630cdbe4693"
+    },
+    {
+      "name": "open-contents",
+      "description": "Open the requested entry before reading its metadata.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "f392f469a78411c304805ece095be13ff590d8d1fa4d5bc13b0cefb2f488738d",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "open-contents.json",
+      "capture_sha256": "056cc0adaa7c7e4b1f8fa64f15de9c5ea7e40d5ebdefa3911e7eddb769cb3580"
+    },
+    {
+      "name": "read-contents",
+      "description": "Read the requested entry before returning creation time.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "60e16b57a31335d82b90bf15880b5618105ff4a5c0093b549c88f33ce1dc59c0",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "read-contents.json",
+      "capture_sha256": "65f9d7bf00dd1f7dbae6a6db1713b6ba95acbf03354a1b50f144efc59ff68919"
+    },
+    {
+      "name": "reject-zero",
+      "description": "Reject zero instead of preserving the host field.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "484bb1004ee8a34d750738bd8a707bf226272ef85eba52f512fe69c54cda4b83",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "reject-zero.json",
+      "capture_sha256": "43df346190925f39e60361d87ee87453061aa2b3f935699472167786d92cf8b4"
+    },
+    {
+      "name": "reject-status-fallback",
+      "description": "Reject equality with ctime instead of preserving the host field.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "dbabc0661896f589db3b9e529efdecc4da4b1702a7a5ca79c86dfadd3fcd2164",
+      "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+      "capture": "reject-status-fallback.json",
+      "capture_sha256": "c8996782425333efd90d2eecd72de30bc2aea3c5b8b64a2529c2341fe2be9813"
+    }
+  ]
+}

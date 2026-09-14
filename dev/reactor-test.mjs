@@ -725,6 +725,97 @@ try {
   verify(() => assert.equal(readlinkSync(changedDangling), basename(changedMissing)));
   verify(() => assert.equal(existsSync(changedMissing), false));
 
+  const fileCreated = join(scratch, 'file-created.wasm');
+  const fileCreatedBuild = run(['build', shared, fixture('file-created'), '-o', fileCreated,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileCreatedBuild.status, 0, fileCreatedBuild.stderr));
+  const fileCreatedBytes = readFileSync(fileCreated);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileCreatedBytes)).length, 0));
+  const { instance: fileCreatedInstance } = await WebAssembly.instantiate(fileCreatedBytes);
+  const createdApi = fileCreatedInstance.exports;
+  const createdPath = '../héllo//alias/../file';
+  const createdBytes = bytes => {
+    let result = createdApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = createdApi.consBytes(byte, result);
+    return result;
+  };
+  const createdPending = createdApi.init(createdApi.consWords(
+    createdBytes(createdPath), createdApi.emptyWords()));
+  verify(() => assert.equal(createdApi.requestCode(createdPending), 36));
+  const createdArgs = createdApi.requestArgs(createdPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(createdApi,
+    createdApi.wordsHead(createdArgs), Buffer.byteLength(createdPath))), Buffer.from(createdPath)));
+  verify(() => assert.equal(createdApi.wordsEmpty(createdApi.wordsTail(createdArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(createdApi,
+    createdApi.requestBody(createdPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(createdApi.exitCode(createdPending), 1));
+  for (const [status, answer] of [[0, '0'], [0, '9007199254740993'],
+    [0, '1700000000123456789'], [0, '-1'], [0, '-9223372036854775808'],
+    [0, '9223372036854775807'], [1, 'EACCES: injected failure']]) {
+    const reporting = createdApi.resume(createdPending, status, createdBytes(answer));
+    verify(() => assert.equal(createdApi.requestCode(reporting), 6));
+    verify(() => assert.equal(createdApi.wordsEmpty(createdApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(createdApi,
+      createdApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(createdApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = createdApi.resume(reporting, outputStatus, createdApi.emptyBytes());
+      verify(() => assert.equal(createdApi.requestCode(finished), 0));
+      verify(() => assert.equal(createdApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(createdApi.wordsEmpty(createdApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(createdApi.bytesEmpty(createdApi.requestBody(finished)), 1));
+      const stillFinished = createdApi.resume(finished, 1, createdBytes('ignored'));
+      verify(() => assert.equal(createdApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(createdApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const createdFile = join(scratch, 'birthtime héllo');
+  const createdLink = join(scratch, 'birthtime-link');
+  const createdHard = join(scratch, 'birthtime-hard');
+  const createdMissing = join(scratch, 'birthtime-missing');
+  const createdDangling = join(scratch, 'birthtime-dangling');
+  writeFileSync(createdFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  utimesSync(createdFile, 1, 3);
+  symlinkSync(basename(createdFile), createdLink);
+  linkSync(createdFile, createdHard);
+  symlinkSync(basename(createdMissing), createdDangling);
+  const createdBefore = statSync(createdFile, { bigint: true });
+  verify(() => assert.equal(statSync(createdHard, { bigint: true }).birthtimeNs, createdBefore.birthtimeNs));
+  for (const path of [createdFile, createdLink, createdHard, scratch + '/', basename(createdFile)]) {
+    const expected = String(statSync(resolve(scratch, path), { bigint: true }).birthtimeNs);
+    const result = runModule([fileCreated, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, expected));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  const createdMetadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(createdMetadata(statSync(createdFile, { bigint: true })),
+    createdMetadata(createdBefore)));
+  chmodSync(createdFile, 0o644);
+  const createdAfter = statSync(createdFile, { bigint: true });
+  const createdAfterMode = runModule([fileCreated, createdFile]);
+  verify(() => assert.equal(createdAfterMode.status, 0, createdAfterMode.error ?? createdAfterMode.stderr));
+  verify(() => assert.equal(createdAfterMode.stdout, String(createdAfter.birthtimeNs)));
+  verify(() => assert.equal(createdAfterMode.stderr, ''));
+  verify(() => assert.equal(createdAfter.mode & 0o777n, 0o644n));
+  verify(() => assert.equal(createdAfter.mtimeNs, createdBefore.mtimeNs));
+  for (const [args, message] of [
+    [[], /^IO: OS request 36 expects 1 argument, got 0$/],
+    [[createdFile, 'surplus'], /^IO: OS request 36 expects 1 argument, got 2$/],
+    [[createdMissing], /^ENOENT:/], [[createdDangling], /^ENOENT:/],
+    [[createdFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileCreated, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(createdFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(createdDangling), basename(createdMissing)));
+  verify(() => assert.equal(existsSync(createdMissing), false));
+
   const filePermissions = join(scratch, 'file-permissions.wasm');
   const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,
     ...reactorExports.flatMap(name => ['--export', name])]);

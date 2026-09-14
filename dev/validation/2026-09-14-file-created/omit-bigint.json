@@ -1,0 +1,25 @@
+{
+  "name": "omit-bigint",
+  "description": "Omit the bigint option required for native nanosecond fields.",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file created preserves exact",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-created-controls-tlhibo3o/omit-bigint",
+  "exit_code": 1,
+  "counts": {
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "runtime_sha256": "3a79f62c86f1650653010defb8604751e3aed62cd3edceb83b5706c991504b9c",
+  "tests_sha256": "c7f601e2eb6a2f4ec33dc92201b7a580fd135122f30f61b80ee28d9e12080a82",
+  "stdout": "TAP version 13\n# Subtest: file created preserves exact signed nanoseconds and literal paths without opening contents\nnot ok 1 - file created preserves exact signed nanoseconds and literal paths without opening contents\n  ---\n  duration_ms: 91.293083\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-created-controls-tlhibo3o/omit-bigint/dev/runtime-test.mjs:1686:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        '../h\u00e9llo//alias/../file',\n    -   {\n    -     bigint: true\n    -   }\n      ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: '../h\u00e9llo//alias/../file'\n    1:\n      bigint: true\n  actual:\n    0: '../h\u00e9llo//alias/../file'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-created-controls-tlhibo3o/omit-bigint/dev/runtime-test.mjs:1710:49)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 187.414292\n",
+  "stderr": ""
+}

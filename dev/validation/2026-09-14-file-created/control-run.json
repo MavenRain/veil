@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-created/.kanon-exec/run-t46zpN",
+  "command_index": 1,
+  "argv": [
+    "python3",
+    "-I",
+    "dev/validation/2026-09-14-file-created/reproduce-controls.py",
+    "--output",
+    "/Users/oobi/Documents/gpt3/veil-created-controls"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-created",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "6a6c9346f785a859c83068939d01f754c389e2d8c77b74b57aba8b58316c5c0f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 511,
+  "stderr_bytes": 0,
+  "stdout": "base-runtime: rejected, 8/8 tests failed\nmodification-time: rejected, 1/1 tests failed\nstatus-time: rejected, 1/1 tests failed\nrounded-number: rejected, 1/1 tests failed\nomit-bigint: rejected, 1/1 tests failed\ninspect-symlink: rejected, 4/8 tests failed\nomit-arity: rejected, 1/1 tests failed\nnormalize-path: rejected, 1/1 tests failed\nopen-contents: rejected, 1/1 tests failed\nread-contents: rejected, 1/1 tests failed\nreject-zero: rejected, 1/1 tests failed\nreject-status-fallback: rejected, 1/1 tests failed\n",
+  "stderr": ""
+}
