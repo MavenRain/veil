@@ -1,0 +1,135 @@
+{
+  "base": "1b1dc234968bca647f5fdc5567c345b24ef4d35a",
+  "runtime_sha256": "0d47a40622b4e2002e1aacd463c9b20a924c97b4de1fb7f637b03dc3386d20e7",
+  "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+  "controls": [
+    {
+      "name": "base-runtime",
+      "description": "Runtime from the base commit lacks operation 34.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 0,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "6ed0e696ed6c67fcbdf44fc6c6a28b47f4cf10d5af1ff4c3b200d98019fee67a",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "base-runtime.json",
+      "capture_sha256": "3f809f217b75b8aa4c4900f73f066a441e764ff9b57638e126f190e36dc0af2e"
+    },
+    {
+      "name": "wrong-timestamp",
+      "description": "Return modification time instead of access time.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 1,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "cfe4488a383c1a5b5c9e099bf4abdd7f69d41be223d7fee75f47ca6b84293fe2",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "wrong-timestamp.json",
+      "capture_sha256": "b379641e0bbef8f5f070a70e7db4a8b901004cf0ad5ea40d5ac3b7bf84be3b49"
+    },
+    {
+      "name": "rounded-number",
+      "description": "Round the access time through Number before formatting.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 5,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "9f546a02a2c19245aca29a2b141e28b1de9a6cdc5f6f19ca601f7729238dcb01",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "rounded-number.json",
+      "capture_sha256": "04555bb0ec7c85756fce707865fa87481b6b4005144c41e332a99361b9685cdd"
+    },
+    {
+      "name": "inspect-symlink",
+      "description": "Inspect the final symlink instead of following it.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "b3327f492ccde393af12822c92ee80d7928cec6583233225e1fa2f024c2394f4",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "inspect-symlink.json",
+      "capture_sha256": "0e7b80ee80311c49a875e59cd8de7b8719f13f4645953d6ecf5da2b0242e6868"
+    },
+    {
+      "name": "omit-arity",
+      "description": "Remove the arity entry for operation 34.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "1ffdcb00b08992d8a22a2689751364c2b2d8a14b557cbe00bb7aedeeb54db8db",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "omit-arity.json",
+      "capture_sha256": "798077b85a65a88dcfe80d3812ea9fdd21f58b41d34cfa14e81b51ec055fa0de"
+    },
+    {
+      "name": "normalize-path",
+      "description": "Lexically normalize paths before native symlink resolution.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 5,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "d2296decb1ddc495ff84154fb8eac85e8401776f492956c3a5f112c8255e6571",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "normalize-path.json",
+      "capture_sha256": "4debbe38c8b35501b3fe70b2ad7dca222cc94ca5d46222cab5f7acd7393297d1"
+    },
+    {
+      "name": "open-contents",
+      "description": "Open the requested entry before reading its metadata.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "dadc647edf19fd053fd29d952c12fc2d893c5823dbbaabb343709fce10a34ca2",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "open-contents.json",
+      "capture_sha256": "b18de42603adf4854ca46a1bbc8645827b1da356f88a77fb0d86baa6e6c01eae"
+    },
+    {
+      "name": "modified-read-contents",
+      "description": "Read the requested entry before returning modification time.",
+      "exit_code": 1,
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "runtime_sha256": "3a743e7fca3136f3b6aa9fef7745674a8f854dad069b1d75c8a54add5507f989",
+      "tests_sha256": "86763897e7a9f54068a89f665e55fc0e3adbe2ad16f84e6956fac2fe471256e0",
+      "capture": "modified-read-contents.json",
+      "capture_sha256": "6be13224551f1d79e709e01b4f3cca780b813cf3bbbbe559b9c8f39368bafbc9"
+    }
+  ]
+}

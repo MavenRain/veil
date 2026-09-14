@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -551,6 +551,87 @@ try {
   verify(() => assert.deepEqual(readFileSync(modifiedFile), Buffer.from([0, 255, 65])));
   verify(() => assert.equal(readlinkSync(modifiedDangling), basename(modifiedMissing)));
   verify(() => assert.equal(existsSync(modifiedMissing), false));
+
+  const fileAccessed = join(scratch, 'file-accessed.wasm');
+  const fileAccessedBuild = run(['build', shared, fixture('file-accessed'), '-o', fileAccessed,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileAccessedBuild.status, 0, fileAccessedBuild.stderr));
+  const fileAccessedBytes = readFileSync(fileAccessed);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileAccessedBytes)).length, 0));
+  const { instance: fileAccessedInstance } = await WebAssembly.instantiate(fileAccessedBytes);
+  const accessedApi = fileAccessedInstance.exports;
+  const accessedPath = '../héllo//alias/../file';
+  const accessedBytes = bytes => {
+    let result = accessedApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = accessedApi.consBytes(byte, result);
+    return result;
+  };
+  const accessedPending = accessedApi.init(accessedApi.consWords(
+    accessedBytes(accessedPath), accessedApi.emptyWords()));
+  verify(() => assert.equal(accessedApi.requestCode(accessedPending), 34));
+  const accessedArgs = accessedApi.requestArgs(accessedPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(accessedApi,
+    accessedApi.wordsHead(accessedArgs), Buffer.byteLength(accessedPath))), Buffer.from(accessedPath)));
+  verify(() => assert.equal(accessedApi.wordsEmpty(accessedApi.wordsTail(accessedArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(accessedApi,
+    accessedApi.requestBody(accessedPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(accessedApi.exitCode(accessedPending), 1));
+  for (const [status, answer] of [[0, '0'], [0, '1700000000123456789'], [0, '-1'],
+    [1, 'EACCES: injected failure']]) {
+    const reporting = accessedApi.resume(accessedPending, status, accessedBytes(answer));
+    verify(() => assert.equal(accessedApi.requestCode(reporting), 6));
+    verify(() => assert.equal(accessedApi.wordsEmpty(accessedApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(accessedApi,
+      accessedApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(accessedApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = accessedApi.resume(reporting, outputStatus, accessedApi.emptyBytes());
+      verify(() => assert.equal(accessedApi.requestCode(finished), 0));
+      verify(() => assert.equal(accessedApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(accessedApi.wordsEmpty(accessedApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(accessedApi.bytesEmpty(accessedApi.requestBody(finished)), 1));
+      const stillFinished = accessedApi.resume(finished, 1, accessedBytes('ignored'));
+      verify(() => assert.equal(accessedApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(accessedApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const accessedFile = join(scratch, 'accessed héllo');
+  const accessedLink = join(scratch, 'accessed-link');
+  const accessedMissing = join(scratch, 'accessed-missing');
+  const accessedDangling = join(scratch, 'accessed-dangling');
+  writeFileSync(accessedFile, Buffer.from([0, 255, 65]));
+  utimesSync(accessedFile, 1, 3);
+  symlinkSync(basename(accessedFile), accessedLink);
+  symlinkSync(basename(accessedMissing), accessedDangling);
+  verify(() => assert.notEqual(lstatSync(accessedLink, { bigint: true }).atimeNs,
+    statSync(accessedFile, { bigint: true }).atimeNs));
+  for (const path of [accessedFile, accessedLink, scratch + '/', basename(accessedFile)]) {
+    const expected = String(statSync(resolve(scratch, path), { bigint: true }).atimeNs);
+    const result = runModule([fileAccessed, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, expected));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  utimesSync(accessedFile, new Date(-1000), new Date(2000));
+  const accessedBeforeEpoch = runModule([fileAccessed, accessedFile]);
+  verify(() => assert.equal(accessedBeforeEpoch.status, 0, accessedBeforeEpoch.error ?? accessedBeforeEpoch.stderr));
+  verify(() => assert.equal(accessedBeforeEpoch.stdout, '-1000000000'));
+  verify(() => assert.equal(accessedBeforeEpoch.stderr, ''));
+  for (const [args, message] of [
+    [[], /^IO: OS request 34 expects 1 argument, got 0$/],
+    [[accessedFile, 'surplus'], /^IO: OS request 34 expects 1 argument, got 2$/],
+    [[accessedMissing], /^ENOENT:/], [[accessedDangling], /^ENOENT:/],
+    [[accessedFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileAccessed, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(accessedFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(accessedDangling), basename(accessedMissing)));
+  verify(() => assert.equal(existsSync(accessedMissing), false));
 
   const filePermissions = join(scratch, 'file-permissions.wasm');
   const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,

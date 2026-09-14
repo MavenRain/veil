@@ -1,5 +1,11 @@
 # Filesystem modification time
 
+The access-time slice also strengthens these regressions: a private FIFO
+replaces the shared `/dev/null` timestamp, hard-link timestamp equality is
+explicit, and host spies reject content opens and reads. The
+[access-time validation record](validation/2026-09-13-file-accessed/README.md)
+pins these test changes; earlier captured records describe their own revision.
+
 Operation 33 accepts exactly one path and returns its last modification time
 as signed ASCII decimal nanoseconds since the Unix epoch. The answer has no
 leading zeros, plus sign, newline or terminator. A timestamp one nanosecond

@@ -630,3 +630,44 @@ endpoints used an injected filesystem result. Windows and concurrent path
 replacement were not exercised. The
 [modification time validation record](validation/2026-09-13-file-modified/README.md)
 pins final source bytes, compiler bytes, passing checks and failed attempts.
+
+## File access time, 2026-09-13
+
+Operation 34 accepts exactly one path and returns `atimeNs` from bigint
+`stat` as signed decimal nanoseconds since the Unix epoch. The host preserves
+the integer directly, follows final symlinks and leaves paths literal for
+native resolution. It does not open file contents or set timestamps. Errors
+resume with status 1, and the request body is unused. Filesystem update policy
+and resolution determine the observation; reading a file need not update it.
+
+Eight focused runtime tests cover native and injected timestamps, an actual
+pre-epoch Date, explicit updates, metadata preservation, native paths and
+errors, exact signed formatting and failure recovery. The shared arity matrix
+now includes operation 34, with a separate no-stat spy for malformed requests.
+The compiled fixture checks request bytes, answer propagation and terminal
+states, then runs through the host against native paths and a pre-epoch value.
+
+The existing modification-time tests now use a private FIFO instead of a
+shared `/dev/null` observation, assert hard-link timestamp equality explicitly,
+and reject content opens and reads through host spies. Earlier validation
+records remain snapshots of their original test bytes.
+
+Validation passed against the reused compiler from base `1b1dc23`:
+
+- The combined timestamp and arity selection passed 51/51. The complete runtime
+  suite passed 181/181, with no failures, cancellations or skips.
+- The compiled reactor suite passed 1353 checks, 108 more than the preceding
+  slice, under a 120-second watchdog. This direct invocation does not establish
+  the separate 30-second gate bound.
+- HOST-NAT passed 16/16. JavaScript syntax, HOUSE, TRUSTED-LINES and tracked
+  whitespace checks passed. Kernel lines remain 5246/5250; encoder lines
+  remain 246/600.
+- All eight defect controls were rejected, including the base runtime,
+  wrong timestamp, Number rounding, final-symlink inspection, missing arity,
+  path normalization, content opening and a modification-time content read.
+
+Compiler sources and gate definitions are unchanged. The full compiler and
+milestone gate ladder was not rerun, and no timing waiver is claimed. Native
+tests ran on macOS; Windows was not exercised. The
+[access-time validation record](validation/2026-09-13-file-accessed/README.md)
+contains commands, full captures, source hashes and a control reproducer.

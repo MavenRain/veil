@@ -1,0 +1,19 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-accessed/.kanon-exec/run-G34GAd",
+  "command_index": 4,
+  "argv": [
+    "zsh",
+    "dev/house.sh",
+    "."
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-accessed",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {},
+  "stdout_sha256": "bd46e158845b89364346ae38568b2b637534ccd707bfe99fd4c0d267448ac990",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 192,
+  "stderr_bytes": 0,
+  "stdout": "HOUSE no-exception OK\nHOUSE no-mutable-state OK\nHOUSE one-catch-site OK\n./test/sys_io.ml:19:  try Ok (thunk ()) with Sys_error m -> Error m\nHOUSE no-bool-match OK\nHOUSE no-em-dash OK\nHOUSE OK\n",
+  "stderr": ""
+}

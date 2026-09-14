@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-accessed/.kanon-exec/run-rGcc0U",
+  "command_index": 1,
+  "argv": [
+    "python3",
+    "-I",
+    "dev/validation/2026-09-13-file-accessed/reproduce-controls.py",
+    "--output",
+    "/Users/oobi/Documents/gpt3/veil-accessed-controls"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-accessed",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {},
+  "stdout_sha256": "44fadf5c0324ea389c0b1f485b208bbed75fffa7927601017d924be4f1ac7884",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 347,
+  "stderr_bytes": 0,
+  "stdout": "base-runtime: rejected, 8/8 tests failed\nwrong-timestamp: rejected, 7/8 tests failed\nrounded-number: rejected, 3/8 tests failed\ninspect-symlink: rejected, 4/8 tests failed\nomit-arity: rejected, 1/8 tests failed\nnormalize-path: rejected, 3/8 tests failed\nopen-contents: rejected, 1/1 tests failed\nmodified-read-contents: rejected, 1/1 tests failed\n",
+  "stderr": ""
+}

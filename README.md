@@ -71,6 +71,9 @@ cover files, directories, links, special bits and request failures.
 Operation 33 reads an entry's modification time as exact signed decimal
 nanoseconds since the Unix epoch. The [modification time regressions](dev/FILE-MODIFIED.md)
 cover timestamp precision, links, update detection and request failures.
+Operation 34 reads an entry's access time in the same timestamp format. The
+[access time regressions](dev/FILE-ACCESSED.md) cover native timestamps,
+pre-epoch values, links, precision and request failures.
 
 Function parameters can share a type and quantity:
 

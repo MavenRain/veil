@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-accessed/.kanon-exec/run-417bKf",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "--test",
+    "--test-name-pattern",
+    "file (accessed|modified)|request arities",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-accessed",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {
+    "tests": 51,
+    "suites": 0,
+    "pass": 51,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout_sha256": "a47b2ed6ca26efa500e893de583c326cbd14b951958fbeb1d16f5810fd027397",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2893,
+  "stderr_bytes": 0,
+  "stdout": "\u25b6 request arities reject missing and surplus arguments before host effects\n  \u2714 temporary directory (3.780959ms)\n  \u2714 file read (1.847875ms)\n  \u2714 atomic write (1.848792ms)\n  \u2714 process (1.334291ms)\n  \u2714 file size (1.082416ms)\n  \u2714 stdout (0.8405ms)\n  \u2714 stderr (1.006042ms)\n  \u2714 realpath (2.024292ms)\n  \u2714 resolve (1.451916ms)\n  \u2714 prove (1.174291ms)\n  \u2714 verify (1.620208ms)\n  \u2714 encrypt (1.411292ms)\n  \u2714 evaluate (1.269458ms)\n  \u2714 decrypt (0.749625ms)\n  \u2714 input (1.275542ms)\n  \u2714 joint computation (0.841083ms)\n  \u2714 open (0.927542ms)\n  \u2714 release (1.603667ms)\n  \u2714 unlink (1.078584ms)\n  \u2714 remove directory (0.871125ms)\n  \u2714 rename (0.86075ms)\n  \u2714 directory listing (1.188541ms)\n  \u2714 entry kind (1.425291ms)\n  \u2714 symlink target (0.81225ms)\n  \u2714 symlink creation (0.851792ms)\n  \u2714 hard-link creation (1.36275ms)\n  \u2714 file copy (1.0215ms)\n  \u2714 directory creation (0.92775ms)\n  \u2714 file append (1.240166ms)\n  \u2714 file truncate (0.654125ms)\n  \u2714 file mode (0.525ms)\n  \u2714 file permissions (0.644792ms)\n  \u2714 file modified (0.731458ms)\n  \u2714 file accessed (0.926208ms)\n\u2714 request arities reject missing and surplus arguments before host effects (52.384459ms)\n\u2714 file modified returns filesystem nanoseconds without changing file contents or metadata (4.026916ms)\n\u2714 file modified observes updates through append and truncate requests (5.840584ms)\n\u2714 file modified supports directories and special files and follows final symlinks and hard links (8.463666ms)\n\u2714 file modified preserves relative Unicode paths and native parent symlink resolution (4.048084ms)\n\u2714 file modified reports native path errors and continues without creating entries (3.389834ms)\n\u2714 file modified rejects argument counts and undecodable paths before stat (1.579291ms)\n\u2714 file modified preserves exact signed nanoseconds and forwards literal paths while ignoring the body (58.96325ms)\n\u2714 file modified forwards host errors and resumes subsequent requests (4.260125ms)\n\u2714 file accessed returns native nanoseconds and observes explicit updates without changing contents or metadata (5.087416ms)\n\u2714 file accessed reports a native pre-epoch timestamp (1.943209ms)\n\u2714 file accessed supports private special files and directories and follows final symlinks and hard links (6.788333ms)\n\u2714 file accessed preserves relative Unicode paths and native parent symlink resolution (3.569958ms)\n\u2714 file accessed reports native path errors and continues without creating entries (2.075958ms)\n\u2714 file accessed rejects argument counts and undecodable paths before stat (1.157875ms)\n\u2714 file accessed preserves exact signed nanoseconds and literal paths without opening contents (43.967833ms)\n\u2714 file accessed forwards host errors and resumes subsequent requests (1.970458ms)\n\u2139 tests 51\n\u2139 suites 0\n\u2139 pass 51\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 289.783875\n",
+  "stderr": ""
+}
