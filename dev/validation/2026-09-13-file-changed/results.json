@@ -1,0 +1,113 @@
+{
+  "base": "eb47fa4a4cdc6323af53ac35dd2d94490cdc5ff2",
+  "cwd": "/Users/oobi/Documents/gpt3/veil-changed",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "68f7a0b3a7a98398252d2204843c8f3bed1aa09da9c8f44a38c25ddd0e1c7aaf",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "a5e943c31ff69f1c386b13273f4bbe64226a0de0815d09f60348e85a1234e323",
+    "dev/reactor-test.mjs": "4e33a6a4043b0bf4bcff396a09a9ae6e13ab7b9b20e887244e2e42c5832badbc",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "test/fixtures/reactor/file-changed.kan": "f07e01fce73e6dd42417c7dafb7f6b809045c2f20f0b30c1a06653abcbb565e3",
+    "README.md": "3c0d8ea9766977e07cfbc984145e45890a773d227d00fa60b21c2f8e1272bb97",
+    "REACTOR.md": "84b4c34af786177bdcf4014a3e9a4806050d96589cf5a9257daf1875b58fa43a",
+    "dev/FILE-CHANGED.md": "df0e1514c18b1a49655779f0e867ef4a2f7aa7ae3fde2328843b2bcef0e21c23",
+    "dev/REQUEST-ARITY.md": "0e72cc49809dc0bad8029ae986b18c32f22127df7f82d3e5db58cda2c688ec17",
+    "dev/REACTOR-BUILD-LOG.md": "188f7e7d2f9f3194e79be6c144c602188f214c9087a36cd219a14f4a6377f64d",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/validation/2026-09-13-file-changed/reproduce-controls.py": "6c35aa60b472619823baf342f5357fb4250f3898e5f3aa6a7a7c791def9b86bf",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "capture_sha256": {
+    "README.md": "03afb8694c88ef04af0ad38fece61a748668f9c09a9eb73da329606f1c1da791",
+    "base-runtime.json": "50ca96e52d28fa09c76e2e37dcad078faed28523700718bf1dd96aa414b4c6a0",
+    "control-run.json": "eb6eff2ae7bb53a7b79a38463c0bb5462a5b6210754b450b0ff789e063a6be55",
+    "controls.json": "3a7422d2ff891de98d494ac397e8e94b3ff10582c65c46bfff722b22d298e594",
+    "creation-time.json": "4dbc5767ba9a872b9b87d3747c3d1c0279b067bcab8e4900cd4cf997c3e0e262",
+    "diff-check.json": "14fec0ce50e1adc65ebcf34ddac041d0f35e4f3932697f46b4c00e468d2e2e21",
+    "focused.json": "e28439ebc92ff7968c436e61a323af4ce7c91cdcdd420f0c4e5e387b3d7f79c3",
+    "host-nat.json": "53ab975feaffaed8054ca7e61c8b9cef77054e9bf56c8c11225e286e0742a9e6",
+    "house.json": "b36045877c49024bd6e8896829e9293b1b8919b64190e865866066cc0650b0b4",
+    "inspect-symlink.json": "eb0c6ab3054e6b8397cc8796599fa96556257337962f90772bba0d97ca85391b",
+    "normalize-path.json": "9c56b7420d90836e326d8ca0c338bc8fd95c3443832909da13619f616a198a6f",
+    "omit-arity.json": "7329660ba573cf9674971b670302fe3b022b3dda7f0831db15bd3a3988dfef29",
+    "open-contents.json": "7c3914d826dd5688ffff5871ed793abd68540ece29ebf755724ddebf1e6e990b",
+    "reactor.json": "215367e8085e2cf63964c3cd8818c9619c8f4951e8886e2252eff2c82716c0f0",
+    "read-contents.json": "4353f28712a0742190c25ba0c5e6276203ac502587b1a3f81c0f47cb8addb990",
+    "reproduce-controls.py": "6c35aa60b472619823baf342f5357fb4250f3898e5f3aa6a7a7c791def9b86bf",
+    "rounded-number.json": "0871f9a140dbea04d3599b4ccc70c062fc1fd264cd08bfcd942e71cf178ab71b",
+    "runtime.json": "71e63d38673214efbf7101b1c9ce633d8c33354eb3c0e492a49547ebd66acb40",
+    "syntax-reactor-tests.json": "0642d720dac1bb4ed330e9e7f2eb36712b6cff59d82091925d36330511d9f652",
+    "syntax-runtime-tests.json": "e3a80120075dff87ce4e279b9ea6b0c6f07c2a77b85a00b6c28d4febb6825881",
+    "syntax-runtime.json": "6d4c9d55ef371a367b88dbb90d8264468e26339eeedacfbb6c0abbab8e4e9638",
+    "trusted-lines.json": "7b631c3d72620639f125a02d256514dcac41af9d7d2f1db3c5537e97b0690576",
+    "wrong-timestamp.json": "fe71aa4d1c036fc3d16e2b95dbbc59720d013bffec99f56321c454498fb2c821"
+  },
+  "summary": {
+    "focused": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 60,
+        "suites": 0,
+        "pass": 60,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 190,
+        "suites": 0,
+        "pass": 190,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reactor": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "host-nat": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "control-run": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    }
+  },
+  "validation_scope": "Focused 60/60, full runtime 190/190, compiled reactor 1469 checks under a 120-second watchdog, HOST-NAT 16/16 and static checks passed. Nine isolated defect controls were rejected. Compiler reused by hash. No full compiler or milestone ladder rerun, no 30-second reactor gate verdict, and no timing waiver."
+}

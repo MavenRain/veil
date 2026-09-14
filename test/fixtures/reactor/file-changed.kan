@@ -1,0 +1,33 @@
+-- Read a status-change timestamp, then report the host answer and output status.
+
+mu FileChangedState : Type 0 with
+| requested : Words -> FileChangedState
+| reporting : Nat -> Bytes -> FileChangedState
+| finished : Nat -> FileChangedState
+
+def init (argv : Words) : FileChangedState := requested argv
+def resume (state : FileChangedState) (status : Nat) (answer : Bytes) : FileChangedState :=
+  case state as current in FileChangedState return FileChangedState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileChangedState) : Nat :=
+  case state as current in FileChangedState return Nat with
+  | requested args => 35
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileChangedState) : Words :=
+  case state as current in FileChangedState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileChangedState) : Bytes :=
+  case state as current in FileChangedState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileChangedState) : Nat :=
+  case state as current in FileChangedState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

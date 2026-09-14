@@ -1,0 +1,25 @@
+{
+  "name": "read-contents",
+  "description": "Read the requested entry before returning status-change time.",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file changed preserves exact",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents",
+  "exit_code": 1,
+  "counts": {
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "runtime_sha256": "901c6a642abc627959568e002c68974d30a8996c71756779a5fa310f38d46e40",
+  "tests_sha256": "a5e943c31ff69f1c386b13273f4bbe64226a0de0815d09f60348e85a1234e323",
+  "stdout": "TAP version 13\n# Subtest: file changed preserves exact signed nanoseconds and literal paths without opening contents\nnot ok 1 - file changed preserves exact signed nanoseconds and literal paths without opening contents\n  ---\n  duration_ms: 21.195667\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/dev/runtime-test.mjs:1535:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 35: ERR_ASSERTION: Expected values to be strictly equal:\n    + actual - expected\n    \n    + undefined\n    - 'file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-ch\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/dev/runtime-test.mjs:720:14)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/runtime/reactor.mjs:433:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-changed-controls-nguzkcye/read-contents/dev/runtime-test.mjs:1556:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 131.081375\n",
+  "stderr": ""
+}

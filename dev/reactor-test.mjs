@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync, chmodSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -632,6 +632,98 @@ try {
   verify(() => assert.deepEqual(readFileSync(accessedFile), Buffer.from([0, 255, 65])));
   verify(() => assert.equal(readlinkSync(accessedDangling), basename(accessedMissing)));
   verify(() => assert.equal(existsSync(accessedMissing), false));
+
+  const fileChanged = join(scratch, 'file-changed.wasm');
+  const fileChangedBuild = run(['build', shared, fixture('file-changed'), '-o', fileChanged,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileChangedBuild.status, 0, fileChangedBuild.stderr));
+  const fileChangedBytes = readFileSync(fileChanged);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileChangedBytes)).length, 0));
+  const { instance: fileChangedInstance } = await WebAssembly.instantiate(fileChangedBytes);
+  const changedApi = fileChangedInstance.exports;
+  const changedPath = '../héllo//alias/../file';
+  const changedBytes = bytes => {
+    let result = changedApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = changedApi.consBytes(byte, result);
+    return result;
+  };
+  const changedPending = changedApi.init(changedApi.consWords(
+    changedBytes(changedPath), changedApi.emptyWords()));
+  verify(() => assert.equal(changedApi.requestCode(changedPending), 35));
+  const changedArgs = changedApi.requestArgs(changedPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(changedApi,
+    changedApi.wordsHead(changedArgs), Buffer.byteLength(changedPath))), Buffer.from(changedPath)));
+  verify(() => assert.equal(changedApi.wordsEmpty(changedApi.wordsTail(changedArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(changedApi,
+    changedApi.requestBody(changedPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(changedApi.exitCode(changedPending), 1));
+  for (const [status, answer] of [[0, '0'], [0, '1700000000123456789'], [0, '-1'],
+    [1, 'EACCES: injected failure']]) {
+    const reporting = changedApi.resume(changedPending, status, changedBytes(answer));
+    verify(() => assert.equal(changedApi.requestCode(reporting), 6));
+    verify(() => assert.equal(changedApi.wordsEmpty(changedApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(changedApi,
+      changedApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(changedApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = changedApi.resume(reporting, outputStatus, changedApi.emptyBytes());
+      verify(() => assert.equal(changedApi.requestCode(finished), 0));
+      verify(() => assert.equal(changedApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(changedApi.wordsEmpty(changedApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(changedApi.bytesEmpty(changedApi.requestBody(finished)), 1));
+      const stillFinished = changedApi.resume(finished, 1, changedBytes('ignored'));
+      verify(() => assert.equal(changedApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(changedApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const changedFile = join(scratch, 'changed héllo');
+  const changedLink = join(scratch, 'changed-link');
+  const changedHard = join(scratch, 'changed-hard');
+  const changedMissing = join(scratch, 'changed-missing');
+  const changedDangling = join(scratch, 'changed-dangling');
+  writeFileSync(changedFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  utimesSync(changedFile, 1, 3);
+  symlinkSync(basename(changedFile), changedLink);
+  linkSync(changedFile, changedHard);
+  symlinkSync(basename(changedMissing), changedDangling);
+  const changedBefore = statSync(changedFile, { bigint: true });
+  verify(() => assert.notEqual(changedBefore.ctimeNs, changedBefore.mtimeNs));
+  verify(() => assert.notEqual(changedBefore.ctimeNs, changedBefore.atimeNs));
+  verify(() => assert.equal(statSync(changedHard, { bigint: true }).ctimeNs, changedBefore.ctimeNs));
+  for (const path of [changedFile, changedLink, changedHard, scratch + '/', basename(changedFile)]) {
+    const expected = String(statSync(resolve(scratch, path), { bigint: true }).ctimeNs);
+    const result = runModule([fileChanged, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, expected));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  const changedMetadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(changedMetadata(statSync(changedFile, { bigint: true })),
+    changedMetadata(changedBefore)));
+  chmodSync(changedFile, 0o644);
+  const changedAfter = statSync(changedFile, { bigint: true });
+  const changedAfterMode = runModule([fileChanged, changedFile]);
+  verify(() => assert.equal(changedAfterMode.status, 0, changedAfterMode.error ?? changedAfterMode.stderr));
+  verify(() => assert.equal(changedAfterMode.stdout, String(changedAfter.ctimeNs)));
+  verify(() => assert.equal(changedAfterMode.stderr, ''));
+  verify(() => assert.equal(changedAfter.mode & 0o777n, 0o644n));
+  verify(() => assert.equal(changedAfter.mtimeNs, changedBefore.mtimeNs));
+  for (const [args, message] of [
+    [[], /^IO: OS request 35 expects 1 argument, got 0$/],
+    [[changedFile, 'surplus'], /^IO: OS request 35 expects 1 argument, got 2$/],
+    [[changedMissing], /^ENOENT:/], [[changedDangling], /^ENOENT:/],
+    [[changedFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileChanged, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(changedFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(changedDangling), basename(changedMissing)));
+  verify(() => assert.equal(existsSync(changedMissing), false));
 
   const filePermissions = join(scratch, 'file-permissions.wasm');
   const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,

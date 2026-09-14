@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-changed/.kanon-exec/run-E8ON4j",
+  "command_index": 1,
+  "argv": [
+    "python3",
+    "-I",
+    "dev/validation/2026-09-13-file-changed/reproduce-controls.py",
+    "--output",
+    "/Users/oobi/Documents/gpt3/veil-changed-controls"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-changed",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {},
+  "stdout_sha256": "c81a05650bd5987e9e9ef4f955c854b578bfa7ee505610ca762644636eccf517",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 380,
+  "stderr_bytes": 0,
+  "stdout": "base-runtime: rejected, 8/8 tests failed\nwrong-timestamp: rejected, 5/8 tests failed\ncreation-time: rejected, 7/8 tests failed\nrounded-number: rejected, 6/8 tests failed\ninspect-symlink: rejected, 4/8 tests failed\nomit-arity: rejected, 1/8 tests failed\nnormalize-path: rejected, 3/8 tests failed\nopen-contents: rejected, 1/1 tests failed\nread-contents: rejected, 1/1 tests failed\n",
+  "stderr": ""
+}

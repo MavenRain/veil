@@ -1,0 +1,19 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-changed/.kanon-exec/run-PQnqRF",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-changed",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "10122e32e053b30c877e8bb0c64d27f6cfe74212e8b1c0ae65c0cb8c8f6f4a4a",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "stdout": "reactor: 1469 checks passed\n",
+  "stderr": ""
+}

@@ -74,6 +74,9 @@ cover timestamp precision, links, update detection and request failures.
 Operation 34 reads an entry's access time in the same timestamp format. The
 [access time regressions](dev/FILE-ACCESSED.md) cover native timestamps,
 pre-epoch values, links, precision and request failures.
+Operation 35 reads filesystem status-change time in the same format. The
+[status-change time regressions](dev/FILE-CHANGED.md) cover permission changes,
+native metadata, exact signed formatting, links and request failures.
 
 Function parameters can share a type and quantity:
 

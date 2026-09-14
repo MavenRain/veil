@@ -167,8 +167,9 @@ the left list's length.
 | 32 | path | Read ordinary permission bits as a decimal value from 0 to 511 |
 | 33 | path | Read modification time as signed decimal nanoseconds since the Unix epoch |
 | 34 | path | Read access time as signed decimal nanoseconds since the Unix epoch |
+| 35 | path | Read status-change time as signed decimal nanoseconds since the Unix epoch |
 
-Operations 1 to 34 check argument counts before performing the operation.
+Operations 1 to 35 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -193,7 +194,8 @@ the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30,
 the [file mode regressions](dev/FILE-MODE.md) cover operation 31,
 the [permission inspection regressions](dev/FILE-PERMISSIONS.md) cover operation 32,
 the [modification time regressions](dev/FILE-MODIFIED.md) cover operation 33,
-and the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34.
+the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34, and
+the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -490,6 +492,24 @@ monotonic counter. Native timestamp, pre-epoch, link and path tests cover macOS;
 exact nanoseconds beyond floating-point precision and signed 64-bit endpoints
 also use injected results. Windows was not exercised. See the
 [access time contract and tests](dev/FILE-ACCESSED.md).
+
+Operation 35 requires exactly one path and returns `ctimeNs` from
+`stat(path, { bigint: true })` as signed ASCII decimal nanoseconds since the
+Unix epoch. The answer has no leading zeros, plus sign, newline or terminator,
+and preserves the integer without floating-point or millisecond conversion.
+The host accepts regular files, directories and special files, follows final
+symlinks, and reports the same entry through hard links. Paths pass literally
+to the host. The request does not open contents or set timestamps; its body
+is unused, subject to shared decoding limits. Host failures resume with
+status 1 and `CODE: message`; missing entries are not created.
+This timestamp records file status changes, such as permission changes.
+Creation time is the separate host `birthtime` field. The host and filesystem
+determine update behavior and resolution, so this observation provides no
+unique revision number, ordering guarantee or lock for subsequent operations.
+Native timestamps, permission changes, links and paths were tested on macOS.
+Pre-epoch values and signed 64-bit endpoints use injected filesystem results;
+Windows was not exercised. See the
+[status-change time contract and tests](dev/FILE-CHANGED.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

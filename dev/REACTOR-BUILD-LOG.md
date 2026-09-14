@@ -671,3 +671,41 @@ milestone gate ladder was not rerun, and no timing waiver is claimed. Native
 tests ran on macOS; Windows was not exercised. The
 [access-time validation record](validation/2026-09-13-file-accessed/README.md)
 contains commands, full captures, source hashes and a control reproducer.
+
+## File status-change time, 2026-09-13
+
+Operation 35 accepts exactly one path and returns `ctimeNs` from bigint
+`stat` as signed decimal nanoseconds since the Unix epoch. The host preserves
+the integer directly, follows final symlinks and leaves paths literal for
+native resolution. It does not open contents or set timestamps. Errors
+resume with status 1, and the request body is unused. This is the host's
+status-change timestamp, with filesystem-dependent updates and precision;
+creation time is a separate field.
+
+Eight focused runtime tests cover native metadata, a real permission change
+through operation 31, private special files, links, native path errors,
+request rejection before stat, exact signed formatting and failure recovery.
+The shared arity matrix includes operation 35. The compiled fixture checks
+request bytes, signed answer propagation and terminal states, then runs
+through the host against native paths and a permission change. Negative
+status timestamps and signed 64-bit endpoints use injected metadata only.
+
+Validation passed against the reused compiler from base `eb47fa4`:
+
+- The combined timestamp and arity selection passed 60/60. The complete
+  runtime suite passed 190/190, with no failures, cancellations or skips.
+- The compiled reactor suite passed 1469 checks, 116 more than the preceding
+  slice, under a 120-second watchdog. This direct invocation does not
+  establish the separate 30-second gate bound.
+- HOST-NAT passed 16/16. JavaScript syntax, HOUSE, TRUSTED-LINES and tracked
+  whitespace checks passed. Kernel lines remain 5246/5250; encoder lines
+  remain 246/600.
+- All nine defect controls were rejected: the base runtime, modification
+  time, creation time, Number rounding, final-symlink inspection, missing
+  arity, path normalization, content opening and content reading.
+
+Compiler sources and gate definitions are unchanged. The full compiler and
+milestone gate ladder was not rerun, and no timing waiver is claimed. Native
+tests ran on macOS; Windows was not exercised. The
+[status-change time validation record](validation/2026-09-13-file-changed/README.md)
+contains commands, full captures, source hashes and a control reproducer.

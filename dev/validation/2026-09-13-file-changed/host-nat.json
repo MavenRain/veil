@@ -1,0 +1,18 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-changed/.kanon-exec/run-Sj3z8P",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/host-nat-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-changed",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {},
+  "stdout_sha256": "2f19657b0147d2663aacff6765e84b1829af67f6594a34df964909b4cad66c13",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 15,
+  "stderr_bytes": 0,
+  "stdout": "HOST-NAT 16/16\n",
+  "stderr": ""
+}
