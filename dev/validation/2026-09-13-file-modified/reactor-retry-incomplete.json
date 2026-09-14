@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-modified",
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-Mjpq1u",
+  "job": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-wait/job-5gurm6",
+  "wrapper_exit_code": 2,
+  "verdict": "incomplete",
+  "stderr": "{\"artifact\":\"/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-Mjpq1u\",\"error\":\"IO: process group cleanup failed\"}\n",
+  "stderr_sha256": "20facfc2592f3a96ed9ff8fc63e5ed3b4ef459d03bf19636f6013bd773d78b9d"
+}

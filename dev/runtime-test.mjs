@@ -780,6 +780,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file truncate', 30, [s.out, '0']],
     ['file mode', 31, [s.out, '384']],
     ['file permissions', 32, [s.out]],
+    ['file modified', 33, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1092,6 +1093,152 @@ test('entry kind rejects undecodable paths before responding', async t => {
     await assert.rejects(slotScript([{ code: 23, args: [invalid], answer: '' }]), { message });
   }
   assert.equal(await readFile(s.out, 'utf8'), 'unchanged');
+});
+
+test('file modified returns filesystem nanoseconds without changing file contents or metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  const metadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs];
+  for (const seconds of [0, 1.234567, 1700000000.123456]) {
+    await fsPromises.utimes(s.out, 2, seconds);
+    const before = await stat(s.out, { bigint: true });
+    await slotScript([
+      { code: 33, args: [s.out], answer: String(before.mtimeNs) },
+      { code: 33, args: [s.out], body: Buffer.from([255, 0]), answer: String(before.mtimeNs) },
+    ]);
+    assert.deepEqual(metadata(await stat(s.out, { bigint: true })), metadata(before));
+  }
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file modified observes updates through append and truncate requests', async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  for (const change of [{ code: 29, args: [s.out], body: ' appended', answer: '' },
+    { code: 30, args: [s.out, '2'], answer: '' }]) {
+    await fsPromises.utimes(s.out, 1, 1);
+    const before = await stat(s.out, { bigint: true });
+    const answers = await slotScript([
+      { code: 33, args: [s.out], answer: String(before.mtimeNs) },
+      change,
+      { code: 33, args: [s.out], answer: /^-?(0|[1-9][0-9]*)$/ },
+    ]);
+    const after = await stat(s.out, { bigint: true });
+    assert.equal(answers[2], String(after.mtimeNs));
+    assert.notEqual(after.mtimeNs, before.mtimeNs);
+    assert.equal(after.ino, before.ino);
+  }
+  assert.equal(await readFile(s.out, 'utf8'), 'ke');
+});
+
+test('file modified supports directories and special files and follows final symlinks and hard links', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  const directoryLink = join(s.path, 'directory-link');
+  await writeFile(s.out, 'kept');
+  await fsPromises.utimes(s.out, 1, 3);
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  await symlink('.', directoryLink);
+  const linkBefore = await lstat(live, { bigint: true });
+  assert.notEqual(linkBefore.mtimeNs, (await stat(s.out, { bigint: true })).mtimeNs);
+  const paths = [s.out, hard, live, s.path + '/', directoryLink, '/dev/null'];
+  const requests = [];
+  for (const path of paths) requests.push({ code: 33, args: [path],
+    answer: String((await stat(path, { bigint: true })).mtimeNs) });
+  await slotScript(requests);
+  assert.equal((await lstat(live, { bigint: true })).mtimeNs, linkBefore.mtimeNs);
+  assert.equal(await readlink(live), 'stdout');
+  assert.equal(await readFile(hard, 'utf8'), 'kept');
+});
+
+test('file modified preserves relative Unicode paths and native parent symlink resolution', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const decoy = join(s.path, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const [path, seconds] of [[actual, 1], [decoy, 2], [unicode, 3]]) {
+    await writeFile(path, 'kept');
+    await fsPromises.utimes(path, seconds, seconds);
+  }
+  await slotScript([
+    { code: 33, args: [relative(process.cwd(), unicode)], answer: '3000000000' },
+    { code: 33, args: [alias + '//../data'], answer: '1000000000' },
+    { code: 33, args: [decoy], answer: '2000000000' },
+  ]);
+});
+
+test('file modified reports native path errors and continues without creating entries', { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 33, args: [path], status: 1, answer })),
+    { code: 33, args: [s.out], answer: String((await stat(s.out, { bigint: true })).mtimeNs) },
+  ]);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file modified rejects argument counts and undecodable paths before stat', async t => {
+  const inspect = t.mock.method(fsPromises, 'stat', async () => ({ mtimeNs: 0n }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 33, args,
+    status: 1, answer: `IO: OS request 33 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 33, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('file modified preserves exact signed nanoseconds and forwards literal paths while ignoring the body', async t => {
+  const values = [0n, 1n, 999999n, 1000001n, 9007199254740993n, 1700000000123456789n,
+    -1n, -1700000000123456789n, -(2n ** 63n), 2n ** 63n - 1n];
+  const pending = [...values];
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    const mtimeNs = pending.shift();
+    return { mtimeNs, mtimeMs: Number(mtimeNs) / 1000000,
+      atimeNs: 11n, ctimeNs: 22n, birthtimeNs: 33n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  await slotScript(values.map(value => ({ code: 33, args: [path],
+    body: Buffer.alloc(65537, 255), answer: String(value) })));
+  assert.equal(inspect.mock.callCount(), values.length);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [path, { bigint: true }]);
+});
+
+test('file modified forwards host errors and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'EIO', 'EOVERFLOW'].map(code => Object.assign(new Error('injected failure'), { code }));
+  failures.push(new Error('injected failure'));
+  const requests = failures.map(error => ({ code: 33, args: ['path'], status: 1,
+    answer: `${error.code ?? 'IO'}: injected failure` }));
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    if (failures.length) throw failures.shift();
+    return { mtimeNs: -1n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...requests, { code: 33, args: ['path'], answer: '-1' }]);
+  assert.equal(inspect.mock.callCount(), 5);
 });
 
 test('file permissions reads decimal bits including zero without changing the entry', { skip: process.platform === 'win32' }, async t => {

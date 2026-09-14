@@ -68,6 +68,9 @@ cover decimal modes, links, path resolution and request failures.
 Operation 32 reads ordinary permission bits as a decimal value that operation 31
 can accept. The [permission inspection regressions](dev/FILE-PERMISSIONS.md)
 cover files, directories, links, special bits and request failures.
+Operation 33 reads an entry's modification time as exact signed decimal
+nanoseconds since the Unix epoch. The [modification time regressions](dev/FILE-MODIFIED.md)
+cover timestamp precision, links, update detection and request failures.
 
 Function parameters can share a type and quantity:
 

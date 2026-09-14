@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-FurmUc",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file modified",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-modified",
+  "exit_code": 0,
+  "stdout_sha256": "6417573519e5698e9684bd271ddffd43aaada4b67b4aeda7a35ed716f02fd2a4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 1987,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 8,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

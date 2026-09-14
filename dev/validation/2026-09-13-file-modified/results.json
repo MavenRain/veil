@@ -1,0 +1,185 @@
+{
+  "base": "246e9b216d5d7a43934edd00e7d76deba872cef8",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "6ed0e696ed6c67fcbdf44fc6c6a28b47f4cf10d5af1ff4c3b200d98019fee67a",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "36dd698b0b173eef830183688f98e77836ff65e7fef0f2afca586d00a29a9980",
+    "dev/reactor-test.mjs": "bc8cf10df4bba84817f96e74cc81d7294e102ce7e7316912f1f7d1b6caa071c4",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "test/fixtures/reactor/file-modified.kan": "398d12e8c5c3e99b0f43f5d4a7c4113a2e4882e6cc94265e9181adb7c16a1fd8",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "README.md": "bcf9dc7f075e79505f0e2d83493e7bc7c11e44870913bbbe0ae0972b15752545",
+    "REACTOR.md": "e859e887371491d770fa057b0e04cb500a249db1aa140d4de06b5f9684d42b65",
+    "dev/REQUEST-ARITY.md": "f013cd63a958d259a0e6d5a5b63334593dbc80ceda634c440845db54ff9c340f",
+    "dev/FILE-MODIFIED.md": "9b62f7b31d0c4dec739ce45a35a7e2970bfa99cbb39a536c82ebf7b692bde3bd",
+    "dev/REACTOR-BUILD-LOG.md": "0d724ef3f57e81cbccfe3029a25d27bcbb483c011f2b4b6028c4ea368584586a"
+  },
+  "capture_sha256": {
+    "README.md": "0fc319239055e6511ac51d0215b0419d09645db042444eba9680c67081641c5e",
+    "base-runtime.json": "93bd98bf389bbec254715ad6a0c4d1e36c48dae925414e17c2ec618b7a6c22d6",
+    "controls.json": "c033a812efd36cefe5d41f7431f99a09b38b5bf8236e78fd5e3cb0ab28e6e82b",
+    "diff-check.json": "124e0cdbd1665b7cb5344b7b7751a819d9b70525b7857fe1ee9c889f12ac3946",
+    "focused.json": "93b9533610fe5261fac65ad864ea1201a8c3890a4adf30b7fc5fc3ab7297aeca",
+    "host-nat.json": "87de6c08b2373bed1fa1a63b61f8bbcc7f4a64d72fe3b044d920104c706334d7",
+    "house.json": "5b1e9b3ce66d7714f2be201b582b39adb7c887ac87a089816113871e2e4f20ed",
+    "inspect-symlink.json": "8f79f8fe00868c300ff77ee1793593c8c4de211f073e36d5cf246e9fbc0636e7",
+    "omit-arity.json": "aae05fa88b25102d8e190c0fe155556503d2e4fbc426a1dd5bed14fba647b64a",
+    "reactor-diagnostic.json": "ca6602a042859248b8add580bca80f57913dd49f27c676a78944dac4eb7bc5b3",
+    "reactor-retry-incomplete.json": "efe04b742d2d200b2c239ffc2d030037cebdd830ab10e42d9a031e2c9ea11a0c",
+    "reactor-timeout.json": "2ef77197863ea5926ebd1b0cf6db8958163bbd9ef89f17620e49564bca91fa32",
+    "rounded-number.json": "a88a3dd9507b3c29789e41262e8f93c6930144c0bc4fe84561d792dd46394410",
+    "runtime.json": "63d6877f0e483451a89c3263fb4c1ed23a0397287c3133f1311f6fbe28949644",
+    "syntax-reactor-tests.json": "becf07e6f54834899d60ce940c1dfc221a80321c0bc6b5791bf558f519759cd9",
+    "syntax-runtime-tests.json": "b6a98d271341cba287bc98468cbb8a6f89d24ca7a735386d26c1ed8749a2a98a",
+    "syntax-runtime.json": "9602ffee3a45d86f4d180cf1f82226c42448137d55024f4abe1c6cce56ce3027",
+    "trusted-lines.json": "3695c7378d3d566892bf1836dc4824294d560492530ad27a089089f8811cd52e",
+    "wrong-timestamp.json": "b3377dfe887c1b0b82fb877b137dfb0cb683d3e65650a83be31d6fc5bb979f17"
+  },
+  "summary": {
+    "focused": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 172,
+        "suites": 0,
+        "pass": 172,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "reactor-timeout": {
+      "exit_code": 124,
+      "counts": {}
+    },
+    "reactor-diagnostic": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "host-nat": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "base-runtime": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 0,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "rounded-number": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "wrong-timestamp": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 2,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "inspect-symlink": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "omit-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  },
+  "incomplete_attempts": [
+    {
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "dev/reactor-test.mjs",
+        "_build/default/bin/kanon.exe"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-modified",
+      "capture_artifact": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-Mjpq1u",
+      "job": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-wait/job-5gurm6",
+      "wrapper_exit_code": 2,
+      "verdict": "incomplete",
+      "stderr": "{\"artifact\":\"/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-Mjpq1u\",\"error\":\"IO: process group cleanup failed\"}\n",
+      "stderr_sha256": "20facfc2592f3a96ed9ff8fc63e5ed3b4ef459d03bf19636f6013bd773d78b9d"
+    }
+  ],
+  "validation_scope": "Focused, RUNTIME and HOST-NAT passed under 30-second watchdogs. REACTOR passed 1245 checks under a 120-second diagnostic watchdog; its 30-second gate did not pass. First attempt timed out; final capture wrapper failed without a complete verdict. Static checks passed. Five defect controls rejected. Compiler reused by hash; no full compiler or milestone battery rerun and no timing waiver."
+}

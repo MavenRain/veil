@@ -1,0 +1,20 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-RJ14zR",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "120",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-modified",
+  "exit_code": 0,
+  "stdout_sha256": "c5052405fb419e026a61f4425040c9009158784fb2932ed4d0077e1a2403c71d",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "counts": {},
+  "stdout": "reactor: 1245 checks passed\n",
+  "stderr": ""
+}

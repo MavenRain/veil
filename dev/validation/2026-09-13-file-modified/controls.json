@@ -1,0 +1,71 @@
+{
+  "runtime_sha256": "6ed0e696ed6c67fcbdf44fc6c6a28b47f4cf10d5af1ff4c3b200d98019fee67a",
+  "tests_sha256": "36dd698b0b173eef830183688f98e77836ff65e7fef0f2afca586d00a29a9980",
+  "variants": {
+    "base-runtime": {
+      "source_sha256": "f55b5fdcfc5ba180227ff44aa4f18fe84e61e483a21e26b2cc101018434f6e5b",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 0,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "base-runtime.json"
+    },
+    "rounded-number": {
+      "source_sha256": "34792104b811e26d65a670fd15c79a72ff2fc9c963080a2fb93fb29e82a0fc7c",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "rounded-number.json"
+    },
+    "wrong-timestamp": {
+      "source_sha256": "626e65fea0c03145e9944aab87585bde8e1a9d9a88461188bb777165aee5b6c1",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 2,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-timestamp.json"
+    },
+    "inspect-symlink": {
+      "source_sha256": "4b9d153c41e69c282f2f25ed574e7e1fd74b9c7e9a9e34284e82aae2b36e34ad",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "inspect-symlink.json"
+    },
+    "omit-arity": {
+      "source_sha256": "1643d0762fa81cfce4e676d564ef85bba2cd2ca8982f133225bdbdf4ac2af89c",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "omit-arity.json"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-modified/.kanon-exec/run-Z4nofD",
+  "command_index": 1,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-modified",
+  "exit_code": 0,
+  "stdout_sha256": "1f4ee44f3478aee0da59bd1177aec616c95c30c1648ff3b8aa254ab233ca0856",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 33911,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 172,
+    "suites": 0,
+    "pass": 172,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

@@ -590,3 +590,43 @@ No defect controls were run for this slice, and the record holds no
 The [permission inspection validation record](validation/2026-09-13-file-permissions/README.md)
 records the remaining static checks, command captures, final source hashes
 and validation scope.
+
+## Filesystem modification time, 2026-09-13
+
+Operation 33 reads an existing entry's modification time as signed decimal
+nanoseconds since the Unix epoch. It accepts exactly one literal path and
+requests BigInt metadata so formatting preserves nanoseconds beyond the
+JavaScript safe integer range. Final symlinks are followed. Files, directories
+and special files are accepted, and host errors resume with status 1.
+
+Eight runtime tests cover metadata and content preservation, update detection
+through append and truncate, links, native path resolution, rejected requests,
+exact positive and negative timestamps, and host error propagation. The shared
+arity matrix includes operation 33. A compiled Kanon fixture checks request
+bytes, signed answer forwarding, output failures, stable termination and
+native CLI behavior.
+
+Validation at base `246e9b216d5d7a43934edd00e7d76deba872cef8`:
+
+- Focused tests passed 8/8; RUNTIME passed 172/172 with no failures or skips.
+- A 120-second diagnostic run of REACTOR executed 1245 checks, an increase of
+  104 executed checks; the 30-second gate produced no verdict. The first
+  30-second run timed out with exit 124 and no verdict. The final 30-second
+  attempt's capture wrapper failed during process-group cleanup with exit 2,
+  so that attempt supplies no complete test verdict. Neither is a gate pass.
+- HOST-NAT passed 16/16 under its 30-second watchdog. JavaScript syntax,
+  HOUSE, TRUSTED-LINES and tracked whitespace checks passed.
+- The base runtime and four isolated defect controls all failed the same
+  focused selection. Controls cover Number rounding, the wrong timestamp
+  field, inspecting symlinks themselves and omitted arity validation.
+
+The host load average was 114.00 when checked after the first reactor timeout.
+The diagnostic establishes functional behavior without a timing waiver.
+The compiler is reused by hash from the preceding slice. Compiler sources,
+gate scripts and thresholds are unchanged; the full compiler and milestone
+battery was not rerun. Kernel lines remain 5246/5250; encoder lines remain
+246/600. Native tests ran on macOS. Negative timestamps and signed 64-bit
+endpoints used an injected filesystem result. Windows and concurrent path
+replacement were not exercised. The
+[modification time validation record](validation/2026-09-13-file-modified/README.md)
+pins final source bytes, compiler bytes, passing checks and failed attempts.

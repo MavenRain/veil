@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/.kanon-exec/run-SdHOD6",
+  "command_index": 3,
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file modified",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-modified-controls/wrong-timestamp",
+  "exit_code": 1,
+  "stdout_sha256": "718aeec756aa805c15be5854c0d82a1162c18225318452535032ce7faf5c27e1",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 8752,
+  "stderr_bytes": 0,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 2,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

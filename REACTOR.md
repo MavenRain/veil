@@ -165,8 +165,9 @@ the left list's length.
 | 30 | path, length | Resize an existing file to the decimal byte length; return an empty answer |
 | 31 | path, mode | Change existing permissions to a decimal mode from 0 to 511; return an empty answer |
 | 32 | path | Read ordinary permission bits as a decimal value from 0 to 511 |
+| 33 | path | Read modification time as signed decimal nanoseconds since the Unix epoch |
 
-Operations 1 to 32 check argument counts before performing the operation.
+Operations 1 to 33 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -189,7 +190,8 @@ the [directory creation regressions](dev/DIRECTORY-CREATE.md) cover operation 28
 the [file append regressions](dev/FILE-APPEND.md) cover operation 29,
 the [file truncate regressions](dev/FILE-TRUNCATE.md) cover operation 30,
 the [file mode regressions](dev/FILE-MODE.md) cover operation 31,
-and the [permission inspection regressions](dev/FILE-PERMISSIONS.md) cover operation 32.
+the [permission inspection regressions](dev/FILE-PERMISSIONS.md) cover operation 32,
+and the [modification time regressions](dev/FILE-MODIFIED.md) cover operation 33.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -454,6 +456,22 @@ Programs can save and restore ordinary bits by passing the answer to operation
 entry's full permission word. Native permission and link tests cover macOS;
 Windows and ACL interactions were not exercised. See the
 [permission inspection contract and tests](dev/FILE-PERMISSIONS.md).
+
+Operation 33 calls `stat(path, { bigint: true })` with exactly one path and
+returns `mtimeNs` as signed ASCII decimal nanoseconds since the Unix epoch.
+The answer has no leading zeros, plus sign, newline or terminator. It preserves
+the filesystem's integer value, including times before the epoch, without
+converting through floating point or milliseconds. Filesystem resolution may
+be coarser than a nanosecond. Regular files, directories and special files
+are accepted; final symlinks are followed, and hard links share the timestamp.
+Paths pass literally to the host. The operation reads metadata without opening
+contents or changing timestamps, and ignores the request body subject to the
+shared request decoding limits. Host failures resume with status 1 and
+`CODE: message`; missing entries are not created. A modification time is a
+metadata observation, not a content digest or monotonic revision counter.
+Native timestamp, link and path tests cover macOS; times before the epoch and
+signed 64-bit endpoints use an injected filesystem result, and Windows was not
+exercised. See the [modification time contract and tests](dev/FILE-MODIFIED.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The
