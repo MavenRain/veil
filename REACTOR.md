@@ -175,8 +175,9 @@ the left list's length.
 | 40 | path | Read allocated block count and I/O block size as `blocks:blksize` |
 | 41 | path | Read filesystem block size, total, free and available blocks as `bsize:blocks:bfree:bavail` |
 | 42 | path | Read total and free filesystem inode counts as `files:ffree` |
+| 43 | path | Read the host's filesystem type identifier as an exact decimal integer |
 
-Operations 1 to 42 check argument counts before performing the operation.
+Operations 1 to 43 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -209,8 +210,10 @@ the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38,
 the [file owner regressions](dev/FILE-OWNER.md) cover operation 39,
 the [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40,
 the [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
-cover operation 41, and the
-[filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42.
+cover operation 41, the
+[filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42,
+and the [filesystem type regressions](dev/FILESYSTEM-TYPE.md)
+cover operation 43.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -669,6 +672,25 @@ inodes and does not guarantee that a later file creation will succeed.
 Native tests ran on macOS; precision, zero and signed endpoints also use
 injected fields. Windows was not exercised. See the
 [filesystem inode contract and tests](dev/FILESYSTEM-INODES.md).
+
+Operation 43 requires exactly one path and returns the `type` field from one
+`statfs(path, { bigint: true })` call as ASCII decimal bytes. The response has
+no leading zeros, whitespace or terminator; zero and signed values pass
+through exactly. Node's
+[`statfs.type`](https://nodejs.org/api/fs.html#statfstype) is a numeric
+filesystem type identifier whose meaning depends on the host platform. Veil
+returns the identifier directly, including unrecognized values.
+
+Literal paths retain native resolution, including final symlinks and parent
+segments after symlinks. Files, directories and special files identify their
+containing filesystem without opening contents. Each request performs a fresh
+query; the body is unused under shared decoding limits. Missing or surplus
+arguments return status 1 before statfs, while undecodable paths end the run
+with exit 2 in the shared decoder. Host errors resume with status 1 and
+`CODE: message`, allowing later requests to proceed. Native tests ran on macOS;
+large, signed and zero identifiers also use injected metadata. Windows was
+not exercised. See the
+[filesystem type contract and tests](dev/FILESYSTEM-TYPE.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

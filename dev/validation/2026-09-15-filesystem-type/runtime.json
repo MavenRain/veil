@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-type",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "OK test: 259 passed\n",
+  "stderr": "",
+  "stdout_sha256": "eef1c12dffe1ed70337943846a298f721e006ac5661657fc8b36341f377396ad",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

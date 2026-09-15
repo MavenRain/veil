@@ -1,0 +1,32 @@
+-- Read the filesystem type identifier and forward the answer bytes to stdout.
+mu FilesystemTypeState : Type 0 with
+| requested : Words -> FilesystemTypeState
+| reporting : Nat -> Bytes -> FilesystemTypeState
+| finished : Nat -> FilesystemTypeState
+
+def init (args : Words) : FilesystemTypeState := requested args
+def resume (state : FilesystemTypeState) (status : Nat) (answer : Bytes) : FilesystemTypeState :=
+  case state as current in FilesystemTypeState return FilesystemTypeState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FilesystemTypeState) : Nat :=
+  case state as current in FilesystemTypeState return Nat with
+  | requested args => 43
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FilesystemTypeState) : Words :=
+  case state as current in FilesystemTypeState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FilesystemTypeState) : Bytes :=
+  case state as current in FilesystemTypeState return Bytes with
+  | requested args => b"\0\xffA"
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FilesystemTypeState) : Nat :=
+  case state as current in FilesystemTypeState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

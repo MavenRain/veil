@@ -913,6 +913,114 @@ try {
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
 
+  const filesystemType = join(scratch, 'filesystem-type.wasm');
+  const typeBuild = run(['build', shared, fixture('filesystem-type'), '-o', filesystemType,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(typeBuild.status, 0, typeBuild.stderr));
+  const typeModule = new WebAssembly.Module(readFileSync(filesystemType));
+  verify(() => assert.equal(WebAssembly.Module.imports(typeModule).length, 0));
+  const typeApi = new WebAssembly.Instance(typeModule).exports;
+  const typePath = '../héllo//alias/../file';
+  const typeBytes = bytes => {
+    let result = typeApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = typeApi.consBytes(byte, result);
+    return result;
+  };
+  const typePending = typeApi.init(typeApi.consWords(typeBytes(typePath), typeApi.emptyWords()));
+  verify(() => assert.equal(typeApi.requestCode(typePending), 43));
+  const typeArgs = typeApi.requestArgs(typePending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(typeApi,
+    typeApi.wordsHead(typeArgs), Buffer.byteLength(typePath))), Buffer.from(typePath)));
+  verify(() => assert.equal(typeApi.wordsEmpty(typeApi.wordsTail(typeArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(typeApi,
+    typeApi.requestBody(typePending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(typeApi.exitCode(typePending), 1));
+  for (const [status, answer] of [[0, '0'], [0, '16914836'], [0, '9007199254740993'],
+    [0, '18446744073709551615'], [0, '-9223372036854775808'], [0, '-9007199254740993'],
+    [0, '-1'], [0, Buffer.from([0, 255, 65])], [1, 'ENOSYS: injected failure']]) {
+    const reporting = typeApi.resume(typePending, status, typeBytes(answer));
+    verify(() => assert.equal(typeApi.requestCode(reporting), 6));
+    verify(() => assert.equal(typeApi.wordsEmpty(typeApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(typeApi,
+      typeApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(typeApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = typeApi.resume(reporting, outputStatus, typeApi.emptyBytes());
+      verify(() => assert.equal(typeApi.requestCode(finished), 0));
+      verify(() => assert.equal(typeApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(typeApi.wordsEmpty(typeApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(typeApi.bytesEmpty(typeApi.requestBody(finished)), 1));
+      const stillFinished = typeApi.resume(finished, 1, typeBytes('ignored'));
+      verify(() => assert.equal(typeApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(typeApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const typeFile = join(scratch, 'type héllo');
+  const typeLink = join(scratch, 'type-link');
+  const typeHard = join(scratch, 'type-hard');
+  const typeMissing = join(scratch, 'type-missing');
+  const typeDangling = join(scratch, 'type-dangling');
+  const typeLoop = join(scratch, 'type-loop');
+  const typeFifo = join(scratch, 'type-fifo');
+  writeFileSync(typeFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(typeFile), typeLink);
+  linkSync(typeFile, typeHard);
+  symlinkSync(basename(typeMissing), typeDangling);
+  symlinkSync(basename(typeLoop), typeLoop);
+  const typeFifoBuild = spawnSync('mkfifo', [typeFifo], { encoding: 'utf8' });
+  verify(() => assert.equal(typeFifoBuild.status, 0, typeFifoBuild.error ?? typeFifoBuild.stderr));
+  mkdirSync(join(scratch, 'type-parent', 'nested'), { recursive: true });
+  writeFileSync(join(scratch, 'type-parent', 'data'), 'kept');
+  symlinkSync(join(scratch, 'type-parent', 'nested'), join(scratch, 'type-alias'));
+  const typeBefore = statSync(typeFile, { bigint: true });
+  const typeTrace = join(scratch, 'type-trace.json');
+  const typeObserver = join(scratch, 'type-observer.mjs');
+  // Observe the native result used by the compiled request, including its path and options.
+  writeFileSync(typeObserver, `
+    import fs from 'node:fs/promises';
+    import { writeFileSync } from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const native = fs.statfs;
+    const calls = [];
+    fs.statfs = async (...args) => {
+      const info = await native(...args);
+      calls.push({ args, type: String(info.type) });
+      writeFileSync(${JSON.stringify(typeTrace)}, JSON.stringify(calls));
+      return info;
+    };
+    syncBuiltinESMExports();
+  `);
+  for (const path of [typeFile, typeLink, typeHard, scratch + '/', basename(typeFile),
+    typeFifo, join(scratch, 'type-alias') + '//../data']) {
+    rmSync(typeTrace, { force: true });
+    const result = spawnSync(process.execPath,
+      ['--import', typeObserver, join(root, 'runtime/run.mjs'), filesystemType, path],
+      { encoding: 'utf8', cwd: scratch, timeout: 20000 });
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.match(result.stdout, /^(?:0|-?[1-9]\d*)$/));
+    const calls = JSON.parse(readFileSync(typeTrace, 'utf8'));
+    verify(() => assert.equal(calls.length, 1));
+    verify(() => assert.deepEqual(calls[0].args, [path, { bigint: true }]));
+    verify(() => assert.equal(result.stdout, calls[0].type));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  verify(() => assert.deepEqual(statSync(typeFile, { bigint: true }), typeBefore));
+  for (const [args, message] of [
+    [[], /^IO: OS request 43 expects 1 argument, got 0$/],
+    [[typeFile, 'surplus'], /^IO: OS request 43 expects 1 argument, got 2$/],
+    [[typeMissing], /^ENOENT:/], [[typeDangling], /^ENOENT:/], [[typeLoop], /^ELOOP:/],
+    [[typeFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([filesystemType, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(typeFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(typeDangling), basename(typeMissing)));
+  verify(() => assert.equal(existsSync(typeMissing), false));
+
   const filesystemInodes = join(scratch, 'filesystem-inodes.wasm');
   const inodeBuild = run(['build', shared, fixture('filesystem-inodes'), '-o', filesystemInodes,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -796,6 +796,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file allocation', 40, [s.out]],
     ['filesystem capacity', 41, [s.out]],
     ['filesystem inodes', 42, [s.out]],
+    ['filesystem type', 43, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1901,6 +1902,164 @@ test('file identity forwards host errors and resumes subsequent requests', async
   t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...requests, { code: 37, args: ['path'], answer: '0:7' }]);
   assert.equal(inspect.mock.callCount(), 5);
+});
+
+const filesystemTypePattern = /^(?:0|-?[1-9]\d*)$/;
+const traceFilesystemType = t => {
+  const native = fsPromises.statfs;
+  const snapshots = [];
+  const inspect = t.mock.method(fsPromises, 'statfs', async (...args) => {
+    const info = await native(...args);
+    snapshots.push(info.type);
+    return info;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  return { inspect, snapshots };
+};
+
+test('filesystem type returns the native identifier without changing contents or metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  await fsPromises.utimes(s.out, 1, 2);
+  const before = await stat(s.out, { bigint: true });
+  const { inspect, snapshots } = traceFilesystemType(t);
+  const answers = await slotScript([
+    { code: 43, args: [s.out], answer: filesystemTypePattern },
+    { code: 43, args: [s.out], body: Buffer.alloc(65537, 255), answer: filesystemTypePattern },
+  ]);
+  assert.deepEqual(answers.map(BigInt), snapshots);
+  assert.equal(inspect.mock.callCount(), 2);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [s.out, { bigint: true }]);
+  assert.deepEqual(await stat(s.out, { bigint: true }), before);
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('filesystem type accepts directories, links and special files without opening contents',
+  { skip: process.platform === 'win32', timeout: 5000 }, async t => {
+  const s = await sandbox(t);
+  const live = join(s.path, 'live');
+  const hard = join(s.path, 'hard');
+  const directoryLink = join(s.path, 'directory-link');
+  await writeFile(s.out, 'kept');
+  await symlink('stdout', live);
+  await fsPromises.link(s.out, hard);
+  await symlink('.', directoryLink);
+  const special = privateFifo(join(s.path, 'fifo'));
+  const { snapshots } = traceFilesystemType(t);
+  const guards = ['open', 'stat', 'lstat'].map(name =>
+    t.mock.method(fsPromises, name, () => assert.fail(`filesystem type inspection called ${name}`)));
+  const nativeRead = fsPromises.readFile;
+  const read = t.mock.method(fsPromises, 'readFile', async (path, ...args) => {
+    assert.equal(path.href, new URL('../runtime/reactor.mjs', import.meta.url).href);
+    return nativeRead(path, ...args);
+  });
+  syncBuiltinESMExports();
+  t.after(() => {
+    for (const mock of [...guards, read]) mock.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const paths = [s.out, live, hard, s.path + '/', directoryLink, special];
+  const answers = await slotScript(paths.map(path => ({ code: 43, args: [path], answer: filesystemTypePattern })));
+  assert.equal(snapshots.length, paths.length);
+  assert.deepEqual(answers.map(BigInt), snapshots);
+  for (const guard of guards) assert.equal(guard.mock.callCount(), 0);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('filesystem type preserves relative Unicode paths and native parent symlink resolution',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const unicode = join(s.path, 'héllo space');
+  await writeFile(join(real, 'data'), 'kept');
+  await writeFile(unicode, 'kept');
+  await absent(join(s.path, 'data'));
+  const { inspect, snapshots } = traceFilesystemType(t);
+  const paths = [relative(process.cwd(), unicode), alias + '//../data'];
+  const answers = await slotScript(paths.map(path => ({ code: 43, args: [path], answer: filesystemTypePattern })));
+  assert.deepEqual(answers.map(BigInt), snapshots);
+  assert.deepEqual(inspect.mock.calls.map(call => call.arguments), paths.map(path => [path, { bigint: true }]));
+  await absent(join(s.path, 'data'));
+});
+
+test('filesystem type reports native path errors and recovers without creating entries',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const { snapshots } = traceFilesystemType(t);
+  const failures = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  const answers = await slotScript(failures.flatMap(([path, answer]) => [
+    { code: 43, args: [path], status: 1, answer },
+    { code: 43, args: [s.out], answer: filesystemTypePattern },
+  ]));
+  assert.deepEqual(answers.filter((_, index) => index % 2 === 1).map(BigInt), snapshots);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('filesystem type rejects argument counts and undecodable paths before statfs', async t => {
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => ({ type: 0n }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 43, args,
+    status: 1, answer: `IO: OS request 43 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 43, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('filesystem type preserves exact identifiers from one fresh bigint statfs per request', async t => {
+  const values = [[0n, '0'], [16914836n, '16914836'],
+    [9007199254740993n, '9007199254740993'], [2n ** 64n - 1n, '18446744073709551615'],
+    [-(2n ** 63n), '-9223372036854775808'], [-9007199254740993n, '-9007199254740993'],
+    [-1n, '-1'], [0n, '0']];
+  const pending = [...values];
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => {
+    assert.ok(pending.length, 'filesystem type inspection performed extra statfs calls');
+    const [type] = pending.shift();
+    return { type, bsize: 81n, blocks: 82n, bfree: 83n, bavail: 84n, files: 85n, ffree: 86n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  await slotScript(values.map(([, answer]) => ({ code: 43, args: [path],
+    body: Buffer.from([255, 0]), answer })));
+  assert.equal(pending.length, 0);
+  assert.equal(inspect.mock.callCount(), values.length);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [path, { bigint: true }]);
+});
+
+test('filesystem type forwards unsupported and other host errors and resumes requests', async t => {
+  const failures = ['EACCES', 'EIO', 'EOVERFLOW', 'ENOSYS', 'ENOTSUP']
+    .map(code => Object.assign(new Error('injected failure'), { code }));
+  failures.push(new Error('injected failure'));
+  const requests = failures.map(error => ({ code: 43, args: ['path'], status: 1,
+    answer: `${error.code ?? 'IO'}: injected failure` }));
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => {
+    if (failures.length) throw failures.shift();
+    return { type: 16914836n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...requests, { code: 43, args: ['path'], answer: '16914836' }]);
+  assert.equal(inspect.mock.callCount(), 7);
 });
 
 const inodePattern = /^(?:0|-?[1-9]\d*):(?:0|-?[1-9]\d*)$/;

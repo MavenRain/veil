@@ -1,0 +1,225 @@
+{
+  "source_sha256": "7b1cc009b703b765edbc9ee3cf080cc6b0136cbee4eb55b015ee0c935efc4588",
+  "test_sha256": "8cb8b1601d936ca45547e3016425424e35f4472bb3ba35df47098ef7e738666d",
+  "mutations": {
+    "missing-operation": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": ""
+    },
+    "wrong-field": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.bsize));\n    }\n"
+    },
+    "round-type": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(Number(info.type)));\n    }\n"
+    },
+    "missing-bigint": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0]);\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "normalize-path": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(resolve(args[0]), { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "duplicate-statfs": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "missing-arity": {
+      "old": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];",
+      "new": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];"
+    },
+    "read-contents": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      await readFile(args[0]);\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "stat-instead": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await stat(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "reject-zero": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      if (!info.type) throw new Error(\"zero filesystem type\");\n      return Buffer.from(String(info.type));\n    }\n"
+    },
+    "clamp-negative": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type < 0n ? 0n : info.type));\n    }\n"
+    },
+    "unsigned-type": {
+      "old": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(info.type));\n    }\n",
+      "new": "    case 43: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(String(BigInt.asUintN(64, info.type)));\n    }\n"
+    }
+  },
+  "results": {
+    "positive": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "positive.json",
+      "capture_sha256": "8be4e65704eed37187d7c1d00db2be001dc9784ac3c26264116fff2c2df92f8e"
+    },
+    "missing-operation": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-operation.json",
+      "capture_sha256": "51411c0dec792dfd585e57517ac812bcc3f99d0bf88e51f8638319fea044efc0"
+    },
+    "wrong-field": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-field.json",
+      "capture_sha256": "0576422ba1fb52b10ecacc0664a6af4e4cac35e37919903afa68584aaff8c48f"
+    },
+    "round-type": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-type.json",
+      "capture_sha256": "2a678c97af69a5360479e41633b041f6b307983fbd675eade2d29790aff32621"
+    },
+    "missing-bigint": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 2,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-bigint.json",
+      "capture_sha256": "b8188efbd74979f72c1cbc928ef08f422197ff8d5fa7f69d5fbd047e5ff76ae6"
+    },
+    "normalize-path": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 4,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "normalize-path.json",
+      "capture_sha256": "f678792a80b36cc6deb4a5b8a502c0d81a9870264bb68333d2617da8fc278d45"
+    },
+    "duplicate-statfs": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "duplicate-statfs.json",
+      "capture_sha256": "5d30e32e9d9d21249638cd36bc41c3da74bef67027fa04fb7ce7a4ad5e877fa4"
+    },
+    "missing-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-arity.json",
+      "capture_sha256": "aa2158cefba1500c9d704b4aae6487ded84864cbf54d7133d806c1aab2651278"
+    },
+    "read-contents": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 3,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "read-contents.json",
+      "capture_sha256": "ed171b76f8e1438fc4d42369a747e9930c4d2a2486de2ce579e6ad6721b0d1c0"
+    },
+    "stat-instead": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "stat-instead.json",
+      "capture_sha256": "326985bfc7cabad7d1b69b997d6659f271e68494a6642080cbe7b1a32922cca5"
+    },
+    "reject-zero": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "reject-zero.json",
+      "capture_sha256": "709bddab0d5cc1af7d7732a6c18593bf8592a8c80dc76ea05b6b3fb7eccd89f0"
+    },
+    "clamp-negative": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "clamp-negative.json",
+      "capture_sha256": "9142aae036c3a2d9c16923cba61c24fca8de91d9ff5adb8d799cd24646aa0a76"
+    },
+    "unsigned-type": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "unsigned-type.json",
+      "capture_sha256": "771fe01f8db33da51a5bb949bee572a10898186b02bf3a811ab03157c1d29dce"
+    }
+  }
+}

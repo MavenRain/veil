@@ -1,0 +1,29 @@
+{
+  "variant": "missing-arity",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^filesystem type",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3",
+  "exit_code": 1,
+  "timeout_seconds": 20,
+  "timed_out": false,
+  "counts": {
+    "tests": 7,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "83fb205b57ee2397bc9028f44ee0d6e522befbfef9b99bf1c90e37162b66c1d3",
+  "test_sha256": "8cb8b1601d936ca45547e3016425424e35f4472bb3ba35df47098ef7e738666d",
+  "stdout": "TAP version 13\n# Subtest: filesystem type returns the native identifier without changing contents or metadata\nok 1 - filesystem type returns the native identifier without changing contents or metadata\n  ---\n  duration_ms: 14.046958\n  type: 'test'\n  ...\n# Subtest: filesystem type accepts directories, links and special files without opening contents\nok 2 - filesystem type accepts directories, links and special files without opening contents\n  ---\n  duration_ms: 7.400292\n  type: 'test'\n  ...\n# Subtest: filesystem type preserves relative Unicode paths and native parent symlink resolution\nok 3 - filesystem type preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.8965\n  type: 'test'\n  ...\n# Subtest: filesystem type reports native path errors and recovers without creating entries\nok 4 - filesystem type reports native path errors and recovers without creating entries\n  ---\n  duration_ms: 3.956958\n  type: 'test'\n  ...\n# Subtest: filesystem type rejects argument counts and undecodable paths before statfs\nnot ok 5 - filesystem type rejects argument counts and undecodable paths before statfs\n  ---\n  duration_ms: 1.223125\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/dev/runtime-test.mjs:2015:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 43: 0\n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/dev/runtime-test.mjs:720:14)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/runtime/reactor.mjs:459:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-type-controls-wad_z6o3/dev/runtime-test.mjs:2019:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: filesystem type preserves exact identifiers from one fresh bigint statfs per request\nok 6 - filesystem type preserves exact identifiers from one fresh bigint statfs per request\n  ---\n  duration_ms: 1.313792\n  type: 'test'\n  ...\n# Subtest: filesystem type forwards unsupported and other host errors and resumes requests\nok 7 - filesystem type forwards unsupported and other host errors and resumes requests\n  ---\n  duration_ms: 1.005208\n  type: 'test'\n  ...\n1..7\n# tests 7\n# suites 0\n# pass 6\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 91.025375\n",
+  "stderr": "",
+  "stdout_sha256": "34a091c77949b2cc4ece6cd81d541a5ab9e43d4ae8295f286795be3b15868018",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

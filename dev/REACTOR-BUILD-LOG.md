@@ -983,3 +983,40 @@ with Node v23.10.0; signed, large and zero endpoints also use injected fields.
 Windows was not exercised. The
 [validation record](validation/2026-09-15-filesystem-inodes/README.md)
 contains captures, source hashes, scope and the control reproducer.
+
+## Filesystem type identifier, 2026-09-15
+
+Base: `2e9656fdaddb8c040df3a2efa6f131372878c114`.
+
+Operation 43 returns the host's numeric filesystem type identifier as exact
+ASCII decimal bytes from one `statfs(path, { bigint: true })` result. It
+requires one literal path, preserves zero and signed values, ignores the
+body under shared decoding limits and forwards host errors through resume.
+
+Seven runtime tests cover native identifiers, metadata preservation, links,
+private FIFOs, relative Unicode and parent-symlink paths, malformed requests,
+integer precision and error recovery. The argument-count matrix adds row 43.
+The compiled fixture covers request bytes, answer forwarding, output errors
+and terminal states. Native compiled runs record the actual host result and
+verify the entire response, literal path, bigint options and one-call count.
+
+Validation reused the compiler binary, whose SHA-256 is the same hash that
+the predecessor inode record pins. No compiler source is staged:
+
+- Type inspection and shared argument counts passed 51/51. The full runtime
+  suite passed 259 tests through `kanoncho`, eight more than the base.
+- The compiled reactor suite passed 2891 checks, 219 more than the base,
+  under a 30-second watchdog. HOST-NAT passed 16/16.
+- JavaScript syntax, HOUSE, TRUSTED-LINES and whitespace checks passed.
+  Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- The positive control passed seven tests. All 12 defect controls failed
+  assertions, covering missing operation or arity, wrong field, rounding,
+  missing bigint options, normalized paths, duplicate queries, content
+  reads, stat substitution, rejected zero, clamping and unsigned conversion.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun. Native tests ran on macOS with
+Node v23.10.0; large, signed and zero endpoints also use injected identifiers.
+Windows was not exercised. The
+[validation record](validation/2026-09-15-filesystem-type/README.md)
+contains captures, source hashes, scope and the control reproducer.

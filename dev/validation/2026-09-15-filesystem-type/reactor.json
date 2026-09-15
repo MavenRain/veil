@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-type",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 2891 checks passed\n",
+  "stderr": "",
+  "stdout_sha256": "33af60dbcb08d154e249de8e8d7091ad3428f9d6b043fc9c2cd4b722896367bc",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
