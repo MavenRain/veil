@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "python3",
+    "-I",
+    "dev/validation/2026-09-15-filesystem-capacity/reproduce-controls.py",
+    "--output",
+    "/Users/oobi/Documents/gpt3/veil-filesystem-controls"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-capacity",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "positive: exit=0 pass=7 fail=0\nmissing-operation: exit=1 pass=1 fail=6\nswap-free-available: exit=1 pass=5 fail=2\nwrong-block-size: exit=1 pass=1 fail=6\nwrong-total-blocks: exit=1 pass=1 fail=6\nwrong-free-blocks: exit=1 pass=1 fail=6\nwrong-available-blocks: exit=1 pass=5 fail=2\nround-bsize: exit=1 pass=6 fail=1\nround-blocks: exit=1 pass=6 fail=1\nround-bfree: exit=1 pass=6 fail=1\nround-bavail: exit=1 pass=6 fail=1\nmissing-bigint: exit=1 pass=2 fail=5\nnormalize-path: exit=1 pass=4 fail=3\nduplicate-statfs: exit=1 pass=1 fail=6\nmissing-arity: exit=1 pass=6 fail=1\nread-contents: exit=1 pass=3 fail=4\nreject-zero: exit=1 pass=6 fail=1\n",
+  "stderr": "",
+  "stdout_sha256": "6d4d3eeeab8ac4726cffa9d64bb4b597e91bcdd956924cc7fca945a179da373a",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

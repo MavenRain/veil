@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-capacity",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "OK test: 243 passed\n",
+  "stderr": "",
+  "stdout_sha256": "f92917c8ec254f8a0ca6b241c6df279cfb1c2d46e09551ee15b21b4c5a8e006d",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

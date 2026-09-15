@@ -173,8 +173,9 @@ the left list's length.
 | 38 | path | Read the host's hard-link count as an exact decimal integer |
 | 39 | path | Read numeric owner and group IDs as an exact decimal pair, `uid:gid` |
 | 40 | path | Read allocated block count and I/O block size as `blocks:blksize` |
+| 41 | path | Read filesystem block size, total, free and available blocks as `bsize:blocks:bfree:bavail` |
 
-Operations 1 to 40 check argument counts before performing the operation.
+Operations 1 to 41 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -205,7 +206,9 @@ the [creation time regressions](dev/FILE-CREATED.md) cover operation 36,
 the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37,
 the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38,
 the [file owner regressions](dev/FILE-OWNER.md) cover operation 39,
-and [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40.
+the [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40,
+and [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
+cover operation 41.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -620,6 +623,29 @@ does not promise physical disk usage, unique storage, free space or quota.
 Native tests ran on macOS; zero and large integer formatting also use
 injected metadata. Windows was not exercised. See the
 [file allocation contract and tests](dev/FILE-ALLOCATION.md).
+
+Operation 41 requires exactly one path and returns
+`bsize:blocks:bfree:bavail` from one `statfs(path, { bigint: true })`
+result. The fields are the host filesystem block size, the total block
+count, the free block count and the block count available to an
+unprivileged writer. All four use exact ASCII decimal digits separated by
+one colon, without leading zeros, whitespace or a terminator, and a
+negative host value keeps its minus sign. Zero fields pass through
+unchanged. See Node's
+[`fs.StatFs`](https://nodejs.org/api/fs.html#class-fsstatfs) contract.
+
+The operation follows final symlinks, accepts directories and special
+files, and passes literal paths to the host. It identifies the filesystem
+that holds the resolved entry and does not open file contents. The body is
+unused under the shared decoding limits. Host errors resume with status 1
+and `CODE: message`; each later request reads a fresh snapshot. The four
+fields are a host snapshot: capacity can change independently of the
+requesting program, and filesystem policy sets the relation between the
+free count and the available count. The response does not reserve space and
+does not promise a later write. Native tests ran on macOS; zero, signed and
+large integer formatting also use injected fields. Windows was not
+exercised. See the
+[filesystem capacity contract and tests](dev/FILESYSTEM-CAPACITY.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

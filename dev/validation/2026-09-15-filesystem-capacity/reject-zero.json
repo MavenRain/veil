@@ -1,0 +1,29 @@
+{
+  "variant": "reject-zero",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^filesystem capacity",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn",
+  "exit_code": 1,
+  "timeout_seconds": 20,
+  "timed_out": false,
+  "counts": {
+    "tests": 7,
+    "pass": 6,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "b6d4b57266815b624495e6551168bf123aba79e088da58c19c32a5262b25460a",
+  "test_sha256": "6cfd6557a0ecca1cb75ce7b052b40e65bca499053a2f485c7ce494fdae548b70",
+  "stdout": "TAP version 13\n# Subtest: filesystem capacity returns native snapshots without changing contents or metadata\nok 1 - filesystem capacity returns native snapshots without changing contents or metadata\n  ---\n  duration_ms: 303.367417\n  type: 'test'\n  ...\n# Subtest: filesystem capacity accepts directories, links and special files without opening contents\nok 2 - filesystem capacity accepts directories, links and special files without opening contents\n  ---\n  duration_ms: 90.419958\n  type: 'test'\n  ...\n# Subtest: filesystem capacity preserves relative Unicode paths and native parent symlink resolution\nok 3 - filesystem capacity preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 26.717959\n  type: 'test'\n  ...\n# Subtest: filesystem capacity reports native path errors and recovers without creating entries\nok 4 - filesystem capacity reports native path errors and recovers without creating entries\n  ---\n  duration_ms: 23.194916\n  type: 'test'\n  ...\n# Subtest: filesystem capacity rejects argument counts and undecodable paths before statfs\nok 5 - filesystem capacity rejects argument counts and undecodable paths before statfs\n  ---\n  duration_ms: 4.827417\n  type: 'test'\n  ...\n# Subtest: filesystem capacity preserves exact fields from one fresh bigint statfs per request\nnot ok 6 - filesystem capacity preserves exact fields from one fresh bigint statfs per request\n  ---\n  duration_ms: 3.731833\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/dev/runtime-test.mjs:2028:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 41: IO: zero capacity\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/dev/runtime-test.mjs:720:14)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/runtime/reactor.mjs:452:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-capacity-controls-zwjccvcn/dev/runtime-test.mjs:2048:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: filesystem capacity forwards unsupported and other host errors and resumes requests\nok 7 - filesystem capacity forwards unsupported and other host errors and resumes requests\n  ---\n  duration_ms: 4.559917\n  type: 'test'\n  ...\n1..7\n# tests 7\n# suites 0\n# pass 6\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 941.691375\n",
+  "stderr": "",
+  "stdout_sha256": "326ae92d35dccf0298a7661b24e30136de2b26e6a8a7ea254424ba44c3dd6d0e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

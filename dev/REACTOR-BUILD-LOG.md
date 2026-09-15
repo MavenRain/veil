@@ -909,3 +909,41 @@ claimed. Native tests ran on macOS; zero and large integer formatting also
 use injected metadata. Windows was not exercised. The
 [allocation validation record](validation/2026-09-14-file-allocation/README.md)
 contains commands, captures, source hashes and reproducible checks.
+
+## Filesystem capacity, 2026-09-15
+
+Operation 41 accepts exactly one path and returns `bsize:blocks:bfree:bavail`
+from one bigint statfs result. It preserves exact host integers, including
+zero and signed values, and passes the literal path to the host. Requests
+read fresh filesystem snapshots without opening contents or creating entries.
+The body is unused under the shared limits. Host errors resume with status 1,
+and later requests can recover in the same run.
+
+Seven focused runtime tests cover native snapshots, unchanged file metadata,
+files, directories, links, private FIFOs, path errors, argument counts and
+integer precision. The shared argument-count matrix now includes operation
+41. A compiled fixture checks request and response bytes, output failures,
+stable terminal states and native host behavior. Native free-space checks
+observe the exact call used by the runtime, avoiding comparisons between
+separate snapshots.
+
+Validation used the compiler reused by hash from base `552f567`:
+
+- Capacity and shared argument counts passed 49/49. The full runtime suite
+  passed all 243 tests through `kanoncho`.
+- The full compiled reactor suite passed 2453 checks, 177 more than the
+  preceding slice, under a 120-second watchdog. This direct run does not
+  establish the separate 30-second gate verdict.
+- HOST-NAT passed 16/16. Syntax, HOUSE, TRUSTED-LINES and tracked whitespace
+  checks passed. Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- The positive control passed seven tests. All 16 defect controls failed
+  assertions, covering omitted operation or arity, swapped or wrong fields,
+  rounding each field, missing bigint options, path normalization, repeated
+  statfs, content reading and rejected zero capacity.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun, and no timing waiver is claimed.
+Native tests ran on macOS with Node v23.10.0; zero, signed and large integer
+endpoints also use injected metadata. Windows was not exercised. The
+[validation record](validation/2026-09-15-filesystem-capacity/README.md)
+contains commands, captures, source hashes and the control reproducer.

@@ -1,0 +1,293 @@
+{
+  "source_sha256": "eed6e4d5f0d9b63661535756065edf8c9b9317733d842941f0da53c3df475498",
+  "test_sha256": "6cfd6557a0ecca1cb75ce7b052b40e65bca499053a2f485c7ce494fdae548b70",
+  "mutations": {
+    "missing-operation": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": ""
+    },
+    "swap-free-available": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bavail}:${info.bfree}`);\n    }\n"
+    },
+    "wrong-block-size": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.frsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "wrong-total-blocks": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.files}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "wrong-free-blocks": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.ffree}:${info.bavail}`);\n    }\n"
+    },
+    "wrong-available-blocks": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bfree}`);\n    }\n"
+    },
+    "round-bsize": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${Number(info.bsize)}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "round-blocks": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${Number(info.blocks)}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "round-bfree": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${Number(info.bfree)}:${info.bavail}`);\n    }\n"
+    },
+    "round-bavail": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${Number(info.bavail)}`);\n    }\n"
+    },
+    "missing-bigint": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0]);\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "normalize-path": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(resolve(args[0]), { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "duplicate-statfs": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "missing-arity": {
+      "old": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];",
+      "new": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1];"
+    },
+    "read-contents": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      await readFile(args[0]);\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    },
+    "reject-zero": {
+      "old": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n",
+      "new": "    case 41: {\n      const info = await statfs(args[0], { bigint: true });\n      if (!info.bavail) throw new Error(\"zero capacity\");\n      return Buffer.from(`${info.bsize}:${info.blocks}:${info.bfree}:${info.bavail}`);\n    }\n"
+    }
+  },
+  "results": {
+    "positive": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "positive.json",
+      "capture_sha256": "4c2ed8cd80383889b169122f6cb4310147f59447ced4bb2c2f71279cf489d565"
+    },
+    "missing-operation": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-operation.json",
+      "capture_sha256": "8ca80e50b6da259dee653d676b06d0336e417e823b0020fd94db028db52f8a55"
+    },
+    "swap-free-available": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 5,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "swap-free-available.json",
+      "capture_sha256": "eed88ef2a4bd0d3c6f026f338908b88160ab07902439dac73daca520c04b6443"
+    },
+    "wrong-block-size": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-block-size.json",
+      "capture_sha256": "8e1e05e3f88de70ea726ea03e638c190d66261697ae27ab8077ec480341925e1"
+    },
+    "wrong-total-blocks": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-total-blocks.json",
+      "capture_sha256": "d18844c9ca9aa9d6defb0f57ad7283ffa864bf29c3e3a38f60be4200974241f2"
+    },
+    "wrong-free-blocks": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-free-blocks.json",
+      "capture_sha256": "80ef4b1d71384b1485f0aaea8f4a07797687bb2de1f84e13ce8476d38522e7b8"
+    },
+    "wrong-available-blocks": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 5,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-available-blocks.json",
+      "capture_sha256": "34e3db8c92bc2f2bfc5b17e64df7c6ade82671d3121cdd108a9b178571547d69"
+    },
+    "round-bsize": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-bsize.json",
+      "capture_sha256": "2c26a0786ddb9b60b08ef61821e3aebe84cd1e6c623aa04b29aa78c5eeab0002"
+    },
+    "round-blocks": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-blocks.json",
+      "capture_sha256": "0e40b06a0b2ca36d6e157909e61e7b3a69525a38b3543df71ce20ecba00f6518"
+    },
+    "round-bfree": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-bfree.json",
+      "capture_sha256": "ff0ff50af0b73155f005c21e5c79bb5ea5ab0c49cbf22edc33938cdd13de67a0"
+    },
+    "round-bavail": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-bavail.json",
+      "capture_sha256": "c9dfa1ad183da726f603ae473dd30104efeffb0089861d4af919cde64179ff92"
+    },
+    "missing-bigint": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 2,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-bigint.json",
+      "capture_sha256": "a63023d7e666328a63574869454d5f675caaca023a208d43c993a1b5a0fa7908"
+    },
+    "normalize-path": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 4,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "normalize-path.json",
+      "capture_sha256": "c6d191926d3449dad8bb3a266f6c0d83a41aabe9676a52d88b71e173441018c9"
+    },
+    "duplicate-statfs": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "duplicate-statfs.json",
+      "capture_sha256": "94c181d398bdbc841cc11ed048dc390cda54bc7f86264fb412d19402f068202b"
+    },
+    "missing-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-arity.json",
+      "capture_sha256": "cd1e44c504180b2b745c9a7bc559c09ba67060f0af6804281b557d1a0437a8a7"
+    },
+    "read-contents": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 3,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "read-contents.json",
+      "capture_sha256": "2a98d07137941cdfd7954e8507ae4d35ac42ea3bfe07f274abf31d4d654aeef7"
+    },
+    "reject-zero": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "reject-zero.json",
+      "capture_sha256": "f0ab38d69c7fd9d79efe7f05069a7fdf9a83e76074e1ccfbc3a9216ccad606e0"
+    }
+  }
+}

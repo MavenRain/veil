@@ -1,0 +1,32 @@
+-- Read filesystem capacity and forward the answer bytes to stdout.
+mu FilesystemCapacityState : Type 0 with
+| requested : Words -> FilesystemCapacityState
+| reporting : Nat -> Bytes -> FilesystemCapacityState
+| finished : Nat -> FilesystemCapacityState
+
+def init (args : Words) : FilesystemCapacityState := requested args
+def resume (state : FilesystemCapacityState) (status : Nat) (answer : Bytes) : FilesystemCapacityState :=
+  case state as current in FilesystemCapacityState return FilesystemCapacityState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FilesystemCapacityState) : Nat :=
+  case state as current in FilesystemCapacityState return Nat with
+  | requested args => 41
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FilesystemCapacityState) : Words :=
+  case state as current in FilesystemCapacityState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FilesystemCapacityState) : Bytes :=
+  case state as current in FilesystemCapacityState return Bytes with
+  | requested args => b"\0\xffA"
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FilesystemCapacityState) : Nat :=
+  case state as current in FilesystemCapacityState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-name-pattern",
+    "^(filesystem capacity|request arities)",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-capacity",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "\u25b6 request arities reject missing and surplus arguments before host effects\n  \u2714 temporary directory (8.083458ms)\n  \u2714 file read (3.069042ms)\n  \u2714 atomic write (1.526208ms)\n  \u2714 process (1.626708ms)\n  \u2714 file size (3.271375ms)\n  \u2714 stdout (1.669292ms)\n  \u2714 stderr (1.294542ms)\n  \u2714 realpath (1.657458ms)\n  \u2714 resolve (1.962667ms)\n  \u2714 prove (1.718ms)\n  \u2714 verify (1.490792ms)\n  \u2714 encrypt (1.143417ms)\n  \u2714 evaluate (2.32975ms)\n  \u2714 decrypt (1.33875ms)\n  \u2714 input (1.898291ms)\n  \u2714 joint computation (1.410458ms)\n  \u2714 open (0.97925ms)\n  \u2714 release (1.75825ms)\n  \u2714 unlink (1.358125ms)\n  \u2714 remove directory (3.196417ms)\n  \u2714 rename (1.105625ms)\n  \u2714 directory listing (2.315542ms)\n  \u2714 entry kind (1.132375ms)\n  \u2714 symlink target (1.375375ms)\n  \u2714 symlink creation (1.275959ms)\n  \u2714 hard-link creation (0.977708ms)\n  \u2714 file copy (0.993167ms)\n  \u2714 directory creation (1.457292ms)\n  \u2714 file append (1.704458ms)\n  \u2714 file truncate (1.565708ms)\n  \u2714 file mode (1.371166ms)\n  \u2714 file permissions (1.264792ms)\n  \u2714 file modified (0.911416ms)\n  \u2714 file accessed (3.766125ms)\n  \u2714 file changed (2.34825ms)\n  \u2714 file created (1.219334ms)\n  \u2714 file identity (1.243708ms)\n  \u2714 file link count (1.236708ms)\n  \u2714 file owner (1.138625ms)\n  \u2714 file allocation (1.316708ms)\n  \u2714 filesystem capacity (1.522917ms)\n\u2714 request arities reject missing and surplus arguments before host effects (89.582625ms)\n\u2714 filesystem capacity returns native snapshots without changing contents or metadata (16.327542ms)\n\u2714 filesystem capacity accepts directories, links and special files without opening contents (15.145083ms)\n\u2714 filesystem capacity preserves relative Unicode paths and native parent symlink resolution (4.841583ms)\n\u2714 filesystem capacity reports native path errors and recovers without creating entries (6.6195ms)\n\u2714 filesystem capacity rejects argument counts and undecodable paths before statfs (2.195875ms)\n\u2714 filesystem capacity preserves exact fields from one fresh bigint statfs per request (1.6715ms)\n\u2714 filesystem capacity forwards unsupported and other host errors and resumes requests (1.086959ms)\n\u2139 tests 49\n\u2139 suites 0\n\u2139 pass 49\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 251.411959\n",
+  "stderr": "",
+  "stdout_sha256": "b7b63a65dc4b7a6a2dd6bbb5b27b5215b9fbff08a589f8a703df5977dc6c5166",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

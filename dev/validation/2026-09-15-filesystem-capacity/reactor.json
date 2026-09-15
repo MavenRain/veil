@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-capacity",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 2453 checks passed\n",
+  "stderr": "",
+  "stdout_sha256": "cf6524737f5ab5fcf40368146c5e8299f70bd43169f06cccf72c67f8c8b0d678",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

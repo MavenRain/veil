@@ -794,6 +794,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file link count', 38, [s.out]],
     ['file owner', 39, [s.out]],
     ['file allocation', 40, [s.out]],
+    ['filesystem capacity', 41, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1899,6 +1900,172 @@ test('file identity forwards host errors and resumes subsequent requests', async
   t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...requests, { code: 37, args: ['path'], answer: '0:7' }]);
   assert.equal(inspect.mock.callCount(), 5);
+});
+
+const capacityPattern = /^(?:0|-?[1-9]\d*)(?::(?:0|-?[1-9]\d*)){3}$/;
+// Observe the actual host call, since free space can change between snapshots.
+const traceCapacity = t => {
+  const native = fsPromises.statfs;
+  const snapshots = [];
+  const inspect = t.mock.method(fsPromises, 'statfs', async (...args) => {
+    const info = await native(...args);
+    snapshots.push([info.bsize, info.blocks, info.bfree, info.bavail]);
+    return info;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  return { inspect, snapshots };
+};
+
+test('filesystem capacity returns native snapshots without changing contents or metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  await fsPromises.utimes(s.out, 1, 2);
+  const before = await stat(s.out, { bigint: true });
+  const { inspect, snapshots } = traceCapacity(t);
+  const answers = await slotScript([
+    { code: 41, args: [s.out], answer: capacityPattern },
+    { code: 41, args: [s.out], body: Buffer.alloc(65537, 255), answer: capacityPattern },
+  ]);
+  assert.deepEqual(answers.map(answer => answer.split(':').map(BigInt)), snapshots);
+  assert.equal(inspect.mock.callCount(), 2);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [s.out, { bigint: true }]);
+  assert.deepEqual(await stat(s.out, { bigint: true }), before);
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('filesystem capacity accepts directories, links and special files without opening contents',
+  { skip: process.platform === 'win32', timeout: 5000 }, async t => {
+  const s = await sandbox(t);
+  const live = join(s.path, 'live');
+  const hard = join(s.path, 'hard');
+  const directoryLink = join(s.path, 'directory-link');
+  await writeFile(s.out, 'kept');
+  await symlink('stdout', live);
+  await fsPromises.link(s.out, hard);
+  await symlink('.', directoryLink);
+  const special = privateFifo(join(s.path, 'fifo'));
+  const { snapshots } = traceCapacity(t);
+  const guards = ['open', 'stat', 'lstat'].map(name =>
+    t.mock.method(fsPromises, name, () => assert.fail(`capacity inspection called ${name}`)));
+  const nativeRead = fsPromises.readFile;
+  const read = t.mock.method(fsPromises, 'readFile', async (path, ...args) => {
+    assert.equal(path.href, new URL('../runtime/reactor.mjs', import.meta.url).href);
+    return nativeRead(path, ...args);
+  });
+  syncBuiltinESMExports();
+  t.after(() => {
+    for (const mock of [...guards, read]) mock.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const paths = [s.out, live, hard, s.path + '/', directoryLink, special];
+  const answers = await slotScript(paths.map(path => ({ code: 41, args: [path], answer: capacityPattern })));
+  assert.equal(snapshots.length, paths.length);
+  assert.deepEqual(answers.map(answer => answer.split(':').map(BigInt)), snapshots);
+  for (const guard of guards) assert.equal(guard.mock.callCount(), 0);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('filesystem capacity preserves relative Unicode paths and native parent symlink resolution',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const unicode = join(s.path, 'héllo space');
+  await writeFile(join(real, 'data'), 'kept');
+  await writeFile(unicode, 'kept');
+  await absent(join(s.path, 'data'));
+  const { inspect, snapshots } = traceCapacity(t);
+  const paths = [relative(process.cwd(), unicode), alias + '//../data'];
+  const answers = await slotScript(paths.map(path => ({ code: 41, args: [path], answer: capacityPattern })));
+  assert.deepEqual(answers.map(answer => answer.split(':').map(BigInt)), snapshots);
+  assert.deepEqual(inspect.mock.calls.map(call => call.arguments), paths.map(path => [path, { bigint: true }]));
+  await absent(join(s.path, 'data'));
+});
+
+test('filesystem capacity reports native path errors and recovers without creating entries',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const { snapshots } = traceCapacity(t);
+  const failures = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  const answers = await slotScript(failures.flatMap(([path, answer]) => [
+    { code: 41, args: [path], status: 1, answer },
+    { code: 41, args: [s.out], answer: capacityPattern },
+  ]));
+  assert.deepEqual(answers.filter((_, index) => index % 2 === 1)
+    .map(answer => answer.split(':').map(BigInt)), snapshots);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('filesystem capacity rejects argument counts and undecodable paths before statfs', async t => {
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => ({ bsize: 0n, blocks: 0n, bfree: 0n, bavail: 0n }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 41, args,
+    status: 1, answer: `IO: OS request 41 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 41, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('filesystem capacity preserves exact fields from one fresh bigint statfs per request', async t => {
+  const values = [
+    [0n, 0n, 0n, 0n, '0:0:0:0'], [1n, 2n, 3n, 4n, '1:2:3:4'],
+    [4096n, 100n, 0n, 0n, '4096:100:0:0'], [4096n, 100n, 7n, 0n, '4096:100:7:0'],
+    [9007199254740993n, 9007199254740995n, 9007199254740997n, 9007199254740999n,
+      '9007199254740993:9007199254740995:9007199254740997:9007199254740999'],
+    [2n ** 64n - 1n, 2n ** 63n, 2n ** 63n - 1n, 2n ** 64n - 3n,
+      '18446744073709551615:9223372036854775808:9223372036854775807:18446744073709551613'],
+    [4096n, 100n, -1n, -9007199254740993n, '4096:100:-1:-9007199254740993'],
+    [0n, 0n, 0n, 0n, '0:0:0:0'],
+  ];
+  const pending = [...values];
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => {
+    assert.ok(pending.length, 'capacity inspection performed extra statfs calls');
+    const [bsize, blocks, bfree, bavail] = pending.shift();
+    return { bsize, blocks, bfree, bavail, type: 81n, files: 82n, ffree: 83n, frsize: 84n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  await slotScript(values.map(([, , , , answer]) => ({ code: 41, args: [path],
+    body: Buffer.from([255, 0]), answer })));
+  assert.equal(pending.length, 0);
+  assert.equal(inspect.mock.callCount(), values.length);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [path, { bigint: true }]);
+});
+
+test('filesystem capacity forwards unsupported and other host errors and resumes requests', async t => {
+  const failures = ['EACCES', 'EIO', 'EOVERFLOW', 'ENOSYS', 'ENOTSUP']
+    .map(code => Object.assign(new Error('injected failure'), { code }));
+  failures.push(new Error('injected failure'));
+  const requests = failures.map(error => ({ code: 41, args: ['path'], status: 1,
+    answer: `${error.code ?? 'IO'}: injected failure` }));
+  const inspect = t.mock.method(fsPromises, 'statfs', async () => {
+    if (failures.length) throw failures.shift();
+    return { bsize: 4096n, blocks: 100n, bfree: 7n, bavail: 3n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...requests, { code: 41, args: ['path'], answer: '4096:100:7:3' }]);
+  assert.equal(inspect.mock.callCount(), 7);
 });
 
 test('file allocation returns native block fields without changing contents or metadata', async t => {

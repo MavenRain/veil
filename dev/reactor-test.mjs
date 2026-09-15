@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync, chmodSync, linkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, statfsSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync, chmodSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -912,6 +912,87 @@ try {
   verify(() => assert.equal(readFileSync(identityFile, 'utf8'), 'new identity'));
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
+
+  const filesystemCapacity = join(scratch, 'filesystem-capacity.wasm');
+  const capacityBuild = run(['build', shared, fixture('filesystem-capacity'), '-o', filesystemCapacity,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(capacityBuild.status, 0, capacityBuild.stderr));
+  const capacityModule = new WebAssembly.Module(readFileSync(filesystemCapacity));
+  verify(() => assert.equal(WebAssembly.Module.imports(capacityModule).length, 0));
+  const capacityApi = new WebAssembly.Instance(capacityModule).exports;
+  const capacityPath = '../héllo//alias/../file';
+  const capacityBytes = bytes => {
+    let result = capacityApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = capacityApi.consBytes(byte, result);
+    return result;
+  };
+  const capacityPending = capacityApi.init(capacityApi.consWords(capacityBytes(capacityPath), capacityApi.emptyWords()));
+  verify(() => assert.equal(capacityApi.requestCode(capacityPending), 41));
+  const capacityArgs = capacityApi.requestArgs(capacityPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(capacityApi,
+    capacityApi.wordsHead(capacityArgs), Buffer.byteLength(capacityPath))), Buffer.from(capacityPath)));
+  verify(() => assert.equal(capacityApi.wordsEmpty(capacityApi.wordsTail(capacityArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(capacityApi,
+    capacityApi.requestBody(capacityPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(capacityApi.exitCode(capacityPending), 1));
+  for (const [status, answer] of [[0, '0:0:0:0'], [0, '1:2:3:4'], [0, '4096:100:7:0'],
+    [0, '9007199254740993:9007199254740995:9007199254740997:9007199254740999'],
+    [0, '4096:18446744073709551615:9223372036854775808:9007199254740993'],
+    [0, '4096:100:-1:-9007199254740993'], [0, Buffer.from([0, 255, 65])],
+    [1, 'ENOSYS: injected failure']]) {
+    const reporting = capacityApi.resume(capacityPending, status, capacityBytes(answer));
+    verify(() => assert.equal(capacityApi.requestCode(reporting), 6));
+    verify(() => assert.equal(capacityApi.wordsEmpty(capacityApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(capacityApi,
+      capacityApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(capacityApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = capacityApi.resume(reporting, outputStatus, capacityApi.emptyBytes());
+      verify(() => assert.equal(capacityApi.requestCode(finished), 0));
+      verify(() => assert.equal(capacityApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(capacityApi.wordsEmpty(capacityApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(capacityApi.bytesEmpty(capacityApi.requestBody(finished)), 1));
+      const stillFinished = capacityApi.resume(finished, 1, capacityBytes('ignored'));
+      verify(() => assert.equal(capacityApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(capacityApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const capacityFile = join(scratch, 'capacity héllo');
+  const capacityLink = join(scratch, 'capacity-link');
+  const capacityHard = join(scratch, 'capacity-hard');
+  const capacityMissing = join(scratch, 'capacity-missing');
+  const capacityDangling = join(scratch, 'capacity-dangling');
+  writeFileSync(capacityFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(capacityFile), capacityLink);
+  linkSync(capacityFile, capacityHard);
+  symlinkSync(basename(capacityMissing), capacityDangling);
+  const capacityBefore = statSync(capacityFile, { bigint: true });
+  const capacityFormat = /^(?:0|-?[1-9]\d*)(?::(?:0|-?[1-9]\d*)){3}$/;
+  const capacityBlockSize = statfsSync(capacityFile, { bigint: true }).bsize;
+  for (const path of [capacityFile, capacityLink, capacityHard, scratch + '/', basename(capacityFile)]) {
+    const result = runModule([filesystemCapacity, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.match(result.stdout, capacityFormat));
+    // Free space can change between processes; exact snapshots are tested in the runtime suite.
+    verify(() => assert.equal(BigInt(result.stdout.split(':')[0]), capacityBlockSize));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  verify(() => assert.deepEqual(statSync(capacityFile, { bigint: true }), capacityBefore));
+  for (const [args, message] of [
+    [[], /^IO: OS request 41 expects 1 argument, got 0$/],
+    [[capacityFile, 'surplus'], /^IO: OS request 41 expects 1 argument, got 2$/],
+    [[capacityMissing], /^ENOENT:/], [[capacityDangling], /^ENOENT:/],
+    [[capacityFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([filesystemCapacity, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(capacityFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(capacityDangling), basename(capacityMissing)));
+  verify(() => assert.equal(existsSync(capacityMissing), false));
 
   const fileAllocation = join(scratch, 'file-allocation.wasm');
   const fileAllocationBuild = run(['build', shared, fixture('file-allocation'), '-o', fileAllocation,
