@@ -1,0 +1,32 @@
+-- Read filesystem inode counts and forward the answer bytes to stdout.
+mu FilesystemInodesState : Type 0 with
+| requested : Words -> FilesystemInodesState
+| reporting : Nat -> Bytes -> FilesystemInodesState
+| finished : Nat -> FilesystemInodesState
+
+def init (args : Words) : FilesystemInodesState := requested args
+def resume (state : FilesystemInodesState) (status : Nat) (answer : Bytes) : FilesystemInodesState :=
+  case state as current in FilesystemInodesState return FilesystemInodesState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FilesystemInodesState) : Nat :=
+  case state as current in FilesystemInodesState return Nat with
+  | requested args => 42
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FilesystemInodesState) : Words :=
+  case state as current in FilesystemInodesState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FilesystemInodesState) : Bytes :=
+  case state as current in FilesystemInodesState return Bytes with
+  | requested args => b"\0\xffA"
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FilesystemInodesState) : Nat :=
+  case state as current in FilesystemInodesState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

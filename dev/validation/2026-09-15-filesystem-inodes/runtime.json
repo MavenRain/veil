@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-inodes",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "OK test: 251 passed\n",
+  "stderr": "",
+  "stdout_sha256": "d3624e48d832b7aa09112ae09eda012eb969917bd25f73cf0e69649c59eafb4d",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

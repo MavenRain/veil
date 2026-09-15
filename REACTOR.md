@@ -174,8 +174,9 @@ the left list's length.
 | 39 | path | Read numeric owner and group IDs as an exact decimal pair, `uid:gid` |
 | 40 | path | Read allocated block count and I/O block size as `blocks:blksize` |
 | 41 | path | Read filesystem block size, total, free and available blocks as `bsize:blocks:bfree:bavail` |
+| 42 | path | Read total and free filesystem inode counts as `files:ffree` |
 
-Operations 1 to 41 check argument counts before performing the operation.
+Operations 1 to 42 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -207,8 +208,9 @@ the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37,
 the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38,
 the [file owner regressions](dev/FILE-OWNER.md) cover operation 39,
 the [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40,
-and [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
-cover operation 41.
+the [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
+cover operation 41, and the
+[filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -646,6 +648,27 @@ does not promise a later write. Native tests ran on macOS; zero, signed and
 large integer formatting also use injected fields. Windows was not
 exercised. See the
 [filesystem capacity contract and tests](dev/FILESYSTEM-CAPACITY.md).
+
+Operation 42 requires exactly one path and returns `files:ffree` from one
+`statfs(path, { bigint: true })` result. These are the total and free file
+nodes (inodes) reported by Node's
+[`fs.StatFs`](https://nodejs.org/api/fs.html#class-fsstatfs). Both fields
+use exact ASCII decimal integers separated by one colon, without leading
+zeros, whitespace or a terminator. Zero and signed host values pass through
+unchanged. Each request reads a fresh snapshot.
+
+The host resolves the literal path, including final symlinks and parent
+segments after symlinks. Files, directories and special files identify the
+filesystem containing the resolved entry. The operation leaves contents
+unopened, and the body is unused under the shared decoding limits. Missing
+or surplus arguments return status 1 before statfs; undecodable paths end
+the run with exit 2 in the shared decoder. Host errors return status 1 and
+`CODE: message`, allowing later requests to proceed. Counts follow host
+filesystem policy and may change independently; a response reserves no
+inodes and does not guarantee that a later file creation will succeed.
+Native tests ran on macOS; precision, zero and signed endpoints also use
+injected fields. Windows was not exercised. See the
+[filesystem inode contract and tests](dev/FILESYSTEM-INODES.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

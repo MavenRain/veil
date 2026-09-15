@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-inodes",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 2672 checks passed\n",
+  "stderr": "",
+  "stdout_sha256": "d7fdae0c7c73b22dc7397ced1f6c9f467a987e55cb38139c8da4ba6ce510e106",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

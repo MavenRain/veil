@@ -913,6 +913,116 @@ try {
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
 
+  const filesystemInodes = join(scratch, 'filesystem-inodes.wasm');
+  const inodeBuild = run(['build', shared, fixture('filesystem-inodes'), '-o', filesystemInodes,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(inodeBuild.status, 0, inodeBuild.stderr));
+  const inodeModule = new WebAssembly.Module(readFileSync(filesystemInodes));
+  verify(() => assert.equal(WebAssembly.Module.imports(inodeModule).length, 0));
+  const inodeApi = new WebAssembly.Instance(inodeModule).exports;
+  const inodePath = '../héllo//alias/../file';
+  const inodeBytes = bytes => {
+    let result = inodeApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = inodeApi.consBytes(byte, result);
+    return result;
+  };
+  const inodePending = inodeApi.init(inodeApi.consWords(inodeBytes(inodePath), inodeApi.emptyWords()));
+  verify(() => assert.equal(inodeApi.requestCode(inodePending), 42));
+  const inodeArgs = inodeApi.requestArgs(inodePending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(inodeApi,
+    inodeApi.wordsHead(inodeArgs), Buffer.byteLength(inodePath))), Buffer.from(inodePath)));
+  verify(() => assert.equal(inodeApi.wordsEmpty(inodeApi.wordsTail(inodeArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(inodeApi,
+    inodeApi.requestBody(inodePending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(inodeApi.exitCode(inodePending), 1));
+  for (const [status, answer] of [[0, '0:0'], [0, '11:7'], [0, '11:0'], [0, '0:7'],
+    [0, '9007199254740993:9007199254740995'],
+    [0, '18446744073709551615:9223372036854775808'],
+    [0, '-1:-9007199254740993'], [0, Buffer.from([0, 255, 65])],
+    [1, 'ENOSYS: injected failure']]) {
+    const reporting = inodeApi.resume(inodePending, status, inodeBytes(answer));
+    verify(() => assert.equal(inodeApi.requestCode(reporting), 6));
+    verify(() => assert.equal(inodeApi.wordsEmpty(inodeApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(inodeApi,
+      inodeApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(inodeApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = inodeApi.resume(reporting, outputStatus, inodeApi.emptyBytes());
+      verify(() => assert.equal(inodeApi.requestCode(finished), 0));
+      verify(() => assert.equal(inodeApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(inodeApi.wordsEmpty(inodeApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(inodeApi.bytesEmpty(inodeApi.requestBody(finished)), 1));
+      const stillFinished = inodeApi.resume(finished, 1, inodeBytes('ignored'));
+      verify(() => assert.equal(inodeApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(inodeApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const inodeFile = join(scratch, 'inode héllo');
+  const inodeLink = join(scratch, 'inode-link');
+  const inodeHard = join(scratch, 'inode-hard');
+  const inodeMissing = join(scratch, 'inode-missing');
+  const inodeDangling = join(scratch, 'inode-dangling');
+  const inodeLoop = join(scratch, 'inode-loop');
+  const inodeFifo = join(scratch, 'inode-fifo');
+  writeFileSync(inodeFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(inodeFile), inodeLink);
+  linkSync(inodeFile, inodeHard);
+  symlinkSync(basename(inodeMissing), inodeDangling);
+  symlinkSync(basename(inodeLoop), inodeLoop);
+  const inodeFifoBuild = spawnSync('mkfifo', [inodeFifo], { encoding: 'utf8' });
+  verify(() => assert.equal(inodeFifoBuild.status, 0, inodeFifoBuild.error ?? inodeFifoBuild.stderr));
+  mkdirSync(join(scratch, 'inode-parent', 'nested'), { recursive: true });
+  writeFileSync(join(scratch, 'inode-parent', 'data'), 'kept');
+  symlinkSync(join(scratch, 'inode-parent', 'nested'), join(scratch, 'inode-alias'));
+  const inodeBefore = statSync(inodeFile, { bigint: true });
+  const inodeTrace = join(scratch, 'inode-trace.json');
+  const inodeObserver = join(scratch, 'inode-observer.mjs');
+  // Record both fields from the exact native call used by the compiled run.
+  writeFileSync(inodeObserver, `
+    import fs from 'node:fs/promises';
+    import { writeFileSync } from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const native = fs.statfs;
+    const calls = [];
+    fs.statfs = async (...args) => {
+      const info = await native(...args);
+      calls.push({ args, files: String(info.files), ffree: String(info.ffree) });
+      writeFileSync(${JSON.stringify(inodeTrace)}, JSON.stringify(calls));
+      return info;
+    };
+    syncBuiltinESMExports();
+  `);
+  for (const path of [inodeFile, inodeLink, inodeHard, scratch + '/', basename(inodeFile),
+    inodeFifo, join(scratch, 'inode-alias') + '//../data']) {
+    rmSync(inodeTrace, { force: true });
+    const result = spawnSync(process.execPath,
+      ['--import', inodeObserver, join(root, 'runtime/run.mjs'), filesystemInodes, path],
+      { encoding: 'utf8', cwd: scratch, timeout: 20000 });
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.match(result.stdout, /^(?:0|-?[1-9]\d*):(?:0|-?[1-9]\d*)$/));
+    const calls = JSON.parse(readFileSync(inodeTrace, 'utf8'));
+    verify(() => assert.equal(calls.length, 1));
+    verify(() => assert.deepEqual(calls[0].args, [path, { bigint: true }]));
+    verify(() => assert.equal(result.stdout, `${calls[0].files}:${calls[0].ffree}`));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  verify(() => assert.deepEqual(statSync(inodeFile, { bigint: true }), inodeBefore));
+  for (const [args, message] of [
+    [[], /^IO: OS request 42 expects 1 argument, got 0$/],
+    [[inodeFile, 'surplus'], /^IO: OS request 42 expects 1 argument, got 2$/],
+    [[inodeMissing], /^ENOENT:/], [[inodeDangling], /^ENOENT:/], [[inodeLoop], /^ELOOP:/],
+    [[inodeFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([filesystemInodes, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(inodeFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(inodeDangling), basename(inodeMissing)));
+  verify(() => assert.equal(existsSync(inodeMissing), false));
+
   const filesystemCapacity = join(scratch, 'filesystem-capacity.wasm');
   const capacityBuild = run(['build', shared, fixture('filesystem-capacity'), '-o', filesystemCapacity,
     ...reactorExports.flatMap(name => ['--export', name])]);

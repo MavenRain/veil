@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "zsh",
+    "dev/gates.sh",
+    "--leg",
+    "host-nat"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-inodes",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "PASS HOST-NAT checks=16/16\n",
+  "stderr": "",
+  "stdout_sha256": "f958b5b67902fde5176612fb7b482d646711fc46bd1fb5b7a247b9a88ac966ba",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

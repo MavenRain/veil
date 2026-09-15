@@ -95,6 +95,9 @@ snapshots, writes, truncation, links, precision and request failures.
 Operation 41 reads filesystem capacity as `bsize:blocks:bfree:bavail`.
 The [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md) cover
 native snapshots, literal paths, exact integers and host errors.
+Operation 42 reads total and free filesystem inode counts as `files:ffree`.
+The [filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover native
+snapshots, exact integer pairs, path resolution and host errors.
 
 Function parameters can share a type and quantity:
 

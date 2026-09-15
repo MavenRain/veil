@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "--check",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-filesystem-inodes",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "",
+  "stderr": "",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -947,3 +947,39 @@ Native tests ran on macOS with Node v23.10.0; zero, signed and large integer
 endpoints also use injected metadata. Windows was not exercised. The
 [validation record](validation/2026-09-15-filesystem-capacity/README.md)
 contains commands, captures, source hashes and the control reproducer.
+
+## Filesystem inode counts, 2026-09-15
+
+Base: `e6b15f7da830d8e8baca27aa4d6673b44d24d87f`.
+
+Operation 42 returns total and free filesystem inode counts as `files:ffree`
+from one `statfs(path, { bigint: true })` call. It requires one literal path,
+preserves exact integer fields, ignores the body under shared decoding
+limits and forwards host failures through the normal status response.
+
+Seven runtime tests cover native snapshots, metadata preservation, links,
+private FIFOs, relative Unicode and parent-symlink paths, malformed requests,
+field precision and host errors. The argument-count matrix adds row 42.
+The compiled fixture covers request bytes, answer forwarding, output errors
+and terminal states. Its native runs record both fields from the exact host
+call, checking the full response, path, options and one-call requirement.
+
+Validation reused the compiler verified by hash from the base:
+
+- The inode and argument-count selection passed 50/50. The full runtime
+  suite passed 251 tests through `kanoncho`, eight more than the base.
+- The compiled reactor suite passed 2672 checks, 219 more than the base,
+  under a 30-second watchdog. HOST-NAT passed 16/16.
+- Syntax, HOUSE, TRUSTED-LINES and whitespace checks passed. Kernel lines
+  remain 5246/5250; encoder lines remain 246/600.
+- The positive control passed seven tests. All 16 defect controls failed
+  assertions, covering omitted operation or arity, swapped or wrong fields,
+  rounding, missing bigint options, normalized paths, repeated statfs,
+  content reads, stat substitution, rejected zeros and clamped negatives.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun. Native validation ran on macOS
+with Node v23.10.0; signed, large and zero endpoints also use injected fields.
+Windows was not exercised. The
+[validation record](validation/2026-09-15-filesystem-inodes/README.md)
+contains captures, source hashes, scope and the control reproducer.

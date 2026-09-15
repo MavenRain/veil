@@ -1,0 +1,293 @@
+{
+  "source_sha256": "7218fdb8260256a2c008cd32234b8034d33cc1fc949acb8670265af456c6a5ff",
+  "test_sha256": "a3f6073e42f4b1c0bc336827c6047fd3dea904a85f965fb9e3af7c097b1ab618",
+  "mutations": {
+    "missing-operation": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": ""
+    },
+    "swap-fields": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.ffree}:${info.files}`);\n    }\n"
+    },
+    "wrong-total": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.blocks}:${info.ffree}`);\n    }\n"
+    },
+    "wrong-free": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.bfree}`);\n    }\n"
+    },
+    "round-files": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${Number(info.files)}:${info.ffree}`);\n    }\n"
+    },
+    "round-ffree": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${Number(info.ffree)}`);\n    }\n"
+    },
+    "missing-bigint": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0]);\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "normalize-path": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(resolve(args[0]), { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "duplicate-statfs": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "missing-arity": {
+      "old": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];",
+      "new": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];"
+    },
+    "read-contents": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      await readFile(args[0]);\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "stat-instead": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await stat(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "reject-zero-files": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      if (!info.files) throw new Error(\"zero inode count\");\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "reject-zero-ffree": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      if (!info.ffree) throw new Error(\"zero inode count\");\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n"
+    },
+    "clamp-negative-files": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files < 0n ? 0n : info.files}:${info.ffree}`);\n    }\n"
+    },
+    "clamp-negative-ffree": {
+      "old": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree}`);\n    }\n",
+      "new": "    case 42: {\n      const info = await statfs(args[0], { bigint: true });\n      return Buffer.from(`${info.files}:${info.ffree < 0n ? 0n : info.ffree}`);\n    }\n"
+    }
+  },
+  "results": {
+    "positive": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "positive.json",
+      "capture_sha256": "c35b0bc7344184a5f8ec0bdd33c286575b3ed508dfc719a2625c7574674352f9"
+    },
+    "missing-operation": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-operation.json",
+      "capture_sha256": "e6ec2a08bfc61402a1946804344554746dbeb162356aa2144496cb35ce2a53b2"
+    },
+    "swap-fields": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "swap-fields.json",
+      "capture_sha256": "cb1679ff16c654e701abade09d2928d03619ed75d933e84dec94d0d0723278ab"
+    },
+    "wrong-total": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-total.json",
+      "capture_sha256": "cbfbdf00c6b863dea1827d80ea5021f3316632605c8b2a90c657d615ed90a210"
+    },
+    "wrong-free": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "wrong-free.json",
+      "capture_sha256": "9a2033a8a15b6a6c775efbdfa7bd1d17db41792b4bf537e0586a970ed9392a84"
+    },
+    "round-files": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-files.json",
+      "capture_sha256": "99bf1121e78e4e2e17658bad78d848b35352475347985dcf34a491b0b6e3d9d6"
+    },
+    "round-ffree": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-ffree.json",
+      "capture_sha256": "4ad3f307a09e467a9ff0a2195945c2dff6e4dded5bcf27e5e1f84c3fb931a8fe"
+    },
+    "missing-bigint": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 2,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-bigint.json",
+      "capture_sha256": "24f36311fb09dfa39260ed7e9ccdc60ea3248d30b59838fd4e73e36e00f261b5"
+    },
+    "normalize-path": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 4,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "normalize-path.json",
+      "capture_sha256": "9a3e237546d31d3faaa1ca7d948427243fafffd156c05c747ea743b3d0f73690"
+    },
+    "duplicate-statfs": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "duplicate-statfs.json",
+      "capture_sha256": "70c3c3d5e6e4064bc3fd3be17d2b16ac5765b11792cd1a633f6701b49a5f40e6"
+    },
+    "missing-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-arity.json",
+      "capture_sha256": "2b4c168a59c69918dbb9275ebd69cae73bc46908c7e2ce886a6276b8d5db75bf"
+    },
+    "read-contents": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 3,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "read-contents.json",
+      "capture_sha256": "1e131101171345985602d0a2d2c3e9f64c46b768964c21b067b9665b8ba5f5cc"
+    },
+    "stat-instead": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 1,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "stat-instead.json",
+      "capture_sha256": "9fbbd06dc592146400afc98547f082feffec0e5913c0a710f146fc3b8fc05e7c"
+    },
+    "reject-zero-files": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "reject-zero-files.json",
+      "capture_sha256": "108c4ceb1fde75f842acdd50a006935618eb9771c71789c634019961ee7d2ddc"
+    },
+    "reject-zero-ffree": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "reject-zero-ffree.json",
+      "capture_sha256": "d047c5e2b527fa622072a5f1093c425afd6681ddfd86dd79e265d4227ebc3dba"
+    },
+    "clamp-negative-files": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "clamp-negative-files.json",
+      "capture_sha256": "76e995c9db3b17a56084478e670aaa001a5218d54d368d6a988063c19ab59907"
+    },
+    "clamp-negative-ffree": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 7,
+        "pass": 6,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "clamp-negative-ffree.json",
+      "capture_sha256": "6657d2b7af41552d7cdda4c8442eb898391679d34824b512fb807b800945f8d4"
+    }
+  }
+}
