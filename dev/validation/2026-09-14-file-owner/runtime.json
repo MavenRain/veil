@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-owner/.kanon-exec/run-Gd2mAM",
+  "command_index": 1,
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-owner",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {
+    "pass": 226
+  },
+  "stdout_sha256": "93c045d64854e3100407a44ee77dbc79f00725973e5d0b70824c1e6482d6edda",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 20,
+  "stderr_bytes": 0,
+  "stdout": "OK test: 226 passed\n",
+  "stderr": ""
+}

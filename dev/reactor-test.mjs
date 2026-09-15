@@ -913,6 +913,89 @@ try {
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
 
+  const fileOwner = join(scratch, 'file-owner.wasm');
+  const fileOwnerBuild = run(['build', shared, fixture('file-owner'), '-o', fileOwner,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileOwnerBuild.status, 0, fileOwnerBuild.stderr));
+  const fileOwnerBytes = readFileSync(fileOwner);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileOwnerBytes)).length, 0));
+  const { instance: fileOwnerInstance } = await WebAssembly.instantiate(fileOwnerBytes);
+  const ownerApi = fileOwnerInstance.exports;
+  const ownerPath = '../héllo//alias/../file';
+  const ownerBytes = bytes => {
+    let result = ownerApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = ownerApi.consBytes(byte, result);
+    return result;
+  };
+  const ownerPending = ownerApi.init(ownerApi.consWords(ownerBytes(ownerPath), ownerApi.emptyWords()));
+  verify(() => assert.equal(ownerApi.requestCode(ownerPending), 39));
+  const ownerArgs = ownerApi.requestArgs(ownerPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(ownerApi,
+    ownerApi.wordsHead(ownerArgs), Buffer.byteLength(ownerPath))), Buffer.from(ownerPath)));
+  verify(() => assert.equal(ownerApi.wordsEmpty(ownerApi.wordsTail(ownerArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(ownerApi,
+    ownerApi.requestBody(ownerPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(ownerApi.exitCode(ownerPending), 1));
+  for (const [status, answer] of [[0, '0:0'], [0, '1:2'], [0, '0:7'], [0, '7:0'],
+    [0, '9007199254740993:9007199254740995'], [0, '18446744073709551615:9223372036854775808'],
+    [1, 'EACCES: injected failure']]) {
+    const reporting = ownerApi.resume(ownerPending, status, ownerBytes(answer));
+    verify(() => assert.equal(ownerApi.requestCode(reporting), 6));
+    verify(() => assert.equal(ownerApi.wordsEmpty(ownerApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(ownerApi,
+      ownerApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(ownerApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = ownerApi.resume(reporting, outputStatus, ownerApi.emptyBytes());
+      verify(() => assert.equal(ownerApi.requestCode(finished), 0));
+      verify(() => assert.equal(ownerApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(ownerApi.wordsEmpty(ownerApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(ownerApi.bytesEmpty(ownerApi.requestBody(finished)), 1));
+      const stillFinished = ownerApi.resume(finished, 1, ownerBytes('ignored'));
+      verify(() => assert.equal(ownerApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(ownerApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const ownerFile = join(scratch, 'owner héllo');
+  const ownerLink = join(scratch, 'owner-link');
+  const ownerHard = join(scratch, 'owner-hard');
+  const ownerMissing = join(scratch, 'owner-missing');
+  const ownerDangling = join(scratch, 'owner-dangling');
+  writeFileSync(ownerFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(ownerFile), ownerLink);
+  linkSync(ownerFile, ownerHard);
+  symlinkSync(basename(ownerMissing), ownerDangling);
+  const ownerBefore = statSync(ownerFile, { bigint: true });
+  for (const path of [ownerFile, ownerLink, ownerHard, scratch + '/', basename(ownerFile)]) {
+    const info = statSync(resolve(scratch, path), { bigint: true });
+    const result = runModule([fileOwner, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, `${info.uid}:${info.gid}`));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  const ownerMetadata = info => [info.uid, info.gid, info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(ownerMetadata(statSync(ownerFile, { bigint: true })), ownerMetadata(ownerBefore)));
+  for (const [args, message] of [
+    [[], /^IO: OS request 39 expects 1 argument, got 0$/],
+    [[ownerFile, 'surplus'], /^IO: OS request 39 expects 1 argument, got 2$/],
+    [[ownerMissing], /^ENOENT:/], [[ownerDangling], /^ENOENT:/],
+    [[ownerFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileOwner, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  const ownerRecovery = runModule([fileOwner, ownerFile]);
+  verify(() => assert.equal(ownerRecovery.status, 0, ownerRecovery.error ?? ownerRecovery.stderr));
+  verify(() => assert.equal(ownerRecovery.stdout, `${ownerBefore.uid}:${ownerBefore.gid}`));
+  verify(() => assert.equal(ownerRecovery.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(ownerFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(ownerDangling), basename(ownerMissing)));
+  verify(() => assert.equal(existsSync(ownerMissing), false));
+
   const fileLinkCount = join(scratch, 'file-link-count.wasm');
   const fileLinkCountBuild = run(['build', shared, fixture('file-link-count'), '-o', fileLinkCount,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -1,0 +1,28 @@
+{
+  "name": "extra-stat",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file owner ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b",
+  "timeout_seconds": 20,
+  "exit_code": 1,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 6,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "b67e7e5d70f45cc535705c98de320072810fe558546a0667b7cb84e2e5b46db7",
+  "tests_sha256": "8e86315d05d6954857012ae30238265042002b0088a0a478831e16c8be6a35f4",
+  "stdout_sha256": "96adb65bce37c363b24e6e911a99a1afb24a10b15d666787d4c24697b7723557",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "TAP version 13\n# Subtest: file owner returns native user and group IDs without changing contents or metadata\nok 1 - file owner returns native user and group IDs without changing contents or metadata\n  ---\n  duration_ms: 9.332709\n  type: 'test'\n  ...\n# Subtest: file owner agrees across hard links through append, permission changes, rename and unlink\nok 2 - file owner agrees across hard links through append, permission changes, rename and unlink\n  ---\n  duration_ms: 6.058459\n  type: 'test'\n  ...\n# Subtest: file owner accepts directories and special files and follows final symlinks\nok 3 - file owner accepts directories and special files and follows final symlinks\n  ---\n  duration_ms: 7.895584\n  type: 'test'\n  ...\n# Subtest: file owner preserves relative Unicode paths and native parent symlink resolution\nok 4 - file owner preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.06775\n  type: 'test'\n  ...\n# Subtest: file owner reports native path errors and continues without creating entries\nok 5 - file owner reports native path errors and continues without creating entries\n  ---\n  duration_ms: 3.586042\n  type: 'test'\n  ...\n# Subtest: file owner rejects argument counts and undecodable paths before stat\nok 6 - file owner rejects argument counts and undecodable paths before stat\n  ---\n  duration_ms: 1.572584\n  type: 'test'\n  ...\n# Subtest: file owner preserves exact integer pairs from one fresh stat without opening contents\nnot ok 7 - file owner preserves exact integer pairs from one fresh stat without opening contents\n  ---\n  duration_ms: 8.771875\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2034:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 39\n    \n    '0:2' !== '0:0'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '0:0'\n  actual: '0:2'\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:724:19)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/runtime/reactor.mjs:443:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2059:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file owner forwards host errors and resumes subsequent requests\nnot ok 8 - file owner forwards host errors and resumes subsequent requests\n  ---\n  duration_ms: 1.747583\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2068:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    6 !== 5\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 5\n  actual: 6\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2080:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 6\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 116.817125\n",
+  "stderr": ""
+}

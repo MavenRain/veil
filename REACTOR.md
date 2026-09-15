@@ -171,8 +171,9 @@ the left list's length.
 | 36 | path | Read host creation time as signed decimal nanoseconds since the Unix epoch |
 | 37 | path | Read the device and inode as an exact decimal pair, `dev:ino` |
 | 38 | path | Read the host's hard-link count as an exact decimal integer |
+| 39 | path | Read numeric owner and group IDs as an exact decimal pair, `uid:gid` |
 
-Operations 1 to 38 check argument counts before performing the operation.
+Operations 1 to 39 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -201,7 +202,8 @@ the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34,
 the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35,
 the [creation time regressions](dev/FILE-CREATED.md) cover operation 36,
 the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37,
-and the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38.
+the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38,
+and the [file owner regressions](dev/FILE-OWNER.md) cover operation 39.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -575,6 +577,26 @@ special-file counts retain the host filesystem's meaning. A count is a
 snapshot, cannot identify an entry, and may change before a later request.
 Native tests ran on macOS; zero and large integer endpoints use injected
 metadata. See the [link count contract and tests](dev/FILE-LINK-COUNT.md).
+
+Operation 39 requires exactly one path and returns `uid:gid` from one
+`stat(path, { bigint: true })` result. Each field is formatted directly as
+ASCII decimal digits, separated by one colon, without leading zeros,
+signs, whitespace or a terminator. Zero fields pass through unchanged.
+Node defines [`stats.uid`](https://nodejs.org/api/fs.html#statsuid) and
+[`stats.gid`](https://nodejs.org/api/fs.html#statsgid) as the POSIX numeric
+owner and group identifiers. The operation preserves the host's fields;
+it does not resolve account names or change ownership.
+
+The operation follows final symlinks, accepts directories and special files,
+and passes literal paths to the host. It inspects metadata without opening
+contents. The body is unused under the shared decoding limits. Host errors
+resume with status 1 and `CODE: message`. Hard links to the same entry
+report the same pair. The pair is a snapshot of ownership, does not identify
+a file, and does not establish whether a later operation has permission to
+access that file. Each request resolves its path again. Native tests ran on
+macOS; zero and large integer endpoints use injected metadata. Native
+ownership changes and Windows were not exercised. See the
+[file owner contract and tests](dev/FILE-OWNER.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

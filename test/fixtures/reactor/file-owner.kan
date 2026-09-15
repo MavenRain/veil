@@ -1,0 +1,33 @@
+-- Read numeric file ownership, then report the host answer and output status.
+
+mu FileOwnerState : Type 0 with
+| requested : Words -> FileOwnerState
+| reporting : Nat -> Bytes -> FileOwnerState
+| finished : Nat -> FileOwnerState
+
+def init (argv : Words) : FileOwnerState := requested argv
+def resume (state : FileOwnerState) (status : Nat) (answer : Bytes) : FileOwnerState :=
+  case state as current in FileOwnerState return FileOwnerState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileOwnerState) : Nat :=
+  case state as current in FileOwnerState return Nat with
+  | requested args => 39
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileOwnerState) : Words :=
+  case state as current in FileOwnerState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileOwnerState) : Bytes :=
+  case state as current in FileOwnerState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileOwnerState) : Nat :=
+  case state as current in FileOwnerState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

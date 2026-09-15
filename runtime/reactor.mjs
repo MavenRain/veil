@@ -220,7 +220,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -355,6 +355,10 @@ async function perform(code, args, body, interrupted, blobs) {
       return Buffer.from(`${info.dev}:${info.ino}`);
     }
     case 38: return Buffer.from(String((await stat(args[0], { bigint: true })).nlink));
+    case 39: {
+      const info = await stat(args[0], { bigint: true });
+      return Buffer.from(`${info.uid}:${info.gid}`);
+    }
     default: throw new Error(`unknown OS request ${code}`);
   }
 }

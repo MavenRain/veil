@@ -1,0 +1,28 @@
+{
+  "name": "rounded-owner",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file owner ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b",
+  "timeout_seconds": 20,
+  "exit_code": 1,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 7,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "67546b8baae993e0116155ff14ed5e0440323aa06244331c73e9e4ab42b66e40",
+  "tests_sha256": "8e86315d05d6954857012ae30238265042002b0088a0a478831e16c8be6a35f4",
+  "stdout_sha256": "043be77d292625d5a6e3a6ea1bdd04a78e2dc1c001ab802cf5699e76c499b389",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "TAP version 13\n# Subtest: file owner returns native user and group IDs without changing contents or metadata\nok 1 - file owner returns native user and group IDs without changing contents or metadata\n  ---\n  duration_ms: 8.404625\n  type: 'test'\n  ...\n# Subtest: file owner agrees across hard links through append, permission changes, rename and unlink\nok 2 - file owner agrees across hard links through append, permission changes, rename and unlink\n  ---\n  duration_ms: 5.735167\n  type: 'test'\n  ...\n# Subtest: file owner accepts directories and special files and follows final symlinks\nok 3 - file owner accepts directories and special files and follows final symlinks\n  ---\n  duration_ms: 8.484625\n  type: 'test'\n  ...\n# Subtest: file owner preserves relative Unicode paths and native parent symlink resolution\nok 4 - file owner preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.817417\n  type: 'test'\n  ...\n# Subtest: file owner reports native path errors and continues without creating entries\nok 5 - file owner reports native path errors and continues without creating entries\n  ---\n  duration_ms: 3.518333\n  type: 'test'\n  ...\n# Subtest: file owner rejects argument counts and undecodable paths before stat\nok 6 - file owner rejects argument counts and undecodable paths before stat\n  ---\n  duration_ms: 1.597208\n  type: 'test'\n  ...\n# Subtest: file owner preserves exact integer pairs from one fresh stat without opening contents\nnot ok 7 - file owner preserves exact integer pairs from one fresh stat without opening contents\n  ---\n  duration_ms: 28.260542\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2034:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 4, operation 39\n    + actual - expected\n    \n    + '9007199254740992:9007199254740995'\n    - '9007199254740993:9007199254740995'\n                      ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '9007199254740993:9007199254740995'\n  actual: '9007199254740992:9007199254740995'\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:724:19)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/runtime/reactor.mjs:443:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-owner-controls-0fbgyt8b/dev/runtime-test.mjs:2059:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file owner forwards host errors and resumes subsequent requests\nok 8 - file owner forwards host errors and resumes subsequent requests\n  ---\n  duration_ms: 2.646375\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 7\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 135.5365\n",
+  "stderr": ""
+}

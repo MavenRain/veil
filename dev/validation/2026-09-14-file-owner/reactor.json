@@ -1,0 +1,19 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-owner/.kanon-exec/run-LzmSGD",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "/Users/oobi/Documents/gpt3/veil-owner/_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-owner",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "c659d86435a39e0c3a1f76db741921fd0ad1ff260c31d4ba2b22a0661d948fe1",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "stdout": "reactor: 2118 checks passed\n",
+  "stderr": ""
+}

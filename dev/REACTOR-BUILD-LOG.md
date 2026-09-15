@@ -826,3 +826,43 @@ claimed. Native tests ran on macOS; zero and large integer endpoints use
 injected metadata. The
 [link count validation record](validation/2026-09-14-file-link-count/README.md)
 contains commands, captures, source hashes and the control reproducer.
+
+## File owner, 2026-09-14
+
+Operation 39 accepts exactly one path and returns `uid:gid` from a single
+bigint stat result. Both numeric fields retain exact decimal formatting,
+including zero. The operation follows final symlinks, passes literal paths
+to the host, accepts directories and special files, and reads metadata
+without opening contents. The body is unused under the shared limits.
+Host errors resume with status 1, with recovery on later requests.
+
+Eight focused runtime tests cover native ownership, unchanged metadata,
+hard links, append, permission changes, rename, unlink, symlinks, private
+FIFOs, path validation and exact integer pairs. The FIFO test guards opens
+and reads and has a five-second timeout. Injected metadata checks fresh
+single-stat responses, zero and large integers. The shared argument-count
+matrix now includes operation 39. A compiled fixture checks request and
+response bytes, output failures, terminal states and native host behavior.
+
+Validation with the compiler reused by hash from base `72ccf34` passed:
+
+- The positive control passed all eight focused tests. The ownership and
+  argument-count selection passed 48/48. The full runtime suite passed all
+  226 tests through `kanoncho`.
+- The compiled reactor suite passed 2118 checks, 159 more than the preceding
+  slice, under a 120-second watchdog. This direct run does not establish the
+  separate 30-second gate verdict.
+- HOST-NAT passed 16/16. Syntax, HOUSE, TRUSTED-LINES and tracked whitespace
+  checks passed. Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- All 15 isolated defect controls failed assertions: the base runtime,
+  swapped fields, wrong owner or group field, separately rounded fields,
+  missing bigint options, symlink inspection, path normalization, duplicate
+  stat, missing separator, content opening, content reading, rejected zero
+  and missing arity.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun. Native tests ran on macOS;
+zero and large integer endpoints use injected metadata. Native ownership
+changes and Windows were not exercised. The
+[file owner validation record](validation/2026-09-14-file-owner/README.md)
+contains commands, captures, source hashes and the control reproducer.

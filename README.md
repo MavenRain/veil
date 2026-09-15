@@ -86,6 +86,9 @@ replacement, symlinks, precision and request failures.
 Operation 38 reads an entry's hard-link count as an exact decimal integer.
 The [link count regressions](dev/FILE-LINK-COUNT.md) cover link creation,
 unlink, replacement, symlinks, precision and request failures.
+Operation 39 reads the host's numeric owner and group IDs as `uid:gid`.
+The [file owner regressions](dev/FILE-OWNER.md) cover native ownership,
+hard links, symlinks, exact integer pairs and request failures.
 
 Function parameters can share a type and quantity:
 

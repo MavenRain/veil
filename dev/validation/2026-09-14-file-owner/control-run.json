@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-owner/.kanon-exec/run-PaNaxJ",
+  "command_index": 1,
+  "argv": [
+    "python3",
+    "-I",
+    "dev/validation/2026-09-14-file-owner/reproduce-controls.py",
+    "--output",
+    "dev/validation/2026-09-14-file-owner"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-owner",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "83d8a724dbe39575e9e5df7839fbfeec2e68dff21864c420d3ff47cc78c5d157",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 631,
+  "stderr_bytes": 0,
+  "stdout": "positive: exit=0 pass=8 fail=0\nbase-runtime: exit=1 pass=0 fail=8\nswapped-fields: exit=1 pass=1 fail=7\nwrong-owner-field: exit=1 pass=1 fail=7\nwrong-group-field: exit=1 pass=1 fail=7\nrounded-owner: exit=1 pass=7 fail=1\nrounded-group: exit=1 pass=7 fail=1\nomit-bigint: exit=1 pass=7 fail=1\ninspect-symlink: exit=1 pass=4 fail=4\nnormalize-path: exit=1 pass=5 fail=3\nextra-stat: exit=1 pass=6 fail=2\nomit-separator: exit=1 pass=1 fail=7\nopen-contents: exit=1 pass=5 fail=3\nread-contents: exit=1 pass=4 fail=4\nreject-zero: exit=1 pass=6 fail=2\nomit-arity: exit=1 pass=7 fail=1\nAll 15 defect controls rejected; positive control passed.\n",
+  "stderr": ""
+}
