@@ -1,6 +1,6 @@
 # Reactor request arities
 
-The JavaScript reactor validates the argument count of operations 1 to 37
+The JavaScript reactor validates the argument count of operations 1 to 38
 before dispatch. This note records the original rows 1 to 18; the
 [cleanup regressions](FILE-CLEANUP.md) record rows 19 and 20, the
 [rename regressions](FILE-RENAME.md) record row 21, the
@@ -18,9 +18,10 @@ before dispatch. This note records the original rows 1 to 18; the
 [modification time regressions](FILE-MODIFIED.md) record row 33, the
 [access time regressions](FILE-ACCESSED.md) record row 34, the
 [status-change time regressions](FILE-CHANGED.md) record row 35, the
-[creation time regressions](FILE-CREATED.md) record row 36, and the
-[file identity regressions](FILE-IDENTITY.md) record row 37.
-Operations 33, 34, 35, 36 and 37 each require exactly one path argument.
+[creation time regressions](FILE-CREATED.md) record row 36, the
+[file identity regressions](FILE-IDENTITY.md) record row 37, and the
+[link count regressions](FILE-LINK-COUNT.md) record row 38.
+Operations 33 to 38 each require exactly one path argument.
 An unknown operation resumes with an unknown-request error
 and no count check. Fixed requests require their documented arity;
 process operation 4 accepts an executable with zero or more arguments, and

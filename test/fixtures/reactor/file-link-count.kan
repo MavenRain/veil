@@ -1,0 +1,33 @@
+-- Read the hard-link count, then report the host answer and output status.
+
+mu FileLinkCountState : Type 0 with
+| requested : Words -> FileLinkCountState
+| reporting : Nat -> Bytes -> FileLinkCountState
+| finished : Nat -> FileLinkCountState
+
+def init (argv : Words) : FileLinkCountState := requested argv
+def resume (state : FileLinkCountState) (status : Nat) (answer : Bytes) : FileLinkCountState :=
+  case state as current in FileLinkCountState return FileLinkCountState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileLinkCountState) : Nat :=
+  case state as current in FileLinkCountState return Nat with
+  | requested args => 38
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileLinkCountState) : Words :=
+  case state as current in FileLinkCountState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileLinkCountState) : Bytes :=
+  case state as current in FileLinkCountState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileLinkCountState) : Nat :=
+  case state as current in FileLinkCountState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

@@ -83,6 +83,9 @@ host fallback values, exact signed formatting, links and request failures.
 Operation 37 reads the host's device and inode pair as exact decimal integers.
 The [file identity regressions](dev/FILE-IDENTITY.md) cover hard links, atomic
 replacement, symlinks, precision and request failures.
+Operation 38 reads an entry's hard-link count as an exact decimal integer.
+The [link count regressions](dev/FILE-LINK-COUNT.md) cover link creation,
+unlink, replacement, symlinks, precision and request failures.
 
 Function parameters can share a type and quantity:
 

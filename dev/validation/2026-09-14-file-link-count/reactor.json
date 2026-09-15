@@ -1,0 +1,19 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-link-count/.kanon-exec/run-bsoouG",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-link-count",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {},
+  "stdout_sha256": "9374c10d227aa4f5fffdaf46094b46bc84b14fab212edf0429447db9a6dbfaeb",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 28,
+  "stderr_bytes": 0,
+  "stdout": "reactor: 1959 checks passed\n",
+  "stderr": ""
+}

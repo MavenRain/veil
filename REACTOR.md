@@ -170,8 +170,9 @@ the left list's length.
 | 35 | path | Read status-change time as signed decimal nanoseconds since the Unix epoch |
 | 36 | path | Read host creation time as signed decimal nanoseconds since the Unix epoch |
 | 37 | path | Read the device and inode as an exact decimal pair, `dev:ino` |
+| 38 | path | Read the host's hard-link count as an exact decimal integer |
 
-Operations 1 to 37 check argument counts before performing the operation.
+Operations 1 to 38 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -199,7 +200,8 @@ the [modification time regressions](dev/FILE-MODIFIED.md) cover operation 33,
 the [access time regressions](dev/FILE-ACCESSED.md) cover operation 34,
 the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35,
 the [creation time regressions](dev/FILE-CREATED.md) cover operation 36,
-and the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37.
+the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37,
+and the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -555,6 +557,24 @@ changes limit comparisons across time; a later operation resolves its path
 again. The pair is scoped to the host and filesystem. Native tests ran on
 macOS, with large integer endpoints covered by injected metadata. See the
 [file identity contract and tests](dev/FILE-IDENTITY.md).
+
+Operation 38 requires exactly one path and returns `nlink` from one
+`stat(path, { bigint: true })` call. It formats the host's hard-link count
+directly as ASCII decimal digits, without leading zeros, signs, whitespace
+or a terminator. Zero passes through as `0`. See the Node contract for
+[`stats.nlink`](https://nodejs.org/api/fs.html#statsnlink).
+
+The operation follows final symlinks and preserves literal path resolution.
+It accepts directories and special files and inspects metadata without
+opening contents. The body is unused under the shared decoding limits.
+Host errors resume with status 1 and `CODE: message`. Hard links to one
+entry report the same count; adding or removing a name changes that count.
+Atomic replacement gives the destination a new entry while existing hard
+links retain the old entry with one fewer name. Directory counts and
+special-file counts retain the host filesystem's meaning. A count is a
+snapshot, cannot identify an entry, and may change before a later request.
+Native tests ran on macOS; zero and large integer endpoints use injected
+metadata. See the [link count contract and tests](dev/FILE-LINK-COUNT.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

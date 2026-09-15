@@ -790,3 +790,39 @@ milestone gate ladder was not rerun, and no timing waiver is claimed. Native
 tests ran on macOS; large integer endpoints use injected metadata. The
 [file identity validation record](validation/2026-09-14-file-identity/README.md)
 contains commands, captures, source hashes and the control reproducer.
+
+## File link count, 2026-09-14
+
+Operation 38 accepts exactly one path and returns the `nlink` field from one
+bigint stat result as exact decimal digits. It follows final symlinks,
+preserves literal paths, accepts directories and special files, and reads
+metadata without opening contents. The body is unused under the shared
+limits. Host errors resume with status 1, including recovery on later
+requests. The shared argument-count matrix includes operation 38.
+
+Eight focused runtime tests cover native metadata, link-count changes,
+symlinks, FIFOs, literal path resolution, malformed requests, exact integer
+formatting and error recovery. The compiled fixture checks the state
+machine and host integration, including hard links and atomic replacement.
+
+Validation with the compiler reused by hash from base `be5e76e` passed:
+
+- The positive control passed all eight focused tests. The link-count and
+  argument-count selection passed 47/47. The full runtime suite passed all
+  217 tests through `kanoncho`.
+- The compiled reactor suite passed 1959 checks, 160 more than the prior
+  slice, under a 120-second watchdog. This direct invocation does not
+  establish the separate 30-second gate verdict.
+- HOST-NAT passed 16/16. Syntax, HOUSE, TRUSTED-LINES and tracked whitespace
+  checks passed. Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- All 12 isolated defect controls failed assertions as expected: the base
+  runtime, wrong metadata field, rounded count, missing bigint options,
+  symlink inspection, path normalization, constant count, duplicate stat,
+  replaced zero, missing arity, content opening and content reading.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun, and no timing waiver is
+claimed. Native tests ran on macOS; zero and large integer endpoints use
+injected metadata. The
+[link count validation record](validation/2026-09-14-file-link-count/README.md)
+contains commands, captures, source hashes and the control reproducer.

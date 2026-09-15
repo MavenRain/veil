@@ -913,6 +913,100 @@ try {
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
 
+  const fileLinkCount = join(scratch, 'file-link-count.wasm');
+  const fileLinkCountBuild = run(['build', shared, fixture('file-link-count'), '-o', fileLinkCount,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileLinkCountBuild.status, 0, fileLinkCountBuild.stderr));
+  const fileLinkCountBytes = readFileSync(fileLinkCount);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileLinkCountBytes)).length, 0));
+  const { instance: fileLinkCountInstance } = await WebAssembly.instantiate(fileLinkCountBytes);
+  const linkCountApi = fileLinkCountInstance.exports;
+  const linkCountPath = '../héllo//alias/../file';
+  const linkCountBytes = bytes => {
+    let result = linkCountApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = linkCountApi.consBytes(byte, result);
+    return result;
+  };
+  const linkCountPending = linkCountApi.init(linkCountApi.consWords(
+    linkCountBytes(linkCountPath), linkCountApi.emptyWords()));
+  verify(() => assert.equal(linkCountApi.requestCode(linkCountPending), 38));
+  const linkCountArgs = linkCountApi.requestArgs(linkCountPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(linkCountApi,
+    linkCountApi.wordsHead(linkCountArgs), Buffer.byteLength(linkCountPath))), Buffer.from(linkCountPath)));
+  verify(() => assert.equal(linkCountApi.wordsEmpty(linkCountApi.wordsTail(linkCountArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(linkCountApi,
+    linkCountApi.requestBody(linkCountPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(linkCountApi.exitCode(linkCountPending), 1));
+  for (const [status, answer] of [[0, '0'], [0, '1'], [0, '2'],
+    [0, '9007199254740993'], [0, '18446744073709551615'], [1, 'EACCES: injected failure']]) {
+    const reporting = linkCountApi.resume(linkCountPending, status, linkCountBytes(answer));
+    verify(() => assert.equal(linkCountApi.requestCode(reporting), 6));
+    verify(() => assert.equal(linkCountApi.wordsEmpty(linkCountApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(linkCountApi,
+      linkCountApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(linkCountApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = linkCountApi.resume(reporting, outputStatus, linkCountApi.emptyBytes());
+      verify(() => assert.equal(linkCountApi.requestCode(finished), 0));
+      verify(() => assert.equal(linkCountApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(linkCountApi.wordsEmpty(linkCountApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(linkCountApi.bytesEmpty(linkCountApi.requestBody(finished)), 1));
+      const stillFinished = linkCountApi.resume(finished, 1, linkCountBytes('ignored'));
+      verify(() => assert.equal(linkCountApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(linkCountApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const countFile = join(scratch, 'count héllo');
+  const countLink = join(scratch, 'count-link');
+  const countHard = join(scratch, 'count-hard');
+  const countExtra = join(scratch, 'count-extra');
+  const countReplacement = join(scratch, 'count-replacement');
+  const countMissing = join(scratch, 'count-missing');
+  const countDangling = join(scratch, 'count-dangling');
+  writeFileSync(countFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(countFile), countLink);
+  linkSync(countFile, countHard);
+  symlinkSync(basename(countMissing), countDangling);
+  const countBefore = statSync(countFile, { bigint: true });
+  verify(() => assert.equal(countBefore.nlink, 2n));
+  const checkLinkCount = (path, expected) => {
+    const result = runModule([fileLinkCount, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, expected));
+    verify(() => assert.equal(result.stderr, ''));
+  };
+  for (const path of [countFile, countLink, countHard, scratch + '/', basename(countFile)]) {
+    const info = statSync(resolve(scratch, path), { bigint: true });
+    checkLinkCount(path, String(info.nlink));
+  }
+  const countMetadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(countMetadata(statSync(countFile, { bigint: true })), countMetadata(countBefore)));
+  linkSync(countHard, countExtra);
+  checkLinkCount(countFile, '3');
+  checkLinkCount(countLink, '3');
+  rmSync(countExtra);
+  checkLinkCount(countHard, '2');
+  writeFileSync(countReplacement, 'new entry');
+  renameSync(countReplacement, countFile);
+  for (const path of [countFile, countLink, countHard]) checkLinkCount(path, '1');
+  for (const [args, message] of [
+    [[], /^IO: OS request 38 expects 1 argument, got 0$/],
+    [[countFile, 'surplus'], /^IO: OS request 38 expects 1 argument, got 2$/],
+    [[countMissing], /^ENOENT:/], [[countDangling], /^ENOENT:/],
+    [[countFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileLinkCount, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(countHard), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readFileSync(countFile, 'utf8'), 'new entry'));
+  verify(() => assert.equal(readlinkSync(countDangling), basename(countMissing)));
+  verify(() => assert.equal(existsSync(countMissing), false));
+
   const filePermissions = join(scratch, 'file-permissions.wasm');
   const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file link count",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity",
+  "exit_code": 1,
+  "watchdog_ms": 15000,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 7,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout": "TAP version 13\n# Subtest: file link count returns native metadata without changing contents or timestamps\nok 1 - file link count returns native metadata without changing contents or timestamps\n  ---\n  duration_ms: 9.01225\n  type: 'test'\n  ...\n# Subtest: file link count tracks creation, rename, unlink, replacement and independent copies\nok 2 - file link count tracks creation, rename, unlink, replacement and independent copies\n  ---\n  duration_ms: 10.040584\n  type: 'test'\n  ...\n# Subtest: file link count accepts directories and special files and follows final symlinks\nok 3 - file link count accepts directories and special files and follows final symlinks\n  ---\n  duration_ms: 7.49825\n  type: 'test'\n  ...\n# Subtest: file link count preserves relative Unicode paths and native parent symlink resolution\nok 4 - file link count preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.985166\n  type: 'test'\n  ...\n# Subtest: file link count reports native path errors and continues without creating entries\nok 5 - file link count reports native path errors and continues without creating entries\n  ---\n  duration_ms: 3.339291\n  type: 'test'\n  ...\n# Subtest: file link count rejects argument counts and undecodable paths before stat\nnot ok 6 - file link count rejects argument counts and undecodable paths before stat\n  ---\n  duration_ms: 1.929458\n  type: 'test'\n  location: '/Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/dev/runtime-test.mjs:2013:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 38: 0\n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/dev/runtime-test.mjs:720:14)\n    api.resume (file:///Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/dev/runtime-test.mjs:745:12)\n    runReactor (file:///Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/runtime/reactor.mjs:439:19)\n    async slotScript (file:///Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-link-count-controls/omit-arity/dev/runtime-test.mjs:2017:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file link count preserves exact integers from one fresh stat without opening contents\nok 7 - file link count preserves exact integers from one fresh stat without opening contents\n  ---\n  duration_ms: 35.968792\n  type: 'test'\n  ...\n# Subtest: file link count forwards host errors and resumes subsequent requests\nok 8 - file link count forwards host errors and resumes subsequent requests\n  ---\n  duration_ms: 3.651542\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 7\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 153.124792\n",
+  "stderr": "",
+  "stdout_sha256": "c0626e3fe8521a3398041a58b7820d6d02e8ddd3862b445455fe101fbed0ac94",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "runtime_sha256": "195ddb2829857064de3ecb7ba3916dc5234db50dfa8d10e3e14ded787b2b9431",
+  "tests_sha256": "de325dbfb196943b0cc38c5bc2d28670d96c46989f8731234a79af90552bc005"
+}
