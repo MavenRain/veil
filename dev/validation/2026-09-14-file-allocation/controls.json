@@ -1,0 +1,450 @@
+{
+  "base": "07ebd5c25ea469d1109608d679f4cd95440040b9",
+  "runtime_sha256": "73807859f2cdba1f278d680c7aed9e4b0d2506690c5fbb9032650fe208fef25e",
+  "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+  "reproducer_sha256": "87b6a5e90b95678e3366e65db4c40a097e584c22b6c4a7a4ec4aa879520e6031",
+  "controls": [
+    {
+      "name": "positive",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 0,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "73807859f2cdba1f278d680c7aed9e4b0d2506690c5fbb9032650fe208fef25e",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "20c12e84e94e072cb1a86155351c4e1768afbd867954615d41d5d1a917b67fb1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "base-runtime",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 0,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "5c4e5df68be3bb3ee870aff653629d78b65ef94ef226cdf82c1d8155b1c2e7b5",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "2d13f4e8c3072849bdb9ff5094a7400f840dbd1dafef93f2e9c9aa4481ade6aa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swapped-fields",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 1,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "c96b1746715d1bf5da4c2153fc7c7de096b2c69f91ffec59ea51e24b2818f237",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "bf047c7ddd0980774f163131472c71fd8a0e85ad5145c8c2528df7375830fc36",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "wrong-count-field",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 1,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "819031465ae3b62d30c52386cdb3b629825e4b0c08b2d44b084dd56b8638806c",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "5670248d39f2bb731853ca38a62563e7822e3507187c8033c8deb27c9ac93bba",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "wrong-size-field",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 1,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "623a7d46e04a2dd1441e31d63fd47396c6a0e07c025afbe728e8c84876ad1aee",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "2082e6630d1bbab33e99f62b059fefbe15ea77b56975c9f027d7a08a03d347ec",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rounded-count",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "bd0eafbe97e9dbb5219cb00d884408b56c7a11744155f7481490141a7a76a6dd",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "5b336ada3c9df49979b6472358624194aed4c0967bf7eb1ee80c44f2fdaa560c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rounded-size",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "c80153cf87bc243e92cee6d7938f751f2cb8c5249ddc8c1c7b4eeb8c65345db6",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "18243400a60894b27f4769bddc37d8da1498a55ffe5b9358aed50a007c5a6ee2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "multiply-fields",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 2,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "39dae6dd8c40afef82e0f0418a3e04105e41a2dfeb6550848258402cb9284f4d",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "910ece92fc29939a767ef1fa5679fe491e548c63202abe64824399c364cb4dab",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "omit-bigint",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "cef20b22ece1eedc7cdb83b75c0732a66c20c98832713a37b3b614090f9350f5",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "c47ca956fb45285d6dcfa5c8b6d1ac76d2209c1d5d4f562e95319fd4d50f1563",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "inspect-symlink",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "a161200750e865ef6b829fe8237108b04c8f898608d0b44a3373051135e0f9e2",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "d7d31c632f3576740cb9f7df3c617d8909137c53831956955d40c08e6f72b4d3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "normalize-path",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 5,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "ca28e698fc6599fe9a36add2282bca0318efde9f4943124d7d53ff4f927b3b57",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "45a68f3104331690b419734ce36cacb542ee0486e56a825ee242ff0080f64ec8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "extra-stat",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 6,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "754483570a19de04873d0b0c4b0119f65cbcaa4342a187505d4fe465083d6951",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "2a1dfd414405c82beefee9dd1fc24d9a1d847273b16467abb0c5cfc2ca6e2bab",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "omit-separator",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 1,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "7200793460db62cae00d5c9c5ee79890bfb48faa7897707cb624f11d53c7ae21",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "8f6db530f3791289311dd103af328a2f6c3dccb3718e8343060de0ee906f91ba",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "open-contents",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 5,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "00181f6c8a4b97561a6e41e5ca6120835b0541f1f38d871803a5304fd953b4a3",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "0376b0a4fd1b6b2afd245b2986e3efa12334479a160f67230ac8063be48c8989",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "read-contents",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "0d9dc7fec0a672b09c9fb3852209ea5fd1365067629a6d63ad7c28089759ae42",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "82ce61fcadfdc87dfbcc6367f22569cc3ad787b5c25c353ba833543989d586bc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reject-zero",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "80a8266cfde4e2dd81a5daf3bd7692d152295e1c1fd374bb2fcf1e2dfbec3ebc",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "0e6b0b9d4c9437494080687ede048019efb314e432bbfc5a43df1e312ee80fa7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "omit-arity",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file allocation ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-allocation-controls-s7x_lnzm",
+      "timeout_seconds": 20,
+      "exit_code": 1,
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 7,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "runtime_sha256": "5df1334c357538489c8d8eb9fb5bdd09fe18c888cc24997b91405f12e6a86487",
+      "tests_sha256": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+      "stdout_sha256": "51b1e28f56cdbb88d91e4011bdb9e798e202c4ce5ce86d85eb0d75fa87410e63",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -793,6 +793,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file identity', 37, [s.out]],
     ['file link count', 38, [s.out]],
     ['file owner', 39, [s.out]],
+    ['file allocation', 40, [s.out]],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -1897,6 +1898,191 @@ test('file identity forwards host errors and resumes subsequent requests', async
   syncBuiltinESMExports();
   t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...requests, { code: 37, args: ['path'], answer: '0:7' }]);
+  assert.equal(inspect.mock.callCount(), 5);
+});
+
+test('file allocation returns native block fields without changing contents or metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  await fsPromises.utimes(s.out, 1, 2);
+  const metadata = info => [info.blocks, info.blksize, info.uid, info.gid, info.dev, info.ino,
+    info.mode, info.nlink, info.size, info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  const before = await stat(s.out, { bigint: true });
+  await slotScript([
+    { code: 40, args: [s.out], answer: `${before.blocks}:${before.blksize}` },
+    { code: 40, args: [s.out], body: Buffer.from([255, 0]), answer: `${before.blocks}:${before.blksize}` },
+  ]);
+  assert.deepEqual(metadata(await stat(s.out, { bigint: true })), metadata(before));
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file allocation follows native snapshots through writes, truncation and hard-link changes', async t => {
+  const s = await sandbox(t);
+  const hard = join(s.path, 'hard');
+  const moved = join(s.path, 'moved');
+  await writeFile(s.out, '');
+  await fsPromises.link(s.out, hard);
+  const checkPaths = async paths => {
+    const info = await stat(paths[0], { bigint: true });
+    const answer = `${info.blocks}:${info.blksize}`;
+    await slotScript(paths.map(path => ({ code: 40, args: [path], answer })));
+  };
+  await checkPaths([s.out, hard]);
+  await slotScript([{ code: 29, args: [s.out], body: Buffer.alloc(65536, 65), answer: '' }]);
+  await checkPaths([s.out, hard]);
+  // Allocation policy belongs to the host, including sparse extensions.
+  await slotScript([{ code: 30, args: [hard, '1048576'], answer: '' }]);
+  await checkPaths([s.out, hard]);
+  await slotScript([{ code: 30, args: [s.out, '0'], answer: '' }]);
+  await checkPaths([s.out, hard]);
+  await slotScript([{ code: 21, args: [s.out, moved], answer: '' }]);
+  await checkPaths([moved, hard]);
+  await slotScript([{ code: 19, args: [hard], answer: '' }]);
+  await checkPaths([moved]);
+  await slotScript([{ code: 40, args: [hard], status: 1, answer: /^ENOENT:/ }]);
+  assert.equal((await readFile(moved)).length, 0);
+  await absent(s.out);
+});
+
+test('file allocation accepts directories and special files and follows final symlinks',
+  { skip: process.platform === 'win32', timeout: 5000 }, async t => {
+  const s = await sandbox(t);
+  const live = join(s.path, 'live');
+  const directoryLink = join(s.path, 'directory-link');
+  await writeFile(s.out, 'kept');
+  await symlink('stdout', live);
+  await symlink('.', directoryLink);
+  const special = privateFifo(join(s.path, 'fifo'));
+  assert.ok((await stat(special)).isFIFO());
+  const requests = [];
+  for (const path of [s.out, live, s.path + '/', directoryLink, special]) {
+    const info = await stat(path, { bigint: true });
+    requests.push({ code: 40, args: [path], answer: `${info.blocks}:${info.blksize}` });
+  }
+  const opened = t.mock.method(fsPromises, 'open', () => assert.fail('allocation inspection opened contents'));
+  const inspectedLink = t.mock.method(fsPromises, 'lstat', () => assert.fail('allocation inspection used lstat'));
+  const originalRead = fsPromises.readFile;
+  const read = t.mock.method(fsPromises, 'readFile', async (path, ...args) => {
+    assert.equal(path.href, new URL('../runtime/reactor.mjs', import.meta.url).href);
+    return originalRead(path, ...args);
+  });
+  syncBuiltinESMExports();
+  t.after(() => {
+    for (const mock of [opened, inspectedLink, read]) mock.mock.restore();
+    syncBuiltinESMExports();
+  });
+  await slotScript(requests);
+  assert.equal(opened.mock.callCount(), 0);
+  assert.equal(inspectedLink.mock.callCount(), 0);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('file allocation preserves relative Unicode paths and native parent symlink resolution',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const path of [actual, unicode]) await writeFile(path, 'kept');
+  // Lexically normalizing alias/../data would reach this absent path.
+  await absent(join(s.path, 'data'));
+  const requests = [];
+  for (const [path, native] of [[relative(process.cwd(), unicode), unicode],
+    [alias + '//../data', actual]]) {
+    const info = await stat(native, { bigint: true });
+    requests.push({ code: 40, args: [path], answer: `${info.blocks}:${info.blksize}` });
+  }
+  await slotScript(requests);
+  await absent(join(s.path, 'data'));
+});
+
+test('file allocation reports native path errors and continues without creating entries',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const info = await stat(s.out, { bigint: true });
+  const requests = [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]];
+  await slotScript([
+    ...requests.map(([path, answer]) => ({ code: 40, args: [path], status: 1, answer })),
+    { code: 40, args: [s.out], answer: `${info.blocks}:${info.blksize}` },
+  ]);
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+});
+
+test('file allocation rejects argument counts and undecodable paths before stat', async t => {
+  const inspect = t.mock.method(fsPromises, 'stat', async () => ({ blocks: 0n, blksize: 0n }));
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path', 'surplus']].map(args => ({ code: 40, args,
+    status: 1, answer: `IO: OS request 40 expects 1 argument, got ${args.length}` })));
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    await assert.rejects(slotScript([{ code: 40, args: [bytes], answer: '' }]), { message });
+  }
+  assert.equal(inspect.mock.callCount(), 0);
+});
+
+test('file allocation preserves exact integer pairs from one fresh stat without opening contents', async t => {
+  const values = [
+    [0n, 0n, '0:0'], [1n, 2n, '1:2'], [12n, 3n, '12:3'], [1n, 23n, '1:23'],
+    [9007199254740993n, 9007199254740995n, '9007199254740993:9007199254740995'],
+    [2n ** 64n - 1n, 2n ** 63n, '18446744073709551615:9223372036854775808'],
+    [0n, 7n, '0:7'], [7n, 0n, '7:0'], [0n, 0n, '0:0'],
+  ];
+  const pending = [...values];
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    assert.ok(pending.length, 'allocation inspection performed extra stat calls');
+    const [blocks, blksize] = pending.shift();
+    return { blocks, blksize, dev: 81n, ino: 82n, rdev: 91n, nlink: 92n,
+      size: 93n, mode: 94n, uid: 95n, gid: 96n };
+  });
+  const originalRead = fsPromises.readFile;
+  const read = t.mock.method(fsPromises, 'readFile', async (path, ...args) => {
+    assert.equal(path.href, new URL('../runtime/reactor.mjs', import.meta.url).href);
+    return originalRead(path, ...args);
+  });
+  const opened = t.mock.method(fsPromises, 'open', () => assert.fail('allocation inspection opened contents'));
+  syncBuiltinESMExports();
+  t.after(() => {
+    for (const mock of [inspect, read, opened]) mock.mock.restore();
+    syncBuiltinESMExports();
+  });
+  const path = '../héllo//alias/../file';
+  await slotScript(values.map(([, , answer]) => ({ code: 40, args: [path],
+    body: Buffer.alloc(65537, 255), answer })));
+  assert.equal(pending.length, 0);
+  assert.equal(inspect.mock.callCount(), values.length);
+  for (const call of inspect.mock.calls) assert.deepEqual(call.arguments, [path, { bigint: true }]);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal(opened.mock.callCount(), 0);
+});
+
+test('file allocation forwards host errors and resumes subsequent requests', async t => {
+  const failures = ['EACCES', 'EIO', 'EOVERFLOW'].map(code => Object.assign(new Error('injected failure'), { code }));
+  failures.push(new Error('injected failure'));
+  const requests = failures.map(error => ({ code: 40, args: ['path'], status: 1,
+    answer: `${error.code ?? 'IO'}: injected failure` }));
+  const inspect = t.mock.method(fsPromises, 'stat', async () => {
+    if (failures.length) throw failures.shift();
+    return { blocks: 0n, blksize: 7n };
+  });
+  syncBuiltinESMExports();
+  t.after(() => { inspect.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...requests, { code: 40, args: ['path'], answer: '0:7' }]);
   assert.equal(inspect.mock.callCount(), 5);
 });
 

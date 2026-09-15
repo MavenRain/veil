@@ -866,3 +866,46 @@ zero and large integer endpoints use injected metadata. Native ownership
 changes and Windows were not exercised. The
 [file owner validation record](validation/2026-09-14-file-owner/README.md)
 contains commands, captures, source hashes and the control reproducer.
+
+## File allocation, 2026-09-14
+
+Operation 40 accepts exactly one path and returns `blocks:blksize` from a
+single bigint stat result. Both fields retain exact decimal formatting,
+including zero. The operation follows final symlinks, preserves literal
+paths, accepts directories and special files, and reads metadata without
+opening contents. The body is unused under the shared limits. Host errors
+resume with status 1, with recovery on later requests. The block count's
+unit belongs to the host; the I/O block size is not a conversion factor.
+
+Eight focused runtime tests cover native allocation snapshots through
+append, sparse extension, truncation and hard-link changes, unchanged
+metadata, symlinks, private FIFOs, path validation and exact integer pairs.
+The shared argument-count matrix now includes operation 40. A compiled
+fixture checks request and response bytes, output failures, stable terminal
+states and native host behavior.
+
+Validation used the compiler reused by hash from base `07ebd5c`:
+
+- The allocation and argument-count selection passed 49/49. The full
+  runtime suite passed all 235 tests through `kanoncho`.
+- The exact allocation block extracted from the compiled reactor suite
+  passed all 158 checks. Full-suite attempts were incomplete: the first
+  hit an existing file-change case's 20-second child timeout; the second
+  hit the 120-second outer watchdog without output. No full REACTOR or
+  separate 30-second gate pass is claimed by these scoped checks.
+- HOST-NAT passed 16/16. Syntax, HOUSE, TRUSTED-LINES and tracked whitespace
+  checks passed. Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- The positive control passed all eight tests. All 16 defect controls
+  failed assertions, covering the base runtime, swapped or wrong fields,
+  separate rounding, multiplied fields, missing bigint options, symlink
+  inspection, path normalization, duplicate stat, missing separator,
+  content opening or reading, rejected zero and missing arity.
+- The control reproducer rejected an existing output directory, file and
+  dangling symlink while preserving each one.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun, and no timing waiver is
+claimed. Native tests ran on macOS; zero and large integer formatting also
+use injected metadata. Windows was not exercised. The
+[allocation validation record](validation/2026-09-14-file-allocation/README.md)
+contains commands, captures, source hashes and reproducible checks.

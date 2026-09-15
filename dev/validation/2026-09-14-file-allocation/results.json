@@ -1,0 +1,173 @@
+{
+  "base": "07ebd5c25ea469d1109608d679f4cd95440040b9",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "compiler_reused_from_base": true,
+  "compiler_sources_unchanged": true,
+  "gate_definitions_unchanged": true,
+  "full_compiler_ladder_rerun": false,
+  "full_reactor_pass": false,
+  "reactor_gate_pass": false,
+  "source_sha256": {
+    "REACTOR.md": "9f4419aabaca595e114bf1e19a4797bc083676dc240ae32afca3cbeff6e62ef9",
+    "README.md": "1bfc1440c706219d6a83446f2759f4d0101e9e5be1c004382303fdc4ff0942ff",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "dev/FILE-ALLOCATION.md": "7f5462e25ebb08251de580eb89ee96ac189418dc9fb106d20074b80bce26ffdc",
+    "dev/REACTOR-BUILD-LOG.md": "af8cf09ee1e9055fb892ee85f3899090a661dce9091e8cce070c779f2d2fe3d9",
+    "dev/REQUEST-ARITY.md": "8aa80b39a156df206c5c98930a0b17665ba2ab79b7fc908a0994ab6592b69a3d",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/reactor-test.mjs": "cd52e99c9346d8d8006159f14ac2d2ec8604d1599a520cad1d16bcfecfe959df",
+    "dev/runtime-test.mjs": "8798927e311fc9bb9e8820d6eb3b17f17f5745b3674f2b78cabcb7936f623a1a",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-14-file-allocation/README.md": "6d54a313cdede5aa9f0cb3bab2b200f31ef09983bb149f56f26d1cde2ffbe989",
+    "dev/validation/2026-09-14-file-allocation/check-output.py": "05f46d7b4c079fbf5bc31fd43c96ad70c28e83ab4644bbb14645d3ef5f64c74c",
+    "dev/validation/2026-09-14-file-allocation/reproduce-controls.py": "87b6a5e90b95678e3366e65db4c40a097e584c22b6c4a7a4ec4aa879520e6031",
+    "dev/validation/2026-09-14-file-allocation/run-compiled.mjs": "9a241da7ecbc0ad0d5e6f94a8f949475c8ee4c64b1647659460fbea4a5b66b26",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/reactor.mjs": "73807859f2cdba1f278d680c7aed9e4b0d2506690c5fbb9032650fe208fef25e",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "test/fixtures/reactor/blob-release.kan": "c2873f7c64e7f12e11c0f678bb7d65404aef48366b39345308c69659b66fa88c",
+    "test/fixtures/reactor/byte-literal-bad-escape.kan": "bba25c38cfd5d512b61c537ebc9396a0753f64eef74759a0a7ebb5a93068ee7e",
+    "test/fixtures/reactor/byte-literal-bad-hex.kan": "a71de5c18486661ca60fd36de416b00f4d0143fc1cee5acf8d8f79e5e0346cb1",
+    "test/fixtures/reactor/byte-literal-unterminated.kan": "b89eec3b187a6e8a31e80cff1020e490a8db1173b7880a74c13f6189e67b85f3",
+    "test/fixtures/reactor/byte-literal-valid.kan": "86cebb79a6eeee352b25d22601ef340929acbdcae150b7dd414b00670eae9a7d",
+    "test/fixtures/reactor/directory-create.kan": "8f09f750364443333da3069de74f98c7d9ba7865fb5c0ccd47da83cf9a15c1a9",
+    "test/fixtures/reactor/directory-listing.kan": "f5b8d5d4b586c1115e4ea774034a52f7182d02e1fd5fa6cd3171c2b0525b70c7",
+    "test/fixtures/reactor/entry-kind.kan": "608924ea12ad4738903e748c78c90f4c75b4b376abaf28ff34e10a8b534ef593",
+    "test/fixtures/reactor/file-accessed.kan": "4b00b2f756e9fa5338428351e69b726b5916a4924f763fdd48d40b00bc0d6619",
+    "test/fixtures/reactor/file-allocation.kan": "b348f064d774ef42297db09e8be62c3cad8f583594db2f3c06c743c7d2e0ad55",
+    "test/fixtures/reactor/file-append.kan": "6af51f9168aa32e5c52acf82974092321429349c63b88fcb94e5344330780e88",
+    "test/fixtures/reactor/file-changed.kan": "f07e01fce73e6dd42417c7dafb7f6b809045c2f20f0b30c1a06653abcbb565e3",
+    "test/fixtures/reactor/file-cleanup.kan": "a82811504aacc6806cb38ca835858659e6686339cf24bf62b06ba324666c099f",
+    "test/fixtures/reactor/file-copy.kan": "fc291d65a960d9a23ffa3cf1acbb07ba6b9e1e31a10e917508422d8ccb9015eb",
+    "test/fixtures/reactor/file-created.kan": "de996f9ac4d369967610fb75a6e5a57e0446425d1c3931e45aedb0d1343087b1",
+    "test/fixtures/reactor/file-identity.kan": "c2f832b2b35f95e053da22b4af3d6456fa556c646b2efce4391673e817f842cb",
+    "test/fixtures/reactor/file-link-count.kan": "718844e6e717456f50a52a67b16d61e025114c9ce105e2196fd773457a852122",
+    "test/fixtures/reactor/file-mode.kan": "8cd7010290f1d80cf6cab5f8d96d65c7a089823a843e79aa3138fa050a264597",
+    "test/fixtures/reactor/file-modified.kan": "398d12e8c5c3e99b0f43f5d4a7c4113a2e4882e6cc94265e9181adb7c16a1fd8",
+    "test/fixtures/reactor/file-owner.kan": "8bbfc2f2bbd70bdaa903e9f26fa94b5d887774870215365bf2fe4e18d8b93c26",
+    "test/fixtures/reactor/file-permissions.kan": "1959e5aa7a2c8fcaa6d97e56503a30145b2c6961b587a2683c9f29c14c74ef33",
+    "test/fixtures/reactor/file-rename.kan": "0425a1f5277d7218c76ac4f85608c2063e8246c8034127ab4461f6471732fa37",
+    "test/fixtures/reactor/file-truncate.kan": "86167f1244cbb3dc4b534bd2053e8cc304debfd7be3cf0a9ca8b30b872d154b3",
+    "test/fixtures/reactor/hard-link.kan": "7ce7180f0ec4480980a5d09793e03d980d4dafe96aacd83ef9e8e21f584c8ffc",
+    "test/fixtures/reactor/list-cycles.kan": "b0f90f4386efcc086405d10921e11aeac04977e8d8b245e1e4d0ca4f6ff48975",
+    "test/fixtures/reactor/list-predicates.kan": "4b50d7200b5e94c2eef02daaff4ea95e442650a2942465d4c9af710d564012be",
+    "test/fixtures/reactor/reactor-functions.kan": "89749cfeb637458255cf6890cd694dd24e0c2a93fe3de0b9282afee11cdbd888",
+    "test/fixtures/reactor/reactor-types.kan": "f8f9a59d9d5b21b9d963ca2a87b4336984fb21531ac3f03949b7c5ef5bdc0524",
+    "test/fixtures/reactor/symlink-create.kan": "b3da263a94c27a34b61a265389fe6cc56bb8ade5c1bdd6b13b01826e5b3a96e6",
+    "test/fixtures/reactor/symlink-target.kan": "04954227ffeb136ebb9978da64edf20803519a1d353917a821947a5b5cc2332c",
+    "test/fixtures/reactor/temp-directory.kan": "c82413c22041b69c509eb93a50c4842b4f050e7e78276d84a909eb6901dcfa85"
+  },
+  "capture_sha256": {
+    "dev/validation/2026-09-14-file-allocation/base-runtime.json": "ea45165bf9ec49d212518cf7cc50c4897a0979bfb36ef3af7e43c044bcef4f1b",
+    "dev/validation/2026-09-14-file-allocation/compiled-allocation.json": "6aa26b6bc7f9014243218d6efc2d6b76453448250678eeae78f216d1b4e56b14",
+    "dev/validation/2026-09-14-file-allocation/control-run.json": "aab87770d501387167b73a53272501ff42c553931e525d150ef42b25e8d220a1",
+    "dev/validation/2026-09-14-file-allocation/controls.json": "a9e9ae6ece8db978d1c9990047f0b6928d48e3a5d4f27b563732131db41628cc",
+    "dev/validation/2026-09-14-file-allocation/diff-check.json": "3dd465310d009200127d2756f6214a2f0dedfbf558bc549102fa93aa1a5d327c",
+    "dev/validation/2026-09-14-file-allocation/extra-stat.json": "9f222b9fdadca53915641d91aaaf2dbe097d5626c66f548aa905e933ffa62259",
+    "dev/validation/2026-09-14-file-allocation/focused-arity.json": "b41d011d33136756839a2e5364d68154765cf535442de16d5505835ad1b42942",
+    "dev/validation/2026-09-14-file-allocation/host-nat.json": "c5b63cc914600228972c34e9af5984f8c3ac7adcb0fa37fdfb0cf5fb870b90a6",
+    "dev/validation/2026-09-14-file-allocation/house.json": "077fb841b8322232ca67b59efffddcce109836670916ba441a8ebe9689ee4b49",
+    "dev/validation/2026-09-14-file-allocation/inspect-symlink.json": "f39dc3c00375ecd0696587cb0a21a21378d284441d6eaf4b1d3d07cb55f68079",
+    "dev/validation/2026-09-14-file-allocation/multiply-fields.json": "68d8e3bc2a6622ce96a140572f4162d7992c507626d1134c77346ad967f7e191",
+    "dev/validation/2026-09-14-file-allocation/normalize-path.json": "f7e0e7002462925b75344c0898c78323c2d09bab6e1b2b49c3742dca284b9a81",
+    "dev/validation/2026-09-14-file-allocation/omit-arity.json": "a116ba402023960686e7c439bc54581fdb32630fead0378b0dadff44e11f3421",
+    "dev/validation/2026-09-14-file-allocation/omit-bigint.json": "63522c55e495c11ac88872d4d8c6a0364a7af311cf8fd5be4e3353492d1668e5",
+    "dev/validation/2026-09-14-file-allocation/omit-separator.json": "b0ed9cc273b9b33f336c5cf9317a48ca5c2fe4cc45e7a86a0d26213bae29b836",
+    "dev/validation/2026-09-14-file-allocation/open-contents.json": "301bec8555d5062b38aca1a019155c239a4a48d41ceba8203e170fbd5762e69a",
+    "dev/validation/2026-09-14-file-allocation/output-guard.json": "2ac740b1f65dc83d1f6d0e46b160de992d0bd30285e7d6aecc429def829ffbc4",
+    "dev/validation/2026-09-14-file-allocation/positive.json": "bf4efc6d960a25ea09d8d3b330e7fa2f18e57ffb50f53dfe398081271bc1acf9",
+    "dev/validation/2026-09-14-file-allocation/reactor-timeout.json": "35419e0a22ba2228fdaae2bdb34697b99a817e264f83edf8ce30b7006ebd9946",
+    "dev/validation/2026-09-14-file-allocation/reactor-watchdog.json": "8f30aba80b6ef23a43285dcd7490bad21456113fd1eaa64e00fe495f975adc2c",
+    "dev/validation/2026-09-14-file-allocation/read-contents.json": "e676ab8ef1a72237e341ea8561c2e21b17fc93f330c306ad299178f76381af14",
+    "dev/validation/2026-09-14-file-allocation/reject-zero.json": "2f5d738bb6c318e201f7b9811ba5a1063d733ea8227e2fe9fd506c2184056dd3",
+    "dev/validation/2026-09-14-file-allocation/rounded-count.json": "cc9fd7150f0f7f82fc63c75434265049e4330f4f79ffb22062f156841b325ac5",
+    "dev/validation/2026-09-14-file-allocation/rounded-size.json": "062bdc062afa77b03cce9bd80ddb890a84a4419a71147a65786c1146f6c61351",
+    "dev/validation/2026-09-14-file-allocation/runtime.json": "f9fb844d0ddb98a59820b5bb3847e3ea312619d4e219c7ae25d2368c611d76d1",
+    "dev/validation/2026-09-14-file-allocation/swapped-fields.json": "6006e29e487f7b3b38eb8e57e218bd81c52324a8fe63e17957f6d61081d4b2f8",
+    "dev/validation/2026-09-14-file-allocation/syntax-reactor-tests.json": "2a91754902561e6f705cb99790b0a085eda3829549cdfe7dbaf4aa7090ad498d",
+    "dev/validation/2026-09-14-file-allocation/syntax-runtime-tests.json": "cd8c9df1aa8980499dce82ae0d2f200e9560fb4ed542962fecd830aa30ea8c39",
+    "dev/validation/2026-09-14-file-allocation/syntax-runtime.json": "7d224163859cdb251ed0ff7d55a5b1531fe8a8dc3f01a8cef66d8a8f393fb49e",
+    "dev/validation/2026-09-14-file-allocation/syntax-scoped-runner.json": "49f8013d33a09344a0c9f5495c686b1c30326f9a6731c6ad13b6b5624c1785f3",
+    "dev/validation/2026-09-14-file-allocation/trusted-lines.json": "8c820359f39444a0ff1c66e16824a490231485bab0f3cb1b6e4d45417491100c",
+    "dev/validation/2026-09-14-file-allocation/wrong-count-field.json": "6579c44885cc9aeb25bc80a7c60f2096ec05e63e888d20809109190821508484",
+    "dev/validation/2026-09-14-file-allocation/wrong-size-field.json": "3165763e9932ab6c90711c7f5b51df14ff63c810f6b5a6d2c802b78173f38320",
+    "dev/validation/2026-09-14-file-allocation/gates-review.log": "3f44efc2b8700389a482c2c673da1998082fa9af6833a6faa1179dcd77868870"
+  },
+  "checks": {
+    "focused-arity": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 49,
+        "suites": 0,
+        "pass": 49,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "pass": 235
+      }
+    },
+    "compiled-allocation": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "reactor-timeout": {
+      "exit_code": 1,
+      "counts": {}
+    },
+    "reactor-watchdog": {
+      "exit_code": 124,
+      "counts": {}
+    },
+    "host-nat": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "control-run": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "output-guard": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-scoped-runner": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    }
+  },
+  "defect_controls": 16,
+  "compiled_allocation_checks": 158
+}

@@ -1,0 +1,32 @@
+-- Read native block allocation metadata and forward the answer bytes to stdout.
+mu FileAllocationState : Type 0 with
+| requested : Words -> FileAllocationState
+| reporting : Nat -> Bytes -> FileAllocationState
+| finished : Nat -> FileAllocationState
+
+def init (args : Words) : FileAllocationState := requested args
+def resume (state : FileAllocationState) (status : Nat) (answer : Bytes) : FileAllocationState :=
+  case state as current in FileAllocationState return FileAllocationState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileAllocationState) : Nat :=
+  case state as current in FileAllocationState return Nat with
+  | requested args => 40
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileAllocationState) : Words :=
+  case state as current in FileAllocationState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileAllocationState) : Bytes :=
+  case state as current in FileAllocationState return Bytes with
+  | requested args => b"\0\xffA"
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileAllocationState) : Nat :=
+  case state as current in FileAllocationState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

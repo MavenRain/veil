@@ -913,6 +913,88 @@ try {
   verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
   verify(() => assert.equal(existsSync(identityMissing), false));
 
+  const fileAllocation = join(scratch, 'file-allocation.wasm');
+  const fileAllocationBuild = run(['build', shared, fixture('file-allocation'), '-o', fileAllocation,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileAllocationBuild.status, 0, fileAllocationBuild.stderr));
+  const fileAllocationBytes = readFileSync(fileAllocation);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileAllocationBytes)).length, 0));
+  const { instance: fileAllocationInstance } = await WebAssembly.instantiate(fileAllocationBytes);
+  const allocationApi = fileAllocationInstance.exports;
+  const allocationPath = '../héllo//alias/../file';
+  const allocationBytes = bytes => {
+    let result = allocationApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = allocationApi.consBytes(byte, result);
+    return result;
+  };
+  const allocationPending = allocationApi.init(allocationApi.consWords(allocationBytes(allocationPath), allocationApi.emptyWords()));
+  verify(() => assert.equal(allocationApi.requestCode(allocationPending), 40));
+  const allocationArgs = allocationApi.requestArgs(allocationPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(allocationApi,
+    allocationApi.wordsHead(allocationArgs), Buffer.byteLength(allocationPath))), Buffer.from(allocationPath)));
+  verify(() => assert.equal(allocationApi.wordsEmpty(allocationApi.wordsTail(allocationArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(allocationApi,
+    allocationApi.requestBody(allocationPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(allocationApi.exitCode(allocationPending), 1));
+  for (const [status, answer] of [[0, '0:0'], [0, '1:2'], [0, '0:7'], [0, '7:0'],
+    [0, '9007199254740993:9007199254740995'], [0, '18446744073709551615:9223372036854775808'],
+    [1, 'EACCES: injected failure']]) {
+    const reporting = allocationApi.resume(allocationPending, status, allocationBytes(answer));
+    verify(() => assert.equal(allocationApi.requestCode(reporting), 6));
+    verify(() => assert.equal(allocationApi.wordsEmpty(allocationApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(allocationApi,
+      allocationApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(allocationApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = allocationApi.resume(reporting, outputStatus, allocationApi.emptyBytes());
+      verify(() => assert.equal(allocationApi.requestCode(finished), 0));
+      verify(() => assert.equal(allocationApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(allocationApi.wordsEmpty(allocationApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(allocationApi.bytesEmpty(allocationApi.requestBody(finished)), 1));
+      const stillFinished = allocationApi.resume(finished, 1, allocationBytes('ignored'));
+      verify(() => assert.equal(allocationApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(allocationApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const allocationFile = join(scratch, 'allocation héllo');
+  const allocationLink = join(scratch, 'allocation-link');
+  const allocationHard = join(scratch, 'allocation-hard');
+  const allocationMissing = join(scratch, 'allocation-missing');
+  const allocationDangling = join(scratch, 'allocation-dangling');
+  writeFileSync(allocationFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(allocationFile), allocationLink);
+  linkSync(allocationFile, allocationHard);
+  symlinkSync(basename(allocationMissing), allocationDangling);
+  const allocationBefore = statSync(allocationFile, { bigint: true });
+  for (const path of [allocationFile, allocationLink, allocationHard, scratch + '/', basename(allocationFile)]) {
+    const info = statSync(resolve(scratch, path), { bigint: true });
+    const result = runModule([fileAllocation, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, `${info.blocks}:${info.blksize}`));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  const allocationMetadata = info => [info.blocks, info.blksize, info.uid, info.gid, info.dev,
+    info.ino, info.mode, info.nlink, info.size, info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(allocationMetadata(statSync(allocationFile, { bigint: true })), allocationMetadata(allocationBefore)));
+  for (const [args, message] of [
+    [[], /^IO: OS request 40 expects 1 argument, got 0$/],
+    [[allocationFile, 'surplus'], /^IO: OS request 40 expects 1 argument, got 2$/],
+    [[allocationMissing], /^ENOENT:/], [[allocationDangling], /^ENOENT:/],
+    [[allocationFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileAllocation, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  const allocationRecovery = runModule([fileAllocation, allocationFile]);
+  verify(() => assert.equal(allocationRecovery.status, 0, allocationRecovery.error ?? allocationRecovery.stderr));
+  verify(() => assert.equal(allocationRecovery.stdout, `${allocationBefore.blocks}:${allocationBefore.blksize}`));
+  verify(() => assert.equal(allocationRecovery.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(allocationFile), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readlinkSync(allocationDangling), basename(allocationMissing)));
+
   const fileOwner = join(scratch, 'file-owner.wasm');
   const fileOwnerBuild = run(['build', shared, fixture('file-owner'), '-o', fileOwner,
     ...reactorExports.flatMap(name => ['--export', name])]);

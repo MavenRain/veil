@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-7unlGf",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "/Users/oobi/Documents/gpt3/veil-allocation/_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 124,
+  "watchdog_ms": 120000,
+  "timed_out": true,
+  "signal": 15,
+  "counts": {},
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,23 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-AfrcHk",
+  "command_index": 1,
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "counts": {
+    "pass": 235
+  },
+  "stdout_sha256": "f34abb97c22cca4be81c58eca8906b8acf7e52ecd10bf788c2888d49ae69b023",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 20,
+  "stderr_bytes": 0,
+  "stdout": "OK test: 235 passed\n",
+  "stderr": ""
+}

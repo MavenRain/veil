@@ -1,0 +1,22 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-I6XX0M",
+  "command_index": 7,
+  "argv": [
+    "git",
+    "diff",
+    "--check",
+    "HEAD"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "timed_out": false,
+  "signal": 0,
+  "counts": {},
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "stdout": "",
+  "stderr": ""
+}

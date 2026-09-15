@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-LdJI5X",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "/Users/oobi/Documents/gpt3/veil-allocation/_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 1,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "counts": {},
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "212cd5918f2ae57d957c0db877a131e8ca978151b110eed326ce819559190912",
+  "stdout_bytes": 0,
+  "stderr_bytes": 951,
+  "stdout": "",
+  "stderr": "node:internal/child_process:1120\n    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);\n                   ^\n\nError: spawnSync /opt/homebrew/Cellar/node/23.10.0_1/bin/node ETIMEDOUT\n    at Object.spawnSync (node:internal/child_process:1120:20)\n    at spawnSync (node:child_process:868:24)\n    at runModule (file:///Users/oobi/Documents/gpt3/veil-allocation/dev/reactor-test.mjs:13:44)\n    at file:///Users/oobi/Documents/gpt3/veil-allocation/dev/reactor-test.mjs:719:22 {\n  errno: -60,\n  code: 'ETIMEDOUT',\n  syscall: 'spawnSync /opt/homebrew/Cellar/node/23.10.0_1/bin/node',\n  path: '/opt/homebrew/Cellar/node/23.10.0_1/bin/node',\n  spawnargs: [\n    '/Users/oobi/Documents/gpt3/veil-allocation/runtime/run.mjs',\n    '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-wOjrxg/file-changed.wasm',\n    '/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-wOjrxg/changed-missing'\n  ]\n}\n\nNode.js v23.10.0\n"
+}

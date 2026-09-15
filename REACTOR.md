@@ -172,8 +172,9 @@ the left list's length.
 | 37 | path | Read the device and inode as an exact decimal pair, `dev:ino` |
 | 38 | path | Read the host's hard-link count as an exact decimal integer |
 | 39 | path | Read numeric owner and group IDs as an exact decimal pair, `uid:gid` |
+| 40 | path | Read allocated block count and I/O block size as `blocks:blksize` |
 
-Operations 1 to 39 check argument counts before performing the operation.
+Operations 1 to 40 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -203,7 +204,8 @@ the [status-change time regressions](dev/FILE-CHANGED.md) cover operation 35,
 the [creation time regressions](dev/FILE-CREATED.md) cover operation 36,
 the [file identity regressions](dev/FILE-IDENTITY.md) cover operation 37,
 the [link count regressions](dev/FILE-LINK-COUNT.md) cover operation 38,
-and the [file owner regressions](dev/FILE-OWNER.md) cover operation 39.
+the [file owner regressions](dev/FILE-OWNER.md) cover operation 39,
+and [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -597,6 +599,27 @@ access that file. Each request resolves its path again. Native tests ran on
 macOS; zero and large integer endpoints use injected metadata. Native
 ownership changes and Windows were not exercised. See the
 [file owner contract and tests](dev/FILE-OWNER.md).
+
+Operation 40 requires exactly one path and returns `blocks:blksize` from one
+`stat(path, { bigint: true })` result. The first field is the host's allocated
+block count; the second is its block size for filesystem I/O. Both use exact
+ASCII decimal digits separated by one colon, without a sign, leading zeros,
+whitespace or a terminator. Zero fields pass through unchanged. See Node's
+[`stats.blocks`](https://nodejs.org/api/fs.html#statsblocks) and
+[`stats.blksize`](https://nodejs.org/api/fs.html#statsblksize) contracts.
+
+The operation follows final symlinks, accepts directories and special files,
+and passes literal paths to the host. It reads metadata without opening
+contents. The body is unused under the shared decoding limits. Host errors
+resume with status 1 and `CODE: message`; each later request resolves its
+path and reads a fresh snapshot. Hard links to the same entry agree at the
+same point in time. Writes and truncation may change the reported fields
+according to filesystem policy. The block count's unit is host-defined;
+`blksize` is an I/O hint, not a conversion factor for that count. The pair
+does not promise physical disk usage, unique storage, free space or quota.
+Native tests ran on macOS; zero and large integer formatting also use
+injected metadata. Windows was not exercised. See the
+[file allocation contract and tests](dev/FILE-ALLOCATION.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

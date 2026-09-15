@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-Fc3NlB",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "dev/validation/2026-09-14-file-allocation/run-compiled.mjs",
+    "/Users/oobi/Documents/gpt3/veil-allocation/_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "counts": {},
+  "stdout_sha256": "3e9b481792e4da08ee97f8034c733dd50e965b212ea561beff760760dc76c486",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 39,
+  "stderr_bytes": 0,
+  "stdout": "compiled allocation: 158 checks passed\n",
+  "stderr": ""
+}

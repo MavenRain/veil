@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-allocation/.kanon-exec/run-8G5BJi",
+  "command_index": 1,
+  "argv": [
+    "python3",
+    "-I",
+    "/Users/oobi/Documents/gpt3/veil-allocation-output-check.py"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-allocation",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "timed_out": false,
+  "signal": 0,
+  "counts": {},
+  "stdout_sha256": "8d5d43528a1fdc7120bad3fd5da130f34db2cafbde83ffe9b24ea23c3a739408",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 78,
+  "stderr_bytes": 0,
+  "stdout": "Output guard passed: existing directory, file and dangling symlink preserved.\n",
+  "stderr": ""
+}

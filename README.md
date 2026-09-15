@@ -89,6 +89,9 @@ unlink, replacement, symlinks, precision and request failures.
 Operation 39 reads the host's numeric owner and group IDs as `uid:gid`.
 The [file owner regressions](dev/FILE-OWNER.md) cover native ownership,
 hard links, symlinks, exact integer pairs and request failures.
+Operation 40 reads allocated block count and I/O block size as `blocks:blksize`.
+The [file allocation regressions](dev/FILE-ALLOCATION.md) cover native
+snapshots, writes, truncation, links, precision and request failures.
 
 Function parameters can share a type and quantity:
 
