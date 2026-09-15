@@ -80,6 +80,9 @@ native metadata, exact signed formatting, links and request failures.
 Operation 36 reads the host's creation-time field in the same format. The
 [creation time regressions](dev/FILE-CREATED.md) cover native metadata,
 host fallback values, exact signed formatting, links and request failures.
+Operation 37 reads the host's device and inode pair as exact decimal integers.
+The [file identity regressions](dev/FILE-IDENTITY.md) cover hard links, atomic
+replacement, symlinks, precision and request failures.
 
 Function parameters can share a type and quantity:
 

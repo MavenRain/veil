@@ -816,6 +816,103 @@ try {
   verify(() => assert.equal(readlinkSync(createdDangling), basename(createdMissing)));
   verify(() => assert.equal(existsSync(createdMissing), false));
 
+  const fileIdentity = join(scratch, 'file-identity.wasm');
+  const fileIdentityBuild = run(['build', shared, fixture('file-identity'), '-o', fileIdentity,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileIdentityBuild.status, 0, fileIdentityBuild.stderr));
+  const fileIdentityBytes = readFileSync(fileIdentity);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileIdentityBytes)).length, 0));
+  const { instance: fileIdentityInstance } = await WebAssembly.instantiate(fileIdentityBytes);
+  const identityApi = fileIdentityInstance.exports;
+  const identityPath = '../héllo//alias/../file';
+  const identityBytes = bytes => {
+    let result = identityApi.emptyBytes();
+    for (const byte of Buffer.from(bytes).reverse()) result = identityApi.consBytes(byte, result);
+    return result;
+  };
+  const identityPending = identityApi.init(identityApi.consWords(
+    identityBytes(identityPath), identityApi.emptyWords()));
+  verify(() => assert.equal(identityApi.requestCode(identityPending), 37));
+  const identityArgs = identityApi.requestArgs(identityPending);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(identityApi,
+    identityApi.wordsHead(identityArgs), Buffer.byteLength(identityPath))), Buffer.from(identityPath)));
+  verify(() => assert.equal(identityApi.wordsEmpty(identityApi.wordsTail(identityArgs)), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(identityApi,
+    identityApi.requestBody(identityPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(identityApi.exitCode(identityPending), 1));
+  for (const [status, answer] of [[0, '0:0'], [0, '1:2'], [0, '0:7'], [0, '7:0'],
+    [0, '9007199254740993:9007199254740995'], [0, '18446744073709551615:9223372036854775808'],
+    [1, 'EACCES: injected failure']]) {
+    const reporting = identityApi.resume(identityPending, status, identityBytes(answer));
+    verify(() => assert.equal(identityApi.requestCode(reporting), 6));
+    verify(() => assert.equal(identityApi.wordsEmpty(identityApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(identityApi,
+      identityApi.requestBody(reporting), Buffer.byteLength(answer))), Buffer.from(answer)));
+    verify(() => assert.equal(identityApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = identityApi.resume(reporting, outputStatus, identityApi.emptyBytes());
+      verify(() => assert.equal(identityApi.requestCode(finished), 0));
+      verify(() => assert.equal(identityApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(identityApi.wordsEmpty(identityApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(identityApi.bytesEmpty(identityApi.requestBody(finished)), 1));
+      const stillFinished = identityApi.resume(finished, 1, identityBytes('ignored'));
+      verify(() => assert.equal(identityApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(identityApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+
+  const identityFile = join(scratch, 'identity héllo');
+  const identityLink = join(scratch, 'identity-link');
+  const identityHard = join(scratch, 'identity-hard');
+  const identityReplacement = join(scratch, 'identity-replacement');
+  const identityMissing = join(scratch, 'identity-missing');
+  const identityDangling = join(scratch, 'identity-dangling');
+  writeFileSync(identityFile, Buffer.from([0, 255, 65]), { mode: 0o600 });
+  symlinkSync(basename(identityFile), identityLink);
+  linkSync(identityFile, identityHard);
+  symlinkSync(basename(identityMissing), identityDangling);
+  const identityBefore = statSync(identityFile, { bigint: true });
+  const identityOriginal = `${identityBefore.dev}:${identityBefore.ino}`;
+  verify(() => assert.equal(statSync(identityHard, { bigint: true }).ino, identityBefore.ino));
+  for (const path of [identityFile, identityLink, identityHard, scratch + '/', basename(identityFile)]) {
+    const info = statSync(resolve(scratch, path), { bigint: true });
+    const result = runModule([fileIdentity, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, `${info.dev}:${info.ino}`));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  const identityMetadata = info => [info.dev, info.ino, info.mode, info.nlink, info.size,
+    info.atimeNs, info.mtimeNs, info.ctimeNs, info.birthtimeNs];
+  verify(() => assert.deepEqual(identityMetadata(statSync(identityFile, { bigint: true })),
+    identityMetadata(identityBefore)));
+  writeFileSync(identityReplacement, 'new identity');
+  renameSync(identityReplacement, identityFile);
+  const identityAfter = statSync(identityFile, { bigint: true });
+  const identityUpdated = `${identityAfter.dev}:${identityAfter.ino}`;
+  verify(() => assert.notEqual(identityUpdated, identityOriginal));
+  for (const [path, expected] of [[identityFile, identityUpdated], [identityLink, identityUpdated],
+    [identityHard, identityOriginal]]) {
+    const result = runModule([fileIdentity, path]);
+    verify(() => assert.equal(result.status, 0, result.error ?? result.stderr));
+    verify(() => assert.equal(result.stdout, expected));
+    verify(() => assert.equal(result.stderr, ''));
+  }
+  for (const [args, message] of [
+    [[], /^IO: OS request 37 expects 1 argument, got 0$/],
+    [[identityFile, 'surplus'], /^IO: OS request 37 expects 1 argument, got 2$/],
+    [[identityMissing], /^ENOENT:/], [[identityDangling], /^ENOENT:/],
+    [[identityFile + '/'], /^ENOTDIR:/], [[''], /^ENOENT:/],
+  ]) {
+    const rejected = runModule([fileIdentity, ...args]);
+    verify(() => assert.equal(rejected.status, 1, rejected.error ?? rejected.stderr));
+    verify(() => assert.match(rejected.stdout, message));
+    verify(() => assert.equal(rejected.stderr, ''));
+  }
+  verify(() => assert.deepEqual(readFileSync(identityHard), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(readFileSync(identityFile, 'utf8'), 'new identity'));
+  verify(() => assert.equal(readlinkSync(identityDangling), basename(identityMissing)));
+  verify(() => assert.equal(existsSync(identityMissing), false));
+
   const filePermissions = join(scratch, 'file-permissions.wasm');
   const filePermissionsBuild = run(['build', shared, fixture('file-permissions'), '-o', filePermissions,
     ...reactorExports.flatMap(name => ['--export', name])]);

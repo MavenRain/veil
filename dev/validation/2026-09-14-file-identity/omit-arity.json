@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file identity",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity",
+  "exit_code": 1,
+  "watchdog_ms": 15000,
+  "counts": {
+    "tests": 8,
+    "suites": 0,
+    "pass": 7,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout": "TAP version 13\n# Subtest: file identity returns the native device and inode without changing contents or metadata\nok 1 - file identity returns the native device and inode without changing contents or metadata\n  ---\n  duration_ms: 47.222709\n  type: 'test'\n  ...\n# Subtest: file identity recognizes hard links through append, rename, replacement and unlink\nok 2 - file identity recognizes hard links through append, rename, replacement and unlink\n  ---\n  duration_ms: 62.183167\n  type: 'test'\n  ...\n# Subtest: file identity accepts directories and special files and follows final symlinks\nok 3 - file identity accepts directories and special files and follows final symlinks\n  ---\n  duration_ms: 29.664709\n  type: 'test'\n  ...\n# Subtest: file identity preserves relative Unicode paths and native parent symlink resolution\nok 4 - file identity preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 14.700792\n  type: 'test'\n  ...\n# Subtest: file identity reports native path errors and continues without creating entries\nok 5 - file identity reports native path errors and continues without creating entries\n  ---\n  duration_ms: 13.50875\n  type: 'test'\n  ...\n# Subtest: file identity rejects argument counts and undecodable paths before stat\nnot ok 6 - file identity rejects argument counts and undecodable paths before stat\n  ---\n  duration_ms: 7.153792\n  type: 'test'\n  location: '/Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/dev/runtime-test.mjs:1839:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 37: 0:0\n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/dev/runtime-test.mjs:720:14)\n    api.resume (file:///Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/dev/runtime-test.mjs:745:12)\n    runReactor (file:///Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/runtime/reactor.mjs:438:19)\n    async slotScript (file:///Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-identity-controls/omit-arity/dev/runtime-test.mjs:1843:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file identity preserves exact integer pairs from one fresh stat without opening contents\nok 7 - file identity preserves exact integer pairs from one fresh stat without opening contents\n  ---\n  duration_ms: 92.794708\n  type: 'test'\n  ...\n# Subtest: file identity forwards host errors and resumes subsequent requests\nok 8 - file identity forwards host errors and resumes subsequent requests\n  ---\n  duration_ms: 9.418709\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 7\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1385.5775\n",
+  "stderr": "",
+  "stdout_sha256": "33d4e346905ee0b3356e3801d0e761d9af603ced7003ddde15bc12c772a665d7",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "runtime_sha256": "315e0a6caea1679806b1f9b30adae4554495e6b007033671ce99a2c39350f567",
+  "tests_sha256": "1926d60d113ff6bc19e6749f634e51b4276570e79b3da9dd51115433387a9d61"
+}

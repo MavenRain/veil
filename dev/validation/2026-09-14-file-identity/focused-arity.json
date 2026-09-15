@@ -1,0 +1,29 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-identity/.kanon-exec/run-kJb65c",
+  "command_index": 1,
+  "argv": [
+    "node",
+    "--test",
+    "--test-name-pattern",
+    "file identity|request arities",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-identity",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "counts": {
+    "tests": 47,
+    "suites": 0,
+    "pass": 47,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout_sha256": "f423d4e4f68e70f5fbbcb886db0e70a74d2c3db31c6d3dbe8ece4f3a9d28cd03",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 2294,
+  "stderr_bytes": 0,
+  "stdout": "\u25b6 request arities reject missing and surplus arguments before host effects\n  \u2714 temporary directory (3.034833ms)\n  \u2714 file read (2.286958ms)\n  \u2714 atomic write (1.170708ms)\n  \u2714 process (1.611125ms)\n  \u2714 file size (1.336917ms)\n  \u2714 stdout (0.859375ms)\n  \u2714 stderr (1.5925ms)\n  \u2714 realpath (0.790625ms)\n  \u2714 resolve (0.959625ms)\n  \u2714 prove (0.799625ms)\n  \u2714 verify (0.702458ms)\n  \u2714 encrypt (0.728666ms)\n  \u2714 evaluate (0.737833ms)\n  \u2714 decrypt (1.202667ms)\n  \u2714 input (0.578375ms)\n  \u2714 joint computation (0.679459ms)\n  \u2714 open (1.047541ms)\n  \u2714 release (0.873583ms)\n  \u2714 unlink (0.681958ms)\n  \u2714 remove directory (0.876417ms)\n  \u2714 rename (1.567708ms)\n  \u2714 directory listing (0.751709ms)\n  \u2714 entry kind (0.631666ms)\n  \u2714 symlink target (0.592375ms)\n  \u2714 symlink creation (0.701541ms)\n  \u2714 hard-link creation (0.613834ms)\n  \u2714 file copy (1.009417ms)\n  \u2714 directory creation (0.7365ms)\n  \u2714 file append (0.755833ms)\n  \u2714 file truncate (0.577667ms)\n  \u2714 file mode (1.038125ms)\n  \u2714 file permissions (0.630125ms)\n  \u2714 file modified (0.598208ms)\n  \u2714 file accessed (1.527667ms)\n  \u2714 file changed (0.604583ms)\n  \u2714 file created (0.588375ms)\n  \u2714 file identity (0.469708ms)\n\u2714 request arities reject missing and surplus arguments before host effects (46.138208ms)\n\u2714 file identity returns the native device and inode without changing contents or metadata (2.163666ms)\n\u2714 file identity recognizes hard links through append, rename, replacement and unlink (5.226625ms)\n\u2714 file identity accepts directories and special files and follows final symlinks (7.154042ms)\n\u2714 file identity preserves relative Unicode paths and native parent symlink resolution (2.63125ms)\n\u2714 file identity reports native path errors and continues without creating entries (3.880125ms)\n\u2714 file identity rejects argument counts and undecodable paths before stat (1.929875ms)\n\u2714 file identity preserves exact integer pairs from one fresh stat without opening contents (41.826292ms)\n\u2714 file identity forwards host errors and resumes subsequent requests (1.605084ms)\n\u2714 hard-link creation shares file identity and contents and survives unlinking either name (6.630083ms)\n\u2139 tests 47\n\u2139 suites 0\n\u2139 pass 47\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 190.71625\n",
+  "stderr": ""
+}

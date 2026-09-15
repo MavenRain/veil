@@ -1,0 +1,33 @@
+-- Read a device and inode pair, then report the host answer and output status.
+
+mu FileIdentityState : Type 0 with
+| requested : Words -> FileIdentityState
+| reporting : Nat -> Bytes -> FileIdentityState
+| finished : Nat -> FileIdentityState
+
+def init (argv : Words) : FileIdentityState := requested argv
+def resume (state : FileIdentityState) (status : Nat) (answer : Bytes) : FileIdentityState :=
+  case state as current in FileIdentityState return FileIdentityState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileIdentityState) : Nat :=
+  case state as current in FileIdentityState return Nat with
+  | requested args => 37
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileIdentityState) : Words :=
+  case state as current in FileIdentityState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileIdentityState) : Bytes :=
+  case state as current in FileIdentityState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileIdentityState) : Nat :=
+  case state as current in FileIdentityState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

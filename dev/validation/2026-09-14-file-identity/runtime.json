@@ -1,0 +1,21 @@
+{
+  "capture_artifact": "/Users/oobi/Documents/gpt3/veil-identity/.kanon-exec/run-GEVn9C",
+  "command_index": 1,
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-identity",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "counts": {
+    "pass": 208
+  },
+  "stdout_sha256": "763449b4613395896d5223f3a4cde1902736f3e8295fe3a2a05359ed3a4e8fc2",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_bytes": 20,
+  "stderr_bytes": 0,
+  "stdout": "OK test: 208 passed\n",
+  "stderr": ""
+}

@@ -749,3 +749,44 @@ milestone gate ladder was not rerun. Native tests ran on macOS; other host
 fallback policies and signed endpoints use injected metadata. The
 [creation time validation record](validation/2026-09-14-file-created/README.md)
 contains commands, full captures, source hashes and the control reproducer.
+
+## File identity, 2026-09-14
+
+Operation 37 accepts exactly one path and returns `dev:ino` from a single
+bigint stat result. Decimal formatting preserves both integers, including
+zero, without Number conversion. The operation follows final symlinks,
+preserves literal path resolution, accepts directories and special files,
+and inspects metadata without opening contents. Host errors resume with
+status 1; the request body is unused under the shared limits.
+
+Eight focused runtime tests cover native values, metadata preservation,
+hard-link equality through append and rename, replacement while the old
+inode remains alive, unlink, symlinks, private FIFOs, path validation and
+error recovery. Injected metadata covers exact large integers, zero fields,
+pair separation and one fresh stat per request. The shared arity matrix now
+includes operation 37. The compiled fixture checks request and response
+bytes, output failures, terminal states and native host behavior, including
+the identity change seen through a symlink after replacement.
+
+Validation against the compiler reused by hash from base `88d6bfe` passed:
+
+- The eight focused tests passed in the positive control. The combined
+  identity and arity selection passed 47/47, including an existing hard-link
+  regression. The complete runtime suite passed 208 tests via `kanoncho`.
+- The compiled reactor suite passed 1799 checks, 168 more than the preceding
+  slice, under a 120-second watchdog. This direct invocation does not
+  establish the separate 30-second gate verdict.
+- HOST-NAT passed 16/16. JavaScript syntax, HOUSE, TRUSTED-LINES and tracked
+  whitespace checks passed. Kernel lines remain 5246/5250; encoder lines
+  remain 246/600.
+- All 14 isolated defect controls failed their assertions as expected:
+  the base runtime, swapped fields, wrong device field, separately rounded
+  device and inode fields, missing bigint options, final-symlink inspection,
+  missing arity, path normalization, separate stat calls, missing separator,
+  content opening, content reading and rejected zero fields.
+
+Compiler sources and gate definitions are unchanged. The full compiler and
+milestone gate ladder was not rerun, and no timing waiver is claimed. Native
+tests ran on macOS; large integer endpoints use injected metadata. The
+[file identity validation record](validation/2026-09-14-file-identity/README.md)
+contains commands, captures, source hashes and the control reproducer.

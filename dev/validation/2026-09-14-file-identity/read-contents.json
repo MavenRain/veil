@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file identity preserves exact integer pairs",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-identity-controls/read-contents",
+  "exit_code": 1,
+  "watchdog_ms": 15000,
+  "counts": {
+    "tests": 1,
+    "suites": 0,
+    "pass": 0,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout": "TAP version 13\n# Subtest: file identity preserves exact integer pairs from one fresh stat without opening contents\nnot ok 1 - file identity preserves exact integer pairs from one fresh stat without opening contents\n  ---\n  duration_ms: 21.458708\n  type: 'test'\n  location: '/Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/dev/runtime-test.mjs:1852:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 37: ERR_ASSERTION: Expected values to be strictly equal:\n    + actual - expected\n    \n    + undefined\n    - 'file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/\n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/dev/runtime-test.mjs:720:14)\n    api.resume (file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/dev/runtime-test.mjs:745:12)\n    runReactor (file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/runtime/reactor.mjs:439:19)\n    async slotScript (file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-identity-controls/read-contents/dev/runtime-test.mjs:1877:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:297:3)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 140.3835\n",
+  "stderr": "",
+  "stdout_sha256": "43b4791fa0e0cde26dfba91a261e2c079882f90226ed90d8cfb2ad541b2c08e5",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "runtime_sha256": "d9bbb8e6a5e6d17205c6287bb81e4035169bf7c21e4b5796bf80e0e47adf0e1d",
+  "tests_sha256": "1926d60d113ff6bc19e6749f634e51b4276570e79b3da9dd51115433387a9d61"
+}

@@ -1,0 +1,224 @@
+RUN tag=close-2 root=/Users/oobi/Documents/veil start=15:25:57 load=51.68 73.97 128.56
+--- BUILD
+OK build: 0 errors, 0 warnings
+BUILD-EXIT 0
+--- TRUSTED
+TRUSTED-LINES kernel=5246/5250 encoder=246/600 OK
+--- RUNTIME
+# tests 208
+# pass 208
+# fail 0
+RUNTIME-EXIT 0
+--- HOST-NAT
+HOST-NAT 16/16
+HOST-NAT-EXIT 0
+--- REACTOR
+reactor: 1799 checks passed
+REACTOR-EXIT 0
+--- HOST LEG
+PASS HOST programs=3 zk-instance=10/10
+HOST-EXIT 0
+--- LADDER
+PASS BUILD
+PASS CARRY
+PASS R0-COUNT
+PASS R0-AUDIT
+PASS SUITE-KERNEL
+PASS SUITE-WASM
+PASS ENCODER-SUBSET
+PASS AXIOMS
+PASS M0-E2E main=521
+BENCH m0_e2e_1 median_ms=306.891 min_ms=226.034 max_ms=341.749 runs=5
+BENCH m0_e2e_2 median_ms=220.329 min_ms=206.559 max_ms=319.121 runs=5
+BENCH m0_e2e_3 median_ms=224.299 min_ms=200.826 max_ms=517.852 runs=5
+FAIL M0-TIME median_ms=224.299 bound_ms=150 load1=129.750 samples=3x5
+BENCH m1_check_corpus median_ms=34.413 min_ms=27.532 max_ms=39.065 runs=5
+MEASURE M0-RATIO kanon_ms=34.413 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.701597 bound=2.000 load1=129.750
+FAIL M0-RATIO kanon_ms=34.413 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=2.701597 bound=2.000 load1=129.750
+PASS TRUSTED-LINES
+PASS CIRCUIT lines=28 CIRCUIT-BOUNDS 18/18
+PASS ZK lines=15
+PASS FHC lines=15
+PASS MPC lines=27
+PASS HOST programs=3 zk-instance=10/10
+PASS HOST-NAT checks=16/16
+denominators.json: OK
+PASS DENOMINATORS
+PASS HOUSE
+PASS PIN sha=8cf0b8b
+PASS POSITIVITY fixtures=25 negative=mu-nonpositive
+FAIL M1-CORPUS elapsed_ms=1383.643 bound_ms=713 lines=1000 main=814 load1=114.064
+M1-LEDGER direct-family positive=mu-direct negative=mu-nonpositive main=2 OK
+M1-LEDGER mutual-family positive=mu-mutual negative=mu-redeclared-mutual main=2 OK
+M1-LEDGER indexed-family positive=mu-indexed negative=mu-index-mismatch main=2 OK
+M1-LEDGER direct-recursion positive=mu-rec-direct negative=mu-nonstructural main=4 OK
+M1-LEDGER mutual-recursion positive=mu-rec-mutual negative=mu-rec-sibling-position main=2 OK
+M1-LEDGER indexed-recursion positive=mu-rec-indexed negative=mu-rec-nondecreasing main=2 OK
+M1-LEDGER dependent-match positive=mu-dependent-copy negative=mu-dependent-copy-index main=42 OK
+M1-LEDGER subsingleton-large-elimination positive=mu-prop-large-elim negative=mu-large-elim-nonsub main=7 OK
+M1-LEDGER empty-large-elimination positive=mu-empty-large-elim negative=mu-large-elim-selfrec main=0 OK
+M1-LEDGER linear-one positive=one-identity negative=one-used-twice main=7 OK
+M1-LEDGER large-nat positive=nat-big negative=nat-runtime-export main=7 OK
+M1-LEDGER agreement-natAdd small-witness-and-negative OK
+M1-LEDGER agreement-natSub small-witness-and-negative OK
+M1-LEDGER agreement-natMul small-witness-and-negative OK
+M1-LEDGER agreement-natEq small-witness-and-negative OK
+M1-LEDGER agreement-natLt small-witness-and-negative OK
+M1-LEDGER surface-spine lines>=300 OK
+ONE-DIRECT kernel-linear-identity OK accepted
+ONE-DIRECT kernel-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-zero-only OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-zero-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-one-stamp-many-type OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-apt-many-stamp-one-type OK accepted
+ONE-DIRECT kernel-apt-zero-stamp-one-type OK accepted
+ONE-DIRECT kernel-once-per-branch OK accepted
+ONE-DIRECT kernel-asymmetric-branches OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-once OK accepted
+ONE-DIRECT kernel-scrutinee-many OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-scrutinee-zero OK quantity: an erased scrutinee cannot be eliminated at runtime
+ONE-DIRECT kernel-scrutinee-plus-branch OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-sequential-tuple OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-once OK accepted
+ONE-DIRECT kernel-let-unused OK accepted
+ONE-DIRECT kernel-let-eager-duplicate OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-let-twice OK quantity: the linear alias alias may be used at most once
+ONE-DIRECT kernel-shadowed-name-unused OK quantity: the linear binder x must be used exactly once on every runtime path
+ONE-DIRECT kernel-capture-once OK accepted
+ONE-DIRECT kernel-capture-twice OK quantity: the linear alias closure may be used at most once
+ONE-DIRECT kernel-empty-elimination OK accepted
+ONE-DIRECT kernel-unreachable-body OK accepted
+ONE-DIRECT kernel-unreachable-unused-let OK accepted
+ONE-DIRECT kernel-unreachable-alternative OK accepted
+ONE-DIRECT kernel-nested-branches OK accepted
+ONE-DIRECT kernel-negative-literal OK mismatch: a Nat literal must be nonnegative
+ONE-DIRECT 27/27
+ONE-PATH identity OK exit=0 expected=0 stderr=''
+ONE-PATH branches OK exit=0 expected=0 stderr=''
+ONE-PATH fields OK exit=0 expected=0 stderr=''
+ONE-PATH shadowing OK exit=0 expected=0 stderr=''
+ONE-PATH recursive OK exit=0 expected=0 stderr=''
+ONE-PATH unreachable-capture OK exit=0 expected=0 stderr=''
+ONE-PATH used-twice OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH zero-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH many-consumer OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH missing-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH tuple-duplication OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH let-duplication OK exit=1 expected=1 stderr='quantity: the linear alias y may be used at most once'
+ONE-PATH closure-duplication OK exit=1 expected=1 stderr='quantity: the linear alias f may be used at most once'
+ONE-PATH shadowed-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH field-unused OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH annotation-only OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH scrutinee-branch OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH recursive-leg OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-closure OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH eager-alias OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATH unreachable-capture OK exit=1 expected=1 stderr='quantity: the linear binder x must be used exactly once on every runtime path'
+ONE-PATHS 22/22 OK
+NAT-RUNTIME OK nat-big kernel exit=0 expected=7
+NAT-RUNTIME OK nat-big node exit=0 expected=7
+NAT-RUNTIME OK nat-big wasmtime exit=0 expected=7
+NAT-RUNTIME OK nat-big both exit=0 expected=7
+NAT-RUNTIME OK nat-runtime-edges kernel exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges node exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges wasmtime exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-edges both exit=0 expected=32
+NAT-RUNTIME OK nat-runtime-capture kernel exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture node exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture wasmtime exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-capture both exit=0 expected=19
+NAT-RUNTIME OK nat-runtime-mu kernel exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu node exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu wasmtime exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-mu both exit=0 expected=23
+NAT-RUNTIME OK nat-runtime-export kernel exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export node exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export wasmtime exit=4 expected=trap
+NAT-RUNTIME OK nat-runtime-export both exit=4 expected=trap
+NAT-RUNTIME OK 20/20
+SL-SURFACE constructor-sugar OK
+SL-SURFACE mutual-sugar OK
+SL-SURFACE match-elaboration OK
+SL-SURFACE mu-roundtrip OK
+SL-SURFACE legacy-mu-roundtrip OK
+SL-SURFACE mutual-roundtrip OK
+SL-SURFACE legacy-mutual-roundtrip OK
+SL-SURFACE match-roundtrip OK
+SL-SURFACE case-roundtrip OK
+SL-SURFACE mixed-fields-roundtrip OK
+SL-SURFACE nested-match-roundtrip OK
+SL-SURFACE empty-match-roundtrip OK
+SL-SURFACE case-numeric-roundtrip OK
+SL-SURFACE match-numeric-refusal OK
+SL-SURFACE mutual-empty-refusal OK
+SL-SURFACE mutual-singleton-refusal OK
+SL-SURFACE mutual-unclosed-refusal OK
+SL-SURFACE mutual-and-refusal OK
+SL-SURFACE grouped-def OK
+SL-SURFACE grouped-fun OK
+SL-SURFACE grouped-star OK
+SL-SURFACE grouped-family OK
+SL-SURFACE grouped-branch OK
+SL-SURFACE grouped-branch-annotation OK
+SL-SURFACE grouped-case OK
+SL-SURFACE grouped-roundtrip OK
+SL-SURFACE grouped-dependent-check OK
+SL-SURFACE grouped-linear-check OK
+SL-SURFACE grouped-annotation-fallback OK
+SL-SURFACE grouped-name-annotation-fallback OK
+SL-SURFACE grouped-empty-refusal OK
+SL-SURFACE grouped-missing-colon-refusal OK
+SL-SURFACE grouped-missing-close-refusal OK
+SL-SURFACE grouped-zk-expansion OK
+SL-SURFACE nu-term-refusal OK
+SL-SURFACE nu-declaration-refusal OK
+SL-SURFACE-OK 36/36
+SL-SURFACE OK
+PASS M1-SUITE ledger=16 focused-one=49 nat-runtime=20 surface=OK
+AGREEMENT unary natEq 1089/1089 OK
+AGREEMENT full-range natEq 400/400 OK
+AGREEMENT unary natLt 1089/1089 OK
+AGREEMENT full-range natLt 400/400 OK
+AGREEMENT unary natSub 1089/1089 OK
+AGREEMENT full-range natSub 400/400 OK
+AGREEMENT unary natAdd 1089/1089 OK
+AGREEMENT full-range natAdd 400/400 OK
+AGREEMENT unary natMul 1089/1089 OK
+AGREEMENT full-range natMul 400/400 OK
+AGREEMENT OK 7445/7445
+PASS AGREEMENT cases=7445 unary=5445 full-range=2000
+PASS REACTOR
+PASS RUNTIME
+
+MEASURE BUILD tier=SLOW elapsed_ms=826.473 exit=0
+MEASURE CARRY tier=MED elapsed_ms=1473.991 exit=0
+MEASURE R0-COUNT tier=FAST elapsed_ms=361.760 exit=0
+MEASURE R0-AUDIT tier=FAST elapsed_ms=83.770 exit=0
+MEASURE SUITE-KERNEL tier=SUITE elapsed_ms=1802.168 exit=0
+MEASURE SUITE-WASM tier=SUITE elapsed_ms=9287.328 exit=0
+MEASURE ENCODER-SUBSET tier=FAST elapsed_ms=209.762 exit=0
+MEASURE AXIOMS tier=MED elapsed_ms=81.655 exit=0
+MEASURE M0-E2E tier=SLOW elapsed_ms=938.587 exit=0
+MEASURE M0-TIME tier=SLOW elapsed_ms=5599.240 exit=1
+MEASURE M0-RATIO tier=SLOW elapsed_ms=596.833 exit=1
+MEASURE TRUSTED-LINES tier=FAST elapsed_ms=88.742 exit=0
+MEASURE CIRCUIT tier=FAST elapsed_ms=258.050 exit=0
+MEASURE ZK tier=FAST elapsed_ms=187.507 exit=0
+MEASURE FHC tier=FAST elapsed_ms=422.303 exit=0
+MEASURE MPC tier=FAST elapsed_ms=412.704 exit=0
+MEASURE HOST tier=MED elapsed_ms=828.222 exit=0
+MEASURE HOST-NAT tier=MED elapsed_ms=1534.372 exit=0
+MEASURE DENOMINATORS tier=MED elapsed_ms=242.591 exit=0
+MEASURE HOUSE tier=MED elapsed_ms=2789.574 exit=0
+MEASURE PIN tier=FAST elapsed_ms=222.850 exit=0
+MEASURE POSITIVITY tier=SUITE elapsed_ms=953.824 exit=0
+MEASURE M1-CORPUS tier=SLOW elapsed_ms=1798.653 exit=1
+MEASURE M1-SUITE tier=SUITE elapsed_ms=13873.746 exit=0
+MEASURE AGREEMENT tier=SUITE elapsed_ms=91813.926 exit=0
+MEASURE REACTOR tier=MED elapsed_ms=17763.404 exit=0
+MEASURE RUNTIME tier=MED elapsed_ms=12753.494 exit=0
+
+GATES-FAIL
+LADDER-EXIT 1
+RUN end=15:33:48 load=39.82 103.80 129.01

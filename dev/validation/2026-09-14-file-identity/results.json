@@ -1,0 +1,114 @@
+{
+  "base": "88d6bfe6de844eb8852489ee88f419aebdfb82b8",
+  "cwd": "/Users/oobi/Documents/gpt3/veil-identity",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "source_sha256": {
+    "runtime/reactor.mjs": "047876ac02c6da569910d1c69a5532f3d1534c930207e5fba51bb91232edacf2",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "dev/runtime-test.mjs": "1926d60d113ff6bc19e6749f634e51b4276570e79b3da9dd51115433387a9d61",
+    "dev/reactor-test.mjs": "269ebd3fd6009b1ff323c507e01f3eb32153038d4fc700e25b1b91044ca60021",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "test/fixtures/reactor/file-identity.kan": "c2f832b2b35f95e053da22b4af3d6456fa556c646b2efce4391673e817f842cb",
+    "README.md": "d1d760d223733f7f9c1a1721c6bde64233b3183e4b2fed96e010b83a8dbca2ac",
+    "REACTOR.md": "8fa21c436e4657d94d12b7696681e406590ce45a5ff18f25c5e84985fbb12bf2",
+    "dev/FILE-IDENTITY.md": "912ea5ded7634faad2556132031dcd4a55151fd8f05a4a8be832b50d4201d2fd",
+    "dev/REQUEST-ARITY.md": "bb5261dbc82db636e921b3938b2288ee5248bc09625c4bd522bd4947386e3e19",
+    "dev/REACTOR-BUILD-LOG.md": "05d2d46d6c81019a73c4ef6d457dfc86af34548638d8c49354340b83906339a5",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/validation/2026-09-14-file-identity/reproduce-controls.py": "05e24609a72e2449d2fd90933038d7a0d6ddfb29686e53f2fbaf18e69360fc1d",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0"
+  },
+  "capture_sha256": {
+    "README.md": "a55b8f6eccc92eac360b0ad50eac11572e312fff7746866ccb8aa3f48096e6ae",
+    "base-runtime.json": "6dc8de41b605d53f73d561fc7c8584724620046f50f133d0e544d44a0713584e",
+    "control-run.json": "6dea52641379d7e90cd2a798e7005f3de93295a0bb91da89e9cd238823e5a04c",
+    "controls.json": "bcb3b6742051bbc3f5f64f5e682665cc2e59f391f88d9064446b9b12e4926fa3",
+    "diff-check.json": "8bec6cf415087e0962f5640b4cbd4be464eafb4ed83c40ae541b626ca596df3e",
+    "focused-arity.json": "2ec07dc4f212d8bf4410fcbf7bcc574c21ab67a2b7d31401025adfad0d22e73b",
+    "gates-review.log": "0b10f8437aac513d632d45b62913bc3dfb87bbb63a7fb1376adc3b9fd96666a7",
+    "host-nat.json": "b4061a3f516789a45a04d36c5cbf273c0a6f4f7cd58a2cfbd52305c80102b265",
+    "house.json": "a77680ff380f3932f5b8245f7f1960b54731e949a97b5858eb733caeb86aa6c5",
+    "inspect-symlink.json": "ba7c381453e478ff8e468ca96ff384f80a59bc506bb48b200b6769ab229c3f29",
+    "normalize-path.json": "4bbbd8f9a3a50f29afead6ea314ca92fee374094317c115f3c19894bd3aebfc7",
+    "omit-arity.json": "23503f8ca421f232ccb201f6049aafb2663875b5fbe6095fa3cc456e79171b37",
+    "omit-bigint.json": "b7b931d483a6ce38b1031af5be3268c6f9f1a5701476de1e95ca2752bef0e6ef",
+    "omit-separator.json": "bf86ab8d1ccc6d8ccf9f08c017bcc3456f12444cc6003d853c98bf08cdc87f3e",
+    "open-contents.json": "d87d610e2fc9df471d3eacbd662e7cf0747eb950046b90b1d89235dba6d3a009",
+    "positive.json": "c581763502a2906f0889fc2d30aa8a96209844f88119f47bcdfa0d88f1bae222",
+    "reactor.json": "f887bc80f100dd97217fb54afb21bd27013a9db84e23bf36db37683bb9a9e4fb",
+    "read-contents.json": "574c445ee1668089ca1e8390e8c4500dd072773bec2c18725959eb49f569f6e1",
+    "reject-zero.json": "3692cbdd7ae98f00b5da97968067bcaab3214dcb1b090505f549564c0c2676d1",
+    "reproduce-controls.py": "05e24609a72e2449d2fd90933038d7a0d6ddfb29686e53f2fbaf18e69360fc1d",
+    "rounded-device.json": "6996e2979480c9476cc23347b5fd1a21b6ac69d892e3b2e3bebab97585caf613",
+    "rounded-inode.json": "6191392e295da6a6092d58f7e4d029f6e37588def2d819f69e9c2b1eea0e3893",
+    "runtime.json": "2d0b5a04ac3af733c93ba4980b650904a50e51a8b144da53f6a64da8faeec3e1",
+    "split-stat.json": "2755d90bd57d319a2f5d9737790aa24c791d92808dda16979ce3cab2c3cd3784",
+    "swapped-fields.json": "490db61b75cb49ba7af8192aa396f9ec16aa9094dbd4af6df2dc617117f51825",
+    "syntax-reactor-tests.json": "edd82c6f91a6542f49c56ec801dc66f08f23a83e7f66f2f5fddf0ee7bd6806d4",
+    "syntax-runtime-tests.json": "5f91e10ef2f2e0bf49553f4a6b84c7787d50e1c18d5d951b385ea2ca8f63c2c5",
+    "syntax-runtime.json": "970dc064199921d338409cb2fed65300df420b5d08a7b71c27a80c7752a8719f",
+    "trusted-lines.json": "d538e8558bc7296d1dccd74f100bb6a2f4bf7d481bb8ad0b0b910e9bf65d345c",
+    "wrong-device.json": "4f16af2e1bf51d32cdd59406c746417a7fea5a0cc28e3e08f74622c97f9e0add"
+  },
+  "summary": {
+    "focused-arity": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 47,
+        "suites": 0,
+        "pass": 47,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "runtime": {
+      "exit_code": 0,
+      "counts": {
+        "pass": 208
+      }
+    },
+    "reactor": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "host-nat": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "control-run": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-runtime-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "syntax-reactor-tests": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "house": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "trusted-lines": {
+      "exit_code": 0,
+      "counts": {}
+    },
+    "diff-check": {
+      "exit_code": 0,
+      "counts": {}
+    }
+  },
+  "validation_scope": "Focused positive 8/8, identity/arity selection 47/47, full runtime 208 passed via kanoncho, compiled reactor 1799 checks under a 120-second watchdog, HOST-NAT 16/16 and static checks passed. All 14 defect controls rejected. Compiler reused by hash. No full compiler or milestone ladder rerun, no 30-second reactor gate verdict and no timing waiver."
+}
