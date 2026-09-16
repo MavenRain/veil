@@ -1514,6 +1514,129 @@ try {
     }
   }
 
+  const fileTimes = join(scratch, 'file-times.wasm');
+  const fileTimesBuild = run(['build', shared, fixture('file-times'), '-o', fileTimes,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileTimesBuild.status, 0, fileTimesBuild.stderr));
+  const fileTimesBytes = readFileSync(fileTimes);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileTimesBytes)).length, 0));
+  const { instance: fileTimesInstance } = await WebAssembly.instantiate(fileTimesBytes);
+  const fileTimesApi = fileTimesInstance.exports;
+  const timesBytes = value => {
+    let bytes = fileTimesApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileTimesApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const fileTimesArguments = ['../héllo//alias/../file', '-8640000000000000', '8640000000000000'];
+  let fileTimesWords = fileTimesApi.emptyWords();
+  for (const text of [...fileTimesArguments].reverse()) {
+    fileTimesWords = fileTimesApi.consWords(timesBytes(text), fileTimesWords);
+  }
+  const fileTimesPending = fileTimesApi.init(fileTimesWords);
+  verify(() => assert.equal(fileTimesApi.requestCode(fileTimesPending), 44));
+  let fileTimesForwarded = fileTimesApi.requestArgs(fileTimesPending);
+  for (const text of fileTimesArguments) {
+    verify(() => assert.equal(fileTimesApi.wordsEmpty(fileTimesForwarded), 0));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTimesApi,
+      fileTimesApi.wordsHead(fileTimesForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileTimesForwarded = fileTimesApi.wordsTail(fileTimesForwarded);
+  }
+  verify(() => assert.equal(fileTimesApi.wordsEmpty(fileTimesForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTimesApi,
+    fileTimesApi.requestBody(fileTimesPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileTimesApi.exitCode(fileTimesPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EPERM: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileTimesApi.resume(fileTimesPending, status, timesBytes(answer));
+    verify(() => assert.equal(fileTimesApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileTimesApi.wordsEmpty(fileTimesApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileTimesApi,
+      fileTimesApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileTimesApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileTimesApi.resume(reporting, outputStatus, fileTimesApi.emptyBytes());
+      verify(() => assert.equal(fileTimesApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileTimesApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileTimesApi.wordsEmpty(fileTimesApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileTimesApi.bytesEmpty(fileTimesApi.requestBody(finished)), 1));
+      const stillFinished = fileTimesApi.resume(finished, 1, timesBytes('ignored'));
+      verify(() => assert.equal(fileTimesApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileTimesApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const timesFile = join(scratch, 'times file é');
+  const timesContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(timesFile, timesContent);
+  const timesBefore = statSync(timesFile, { bigint: true });
+  const nativeTimes = [[0, 2000], [1234, 5678], [1700000001234, 1700000005678], [1000, 3000]];
+  if (process.platform !== 'win32') nativeTimes.push([-2000, -1000], [-1000, 2000], [3000, -4000]);
+  for (const [atime, mtime] of nativeTimes) {
+    const changed = runModule([fileTimes, basename(timesFile), String(atime), String(mtime)]);
+    verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stdout + changed.stderr));
+    verify(() => assert.equal(changed.stdout, ''));
+    verify(() => assert.equal(changed.stderr, ''));
+    const after = statSync(timesFile, { bigint: true });
+    for (const [actual, milliseconds] of [[after.atimeNs, atime], [after.mtimeNs, mtime]]) {
+      const delta = actual - BigInt(milliseconds) * 1000000n;
+      verify(() => assert.ok(delta >= -1000n && delta <= 1000n, `timestamp differs by ${delta} ns`));
+    }
+    for (const key of ['dev', 'ino', 'size', 'mode', 'uid', 'gid', 'nlink']) {
+      verify(() => assert.equal(after[key], timesBefore[key], key));
+    }
+  }
+  verify(() => assert.deepEqual(readFileSync(timesFile), timesContent));
+  const timesStable = statSync(timesFile, { bigint: true });
+  const invalidTimes = [[], [timesFile], [timesFile, '1000'], [timesFile, '1000', '2000', 'surplus']];
+  for (const args of invalidTimes) {
+    const failed = runModule([fileTimes, ...args]);
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, `IO: OS request 44 expects 3 arguments, got ${args.length}`));
+    verify(() => assert.equal(failed.stderr, ''));
+  }
+  for (const value of ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']) {
+    for (const times of [[value, '2000'], ['1000', value]]) {
+      const failed = runModule([fileTimes, timesFile, ...times]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  const timesAfterFailures = statSync(timesFile, { bigint: true });
+  for (const key of ['ino', 'size', 'mode', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+    verify(() => assert.equal(timesAfterFailures[key], timesStable[key], key));
+  }
+  const missingTimes = join(scratch, 'missing-times');
+  const timesMissing = runModule([fileTimes, missingTimes, '1000', '2000']);
+  verify(() => assert.equal(timesMissing.status, 1, timesMissing.error ?? timesMissing.stderr));
+  verify(() => assert.match(timesMissing.stdout, /^ENOENT:/));
+  verify(() => assert.equal(timesMissing.stderr, ''));
+  verify(() => assert.equal(existsSync(missingTimes), false));
+  if (process.platform !== 'win32') {
+    const timesDirectory = join(scratch, 'times-directory');
+    const timesHard = join(scratch, 'times-hard');
+    const timesLink = join(scratch, 'times-link');
+    mkdirSync(timesDirectory);
+    linkSync(timesFile, timesHard);
+    symlinkSync(basename(timesFile), timesLink);
+    const timesLinkBefore = lstatSync(timesLink, { bigint: true });
+    for (const path of [timesDirectory + '/', timesHard, timesLink]) {
+      const changed = runModule([fileTimes, path, '5000', '6000']);
+      verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stdout + changed.stderr));
+      verify(() => assert.equal(changed.stdout, ''));
+      verify(() => assert.equal(changed.stderr, ''));
+      const after = statSync(path, { bigint: true });
+      verify(() => assert.equal(after.atimeNs, 5000000000n));
+      verify(() => assert.equal(after.mtimeNs, 6000000000n));
+    }
+    const timesTarget = statSync(timesFile, { bigint: true });
+    verify(() => assert.equal(timesTarget.atimeNs, 5000000000n));
+    verify(() => assert.equal(timesTarget.mtimeNs, 6000000000n));
+    const timesLinkAfter = lstatSync(timesLink, { bigint: true });
+    for (const key of ['ino', 'mode', 'size', 'mtimeNs', 'ctimeNs']) {
+      verify(() => assert.equal(timesLinkAfter[key], timesLinkBefore[key], key));
+    }
+  }
+
   const fileMode = join(scratch, 'file-mode.wasm');
   const fileModeBuild = run(['build', shared, fixture('file-mode'), '-o', fileMode,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -1,0 +1,259 @@
+{
+  "source_sha256": "29acbe077b6925972dc188d2c3f9f1b4d112b0711548ada52bef2b96ce2be52c",
+  "test_sha256": "a67643cbfbdfac017b6ab4249203ddbdccc1b96586306dd4e6255be29704776c",
+  "mutations": {
+    "missing-operation": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": ""
+    },
+    "missing-arity": {
+      "old": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3];",
+      "new": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];"
+    },
+    "swap-times": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], mtime, atime);\n      return Buffer.alloc(0);\n    }\n"
+    },
+    "numeric-seconds": {
+      "old": "return new Date(milliseconds);",
+      "new": "return milliseconds / 1000;"
+    },
+    "scale-seconds": {
+      "old": "return new Date(milliseconds);",
+      "new": "return new Date(milliseconds * 1000);"
+    },
+    "round-seconds": {
+      "old": "return new Date(milliseconds);",
+      "new": "return new Date(Math.trunc(milliseconds / 1000) * 1000);"
+    },
+    "allow-noncanonical": {
+      "old": "String(milliseconds) !== value",
+      "new": "false"
+    },
+    "missing-date-bound": {
+      "old": "Math.abs(milliseconds) > 8640000000000000",
+      "new": "false"
+    },
+    "reject-zero": {
+      "old": "!Number.isSafeInteger(milliseconds)",
+      "new": "!milliseconds || !Number.isSafeInteger(milliseconds)"
+    },
+    "clamp-negative": {
+      "old": "return new Date(milliseconds);",
+      "new": "return new Date(Math.max(0, milliseconds));"
+    },
+    "normalize-path": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(resolve(args[0]), atime, mtime);\n      return Buffer.alloc(0);\n    }\n"
+    },
+    "duplicate-update": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n"
+    },
+    "read-contents": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await readFile(args[0]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n"
+    },
+    "update-before-validation": {
+      "old": "    case 44: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 44: {\n      const atime = timestamp(args[1]);\n      await utimes(args[0], atime, atime);\n      const mtime = timestamp(args[2]);\n      await utimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n"
+    }
+  },
+  "results": {
+    "positive": {
+      "exit_code": 0,
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "positive.json",
+      "capture_sha256": "78bc4a4be65b0e23a91b166cbe46e79a4182d4a69d1f1af392ec6347b4462b3e"
+    },
+    "missing-operation": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 1,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-operation.json",
+      "capture_sha256": "a80b28d27b19cf414026141cbee9e841aeec7936cb6d960f36efdd2885e68098"
+    },
+    "missing-arity": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 8,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-arity.json",
+      "capture_sha256": "e3ff7cc321aa54d90b959424ca9eca97de66ecec55c7ab69c15fed86e4610e23"
+    },
+    "swap-times": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 3,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "swap-times.json",
+      "capture_sha256": "c35973df92d73fce7a55b52fdf67e99daa0f5a56f6d7151a9e34cfb48bcacb88"
+    },
+    "numeric-seconds": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 7,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "numeric-seconds.json",
+      "capture_sha256": "ea78250ad9ae78b5504004449430867296cc79435619c45b412fa5752cd7974c"
+    },
+    "scale-seconds": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 3,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "scale-seconds.json",
+      "capture_sha256": "98cd277d04c2de663c2b2e763e8d565718c9ea2dbc7a32a83772006424c2e08a"
+    },
+    "round-seconds": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 7,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "round-seconds.json",
+      "capture_sha256": "beb7ab81c6b5ad1c30696cab11d0d431b97b8b012e84982c4029e0ddf158fe3c"
+    },
+    "allow-noncanonical": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 8,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "allow-noncanonical.json",
+      "capture_sha256": "005b39ca6ac8cf476af4f86d5e8187d98deb54f786114f79d05ced6fc05192ea"
+    },
+    "missing-date-bound": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 8,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "missing-date-bound.json",
+      "capture_sha256": "48c020af89755db1d6239b4e59d215b5eb8e3f00353e2967b3b721c2533c016c"
+    },
+    "reject-zero": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 7,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "reject-zero.json",
+      "capture_sha256": "6c143b508a0f676fca9c45b8ffcc4877f29cd253ae579ef1b3901b173df91e51"
+    },
+    "clamp-negative": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 7,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "clamp-negative.json",
+      "capture_sha256": "dbc88c9ae70a62058426bc52806cd761b8e5037eca6947e8b3761d9d44b64b84"
+    },
+    "normalize-path": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 6,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "normalize-path.json",
+      "capture_sha256": "e141fb2b2e6d6d3356be0085d092ea6c60f7b231b4691aa30cdab25e5f6fa546"
+    },
+    "duplicate-update": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 6,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "duplicate-update.json",
+      "capture_sha256": "77cb4041e03f44a677b3336b38f0b7a9ac716b925f4775c3e3042ad3525d6f80"
+    },
+    "read-contents": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 5,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "read-contents.json",
+      "capture_sha256": "d77c1fda19848f08512657a36782c98239c50749cf0542ee7b4cbdf0617c8759"
+    },
+    "update-before-validation": {
+      "exit_code": 1,
+      "counts": {
+        "tests": 9,
+        "pass": 6,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "capture": "update-before-validation.json",
+      "capture_sha256": "5140201ea304cece957ca0bc5d5b2d91d2495ae88cbf727f243b5e0363b8bd09"
+    }
+  }
+}

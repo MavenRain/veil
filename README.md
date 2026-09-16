@@ -101,6 +101,10 @@ snapshots, exact integer pairs, path resolution and host errors.
 Operation 43 reads the host's numeric filesystem type identifier as exact
 decimal bytes. The [filesystem type regressions](dev/FILESYSTEM-TYPE.md)
 cover native identifiers, precision, literal paths and host errors.
+Operation 44 updates access and modification times from signed decimal
+milliseconds since the Unix epoch. The
+[timestamp update regressions](dev/FILE-TIMES.md)
+cover pre-epoch times, input bounds, links, path resolution and host errors.
 
 Function parameters can share a type and quantity:
 

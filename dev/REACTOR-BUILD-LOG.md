@@ -1020,3 +1020,49 @@ Node v23.10.0; large, signed and zero endpoints also use injected identifiers.
 Windows was not exercised. The
 [validation record](validation/2026-09-15-filesystem-type/README.md)
 contains captures, source hashes, scope and the control reproducer.
+
+## File timestamp updates, 2026-09-15
+
+Base: `8869af6530cf39308aa86079c34c5740f567ef2b`.
+
+Operation 44 updates access and modification times through one utimes call.
+It requires three arguments: a literal path and two signed decimal integer
+timestamps in milliseconds. Both values must use canonical decimal text
+and fit the Date range. Both are validated before host updates. Date
+arguments preserve pre-epoch values. Success returns an empty answer; the
+body is unused under shared decoding limits and host errors resume normally.
+
+Nine runtime tests cover native times, file preservation, timestamp reads,
+pre-epoch values, links, directories, special files, path resolution,
+malformed inputs, Date endpoints and host errors. The argument-count matrix
+adds row 44. The compiled fixture verifies request bytes, binary answer
+forwarding, output failures and stable terminal states. Native compiled
+runs exercise timestamp updates, preservation, links and error paths.
+
+Validation reused the compiler binary verified against the predecessor
+filesystem type record:
+
+- Timestamp tests and shared argument counts passed 54/54. The full runtime
+  suite passed 269 tests through `kanoncho`, ten more than the base.
+- The compiled reactor suite passed 3128 checks, 237 more than the base,
+  under a 30-second watchdog. HOST-NAT passed 16/16.
+- JavaScript syntax, HOUSE, TRUSTED-LINES and whitespace checks passed.
+  Kernel lines remain 5246/5250; encoder lines remain 246/600.
+- The positive control passed nine tests. All 14 defect controls failed
+  assertions, covering operation and arity omissions, timestamp order,
+  numeric negative seconds, units, rounding, canonical text, Date bounds,
+  zero, signed values, path normalization, repeated calls, content reads
+  and an update before validation of the second timestamp.
+
+The first focused attempt passed eight tests and failed the special-file
+test because its content-read guard also blocked loading the runtime module.
+The guard now permits only that exact module URL and still rejects content
+reads. Subsequent focused, full and mutation runs passed their checks.
+
+Compiler sources and gate definitions retain their base hashes. The full
+compiler and milestone ladder was not rerun. Native validation ran on macOS
+with Node v23.10.0; Date endpoints and injected host errors do not establish
+filesystem support for the entire Date range. Stored timestamp precision
+and range remain host-dependent. Windows was not exercised. The
+[validation record](validation/2026-09-15-file-times/README.md) contains
+captures, source hashes, scope and the control reproducer.

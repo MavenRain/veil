@@ -176,8 +176,9 @@ the left list's length.
 | 41 | path | Read filesystem block size, total, free and available blocks as `bsize:blocks:bfree:bavail` |
 | 42 | path | Read total and free filesystem inode counts as `files:ffree` |
 | 43 | path | Read the host's filesystem type identifier as an exact decimal integer |
+| 44 | path, atime, mtime | Set access and modification times from decimal milliseconds; return an empty answer |
 
-Operations 1 to 43 check argument counts before performing the operation.
+Operations 1 to 44 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -212,8 +213,8 @@ the [file allocation regressions](dev/FILE-ALLOCATION.md) cover operation 40,
 the [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
 cover operation 41, the
 [filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42,
-and the [filesystem type regressions](dev/FILESYSTEM-TYPE.md)
-cover operation 43.
+the [filesystem type regressions](dev/FILESYSTEM-TYPE.md) cover operation 43,
+and the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -691,6 +692,26 @@ with exit 2 in the shared decoder. Host errors resume with status 1 and
 large, signed and zero identifiers also use injected metadata. Windows was
 not exercised. See the
 [filesystem type contract and tests](dev/FILESYSTEM-TYPE.md).
+
+Operation 44 requires a path, access time and modification time, in that
+order. Times are signed ASCII decimal integer milliseconds since the Unix
+epoch, between -8640000000000000 and 8640000000000000 inclusive. Zero is
+`0`; other values have an optional minus sign and no leading zeros. Plus
+signs, negative zero, whitespace, fractions, exponents and out-of-range
+values return status 1 with `IO: invalid OS timestamp argument`.
+
+Both times are validated before one `utimes(path, atimeDate, mtimeDate)`
+call. Date arguments preserve pre-epoch values; native timestamp resolution
+and supported ranges still depend on the host. Success returns an empty
+answer. A value that the host cannot store is not rejected: the request
+succeeds with an empty answer, and the host clamps or rounds the stored
+time. The body is unused under shared decoding limits. Paths retain
+native resolution, including final symlinks and parent segments after
+symlinks. Existing files, directories and special files can be updated
+without opening their contents. Missing entries are not created. Host
+errors resume with status 1 and `CODE: message`; undecodable arguments end
+the run with exit 2 before host dispatch. See the
+[timestamp update contract and tests](dev/FILE-TIMES.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

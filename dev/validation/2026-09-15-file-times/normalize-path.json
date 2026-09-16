@@ -1,0 +1,29 @@
+{
+  "variant": "normalize-path",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file times",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga",
+  "exit_code": 1,
+  "timeout_seconds": 20,
+  "timed_out": false,
+  "counts": {
+    "tests": 9,
+    "pass": 6,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "490edb1275fd67e639e091e5162387a51ccf1d44e2a2f0dd4b361bc677f826c4",
+  "test_sha256": "a67643cbfbdfac017b6ab4249203ddbdccc1b96586306dd4e6255be29704776c",
+  "stdout": "TAP version 13\n# Subtest: file times updates both timestamps and composes with timestamp inspection\nok 1 - file times updates both timestamps and composes with timestamp inspection\n  ---\n  duration_ms: 35.446458\n  type: 'test'\n  ...\n# Subtest: file times preserves pre-epoch values instead of replacing them with the current time\nok 2 - file times preserves pre-epoch values instead of replacing them with the current time\n  ---\n  duration_ms: 2.253625\n  type: 'test'\n  ...\n# Subtest: file times supports directories and special files and follows symlinks and hard links\nok 3 - file times supports directories and special files and follows symlinks and hard links\n  ---\n  duration_ms: 7.165458\n  type: 'test'\n  ...\n# Subtest: file times preserves relative Unicode paths and native parent symlink resolution\nnot ok 4 - file times preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.62625\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3148:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 9000000000n\n    - 3000000000n\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 3000000000n\n  actual: 9000000000n\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3168:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file times reports native path errors and recovers without creating entries\nnot ok 5 - file times reports native path errors and recovers without creating entries\n  ---\n  duration_ms: 5.878958\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3173:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 44: \n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:720:14)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/runtime/reactor.mjs:473:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3186:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file times rejects malformed timestamps and argument counts before any host update\nok 6 - file times rejects malformed timestamps and argument counts before any host update\n  ---\n  duration_ms: 18.191\n  type: 'test'\n  ...\n# Subtest: file times rejects undecodable bytes in each argument before utimes\nok 7 - file times rejects undecodable bytes in each argument before utimes\n  ---\n  duration_ms: 2.10225\n  type: 'test'\n  ...\n# Subtest: file times forwards ordered Date values and range endpoints in one call and ignores the body\nnot ok 8 - file times forwards ordered Date values and range endpoints in one call and ignores the body\n  ---\n  duration_ms: 27.969542\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3236:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/h\u00e9llo/file'\n    - '../h\u00e9llo//alias/../file'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '../h\u00e9llo//alias/../file'\n  actual: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/h\u00e9llo/file'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3249:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file times forwards host errors and resumes a subsequent successful update\nok 9 - file times forwards host errors and resumes a subsequent successful update\n  ---\n  duration_ms: 2.1085\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 6\n# fail 3\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 167.082333\n",
+  "stderr": "",
+  "stdout_sha256": "42c578716749f6b93facf6184e89f51906f8ad36763b9215a3c3dca9ec9854e8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

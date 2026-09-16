@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate, utimes } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -17,6 +17,14 @@ const nat = value => {
 const numeric = value => {
   if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) throw new RangeError('invalid OS numeric argument');
   return Number(value);
+};
+const timestamp = value => {
+  const milliseconds = Number(value);
+  if (!Number.isSafeInteger(milliseconds) || Math.abs(milliseconds) > 8640000000000000 ||
+      String(milliseconds) !== value) throw new RangeError('invalid OS timestamp argument');
+  // The round trip requires canonical decimal milliseconds. Date preserves
+  // pre-epoch times; negative numeric seconds passed to utimes mean "now".
+  return new Date(milliseconds);
 };
 // Slot data crosses as decimal bytes, independently of the i31 export ABI
 // and the safe-integer OS arguments. Parse it without narrowing through Number.
@@ -220,7 +228,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -374,6 +382,12 @@ async function perform(code, args, body, interrupted, blobs) {
     case 43: {
       const info = await statfs(args[0], { bigint: true });
       return Buffer.from(String(info.type));
+    }
+    case 44: {
+      const atime = timestamp(args[1]);
+      const mtime = timestamp(args[2]);
+      await utimes(args[0], atime, mtime);
+      return Buffer.alloc(0);
     }
     default: throw new Error(`unknown OS request ${code}`);
   }

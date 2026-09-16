@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-name-pattern",
+    "^file times",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-times",
+  "exit_code": 1,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "\u2714 file times updates both timestamps and composes with timestamp inspection (38.116291ms)\n\u2714 file times preserves pre-epoch values instead of replacing them with the current time (3.7535ms)\n\u2716 file times supports directories and special files and follows symlinks and hard links (10.527375ms)\n\u2714 file times preserves relative Unicode paths and native parent symlink resolution (3.857209ms)\n\u2714 file times reports native path errors and recovers without creating entries (6.932917ms)\n\u2714 file times rejects malformed timestamps and argument counts before any host update (15.562667ms)\n\u2714 file times rejects undecodable bytes in each argument before utimes (1.817041ms)\n\u2714 file times forwards ordered Date values and range endpoints in one call and ignores the body (31.052542ms)\n\u2714 file times forwards host errors and resumes a subsequent successful update (1.990958ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 185.100416\n\n\u2716 failing tests:\n\ntest at dev/runtime-test.mjs:3107:1\n\u2716 file times supports directories and special files and follows symlinks and hard links (10.527375ms)\n  AssertionError [ERR_ASSERTION]: file times called readFile\n      at file:///Users/oobi/Documents/gpt3/veil-file-times/dev/runtime-test.mjs:3120:50\n      at Object.apply (node:internal/test_runner/mock/mock:598:20)\n      at runReactor (file:///Users/oobi/Documents/gpt3/veil-file-times/runtime/reactor.mjs:397:60)\n      at slotScript (file:///Users/oobi/Documents/gpt3/veil-file-times/dev/runtime-test.mjs:749:24)\n      at TestContext.<anonymous> (file:///Users/oobi/Documents/gpt3/veil-file-times/dev/runtime-test.mjs:3126:11)\n      at async Test.run (node:internal/test_runner/test:1054:7)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    expected: undefined,\n    operator: 'fail'\n  }\n",
+  "stderr": "",
+  "stdout_sha256": "eaa7f5f85e9e51be861fb58a80d93a200da511e83ea5859624721d3d75efdad5",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

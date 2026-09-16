@@ -1,0 +1,29 @@
+{
+  "variant": "clamp-negative",
+  "argv": [
+    "/opt/homebrew/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^file times",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga",
+  "exit_code": 1,
+  "timeout_seconds": 20,
+  "timed_out": false,
+  "counts": {
+    "tests": 9,
+    "pass": 7,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runtime_sha256": "c9a9134d758894f52b000227e0ed4b943af0576fb93bfa45e1947e88ff5b0b77",
+  "test_sha256": "a67643cbfbdfac017b6ab4249203ddbdccc1b96586306dd4e6255be29704776c",
+  "stdout": "TAP version 13\n# Subtest: file times updates both timestamps and composes with timestamp inspection\nok 1 - file times updates both timestamps and composes with timestamp inspection\n  ---\n  duration_ms: 35.713709\n  type: 'test'\n  ...\n# Subtest: file times preserves pre-epoch values instead of replacing them with the current time\nnot ok 2 - file times preserves pre-epoch values instead of replacing them with the current time\n  ---\n  duration_ms: 2.331083\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3095:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 0n\n    - -2000000000n\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: -2000000000n\n  actual: 0n\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3102:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file times supports directories and special files and follows symlinks and hard links\nok 3 - file times supports directories and special files and follows symlinks and hard links\n  ---\n  duration_ms: 9.122458\n  type: 'test'\n  ...\n# Subtest: file times preserves relative Unicode paths and native parent symlink resolution\nok 4 - file times preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 5.349459\n  type: 'test'\n  ...\n# Subtest: file times reports native path errors and recovers without creating entries\nok 5 - file times reports native path errors and recovers without creating entries\n  ---\n  duration_ms: 4.491917\n  type: 'test'\n  ...\n# Subtest: file times rejects malformed timestamps and argument counts before any host update\nok 6 - file times rejects malformed timestamps and argument counts before any host update\n  ---\n  duration_ms: 15.005084\n  type: 'test'\n  ...\n# Subtest: file times rejects undecodable bytes in each argument before utimes\nok 7 - file times rejects undecodable bytes in each argument before utimes\n  ---\n  duration_ms: 1.414833\n  type: 'test'\n  ...\n# Subtest: file times forwards ordered Date values and range endpoints in one call and ignores the body\nnot ok 8 - file times forwards ordered Date values and range endpoints in one call and ignores the body\n  ---\n  duration_ms: 27.394917\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3236:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    -   -1,\n        0,\n    +   0\n      ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: -1\n    1: 0\n  actual:\n    0: 0\n    1: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-times-controls-sy0qa6ga/dev/runtime-test.mjs:3252:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file times forwards host errors and resumes a subsequent successful update\nok 9 - file times forwards host errors and resumes a subsequent successful update\n  ---\n  duration_ms: 1.786083\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 7\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 164.353792\n",
+  "stderr": "",
+  "stdout_sha256": "a385b90016f36c80009bb51e5a527a7db8ac23b743bb37720be0b03071156477",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
