@@ -1,0 +1,33 @@
+-- Update owner and group IDs, then report the answer and output status.
+
+mu FileChownState : Type 0 with
+| requested : Words -> FileChownState
+| reporting : Nat -> Bytes -> FileChownState
+| finished : Nat -> FileChownState
+
+def init (argv : Words) : FileChownState := requested argv
+def resume (state : FileChownState) (status : Nat) (answer : Bytes) : FileChownState :=
+  case state as current in FileChownState return FileChownState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileChownState) : Nat :=
+  case state as current in FileChownState return Nat with
+  | requested args => 45
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileChownState) : Words :=
+  case state as current in FileChownState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileChownState) : Bytes :=
+  case state as current in FileChownState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileChownState) : Nat :=
+  case state as current in FileChownState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

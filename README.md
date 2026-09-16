@@ -105,6 +105,9 @@ Operation 44 updates access and modification times from signed decimal
 milliseconds since the Unix epoch. The
 [timestamp update regressions](dev/FILE-TIMES.md)
 cover pre-epoch times, input bounds, links, path resolution and host errors.
+Operation 45 updates numeric owner and group IDs on existing entries. The
+[ownership update regressions](dev/FILE-CHOWN.md) cover ID validation,
+native group changes, links, literal paths and host errors.
 
 Function parameters can share a type and quantity:
 

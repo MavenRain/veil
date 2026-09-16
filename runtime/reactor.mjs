@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, opendir, mkdir, mkdtemp, chmod, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate, utimes } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, chown, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate, utimes } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -25,6 +25,14 @@ const timestamp = value => {
   // The round trip requires canonical decimal milliseconds. Date preserves
   // pre-epoch times; negative numeric seconds passed to utimes mean "now".
   return new Date(milliseconds);
+};
+const ownerId = value => {
+  const id = Number(value);
+  // Exclude the all-ones ID, which hosts can interpret as "leave unchanged".
+  if (!Number.isInteger(id) || id < 0 || id > 4294967294 || String(id) !== value) {
+    throw new RangeError('invalid OS owner ID argument');
+  }
+  return id;
 };
 // Slot data crosses as decimal bytes, independently of the i31 export ABI
 // and the safe-integer OS arguments. Parse it without narrowing through Number.
@@ -228,7 +236,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -387,6 +395,12 @@ async function perform(code, args, body, interrupted, blobs) {
       const atime = timestamp(args[1]);
       const mtime = timestamp(args[2]);
       await utimes(args[0], atime, mtime);
+      return Buffer.alloc(0);
+    }
+    case 45: {
+      const uid = ownerId(args[1]);
+      const gid = ownerId(args[2]);
+      await chown(args[0], uid, gid);
       return Buffer.alloc(0);
     }
     default: throw new Error(`unknown OS request ${code}`);

@@ -177,8 +177,9 @@ the left list's length.
 | 42 | path | Read total and free filesystem inode counts as `files:ffree` |
 | 43 | path | Read the host's filesystem type identifier as an exact decimal integer |
 | 44 | path, atime, mtime | Set access and modification times from decimal milliseconds; return an empty answer |
+| 45 | path, uid, gid | Set numeric owner and group IDs on an existing entry; return an empty answer |
 
-Operations 1 to 44 check argument counts before performing the operation.
+Operations 1 to 45 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -214,7 +215,8 @@ the [filesystem capacity regressions](dev/FILESYSTEM-CAPACITY.md)
 cover operation 41, the
 [filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42,
 the [filesystem type regressions](dev/FILESYSTEM-TYPE.md) cover operation 43,
-and the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44.
+the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44,
+and the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -712,6 +714,27 @@ without opening their contents. Missing entries are not created. Host
 errors resume with status 1 and `CODE: message`; undecodable arguments end
 the run with exit 2 before host dispatch. See the
 [timestamp update contract and tests](dev/FILE-TIMES.md).
+
+Operation 45 requires a path, numeric owner ID and numeric group ID, in that
+order. IDs are canonical decimal integers in 0..4294967294. Zero is `0`;
+other values have no signs or leading zeros. Whitespace, fractions,
+exponents and out-of-range values return status 1 with
+`IO: invalid OS owner ID argument`. The all-ones ID 4294967295 is excluded
+because hosts can treat it as "leave unchanged". There is no sentinel for
+retaining an ID. Operation 39 can read the current pair, but reading and
+updating it are separate operations that do not prevent races.
+
+Both IDs are validated before one `chown(path, uid, gid)` call. Success
+returns an empty answer. The body is unused under shared decoding limits.
+Literal paths retain native resolution, including final symlinks and
+parent segments after symlinks. Existing files, directories and special
+files can be updated without opening contents or replacing entries.
+Missing entries are not created. Ownership changes can update ctime and
+clear special permission bits. Host permissions, account support and
+filesystem behavior determine whether an accepted pair can be stored.
+Host errors resume with status 1 and `CODE: message`; undecodable arguments
+end the run with exit 2 before host dispatch. See the
+[ownership update contract and tests](dev/FILE-CHOWN.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

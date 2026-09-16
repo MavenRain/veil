@@ -1,0 +1,158 @@
+{
+  "source_sha256": {
+    "runtime/reactor.mjs": "0991cb2400e82e6f951157f73ac71a84ff03babd3c182a8b24e2775b4c3a77f2",
+    "dev/runtime-test.mjs": "66206101021a433104fa0a7edabf99c50df6fc43e0633f7d5080b21fb1edc497"
+  },
+  "controls": [
+    {
+      "name": "positive",
+      "old": null,
+      "new": null,
+      "exit_code": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "runtime_sha256": "0991cb2400e82e6f951157f73ac71a84ff03babd3c182a8b24e2775b4c3a77f2"
+    },
+    {
+      "name": "missing-operation",
+      "old": "    case 45: {\n      const uid = ownerId(args[1]);\n      const gid = ownerId(args[2]);\n      await chown(args[0], uid, gid);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "runtime_sha256": "caa703dfe4fa1a4ecad4827cdba1eb0ce40ab44b6f5d91770e0a39e4f04eae91"
+    },
+    {
+      "name": "missing-arity",
+      "old": ", 3, 3];",
+      "new": ", 3];",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "baf45cb15671b5ac72dcc957ac1214fb08ddc35ea05f6abcda7d9057c4f0bd79"
+    },
+    {
+      "name": "swap-ids",
+      "old": "await chown(args[0], uid, gid);",
+      "new": "await chown(args[0], gid, uid);",
+      "exit_code": 1,
+      "passed": 3,
+      "failed": 6,
+      "skipped": 0,
+      "runtime_sha256": "a1b3bd9dea444833ded38cd98a4d691f736a597be5da3d5ae9458e94b507b0f8"
+    },
+    {
+      "name": "signed-coercion",
+      "old": "await chown(args[0], uid, gid);",
+      "new": "await chown(args[0], uid | 0, gid | 0);",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 2,
+      "skipped": 0,
+      "runtime_sha256": "2be0f5d1cd731c15d1c04a207fe70659e9ead6d20b61084843710d201a694869"
+    },
+    {
+      "name": "allow-sentinel",
+      "old": "id > 4294967294",
+      "new": "id > 4294967295",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "ca1061fb8c5cb93b72d88874b31601c2390eff5550769c29c3a6ddd5b8a63e7f"
+    },
+    {
+      "name": "reject-zero",
+      "old": "id < 0",
+      "new": "id <= 0",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 2,
+      "skipped": 0,
+      "runtime_sha256": "c22a13e551decfcd038347d8ed1bb9a17d2e40205925972f2ba63d89b71dc426"
+    },
+    {
+      "name": "allow-negative",
+      "old": "id < 0 || ",
+      "new": "",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "8896b398915c9a3cd2e3331a3c13cd67fb0cca5af8fc34a6d6541447d55a578f"
+    },
+    {
+      "name": "allow-noncanonical",
+      "old": " || String(id) !== value",
+      "new": "",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "a15025371c078cff6774c1ccaecd4d7c4adcb81d4f2c065c4fd40d9ea778f6c8"
+    },
+    {
+      "name": "missing-range",
+      "old": " || id > 4294967294",
+      "new": "",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "f3728f8d3c7c5995e23bb27c45e6667ae661e03ac5a17c5420a6346ec4c1568a"
+    },
+    {
+      "name": "normalize-path",
+      "old": "await chown(args[0], uid, gid);",
+      "new": "await chown(resolve(args[0]), uid, gid);",
+      "exit_code": 1,
+      "passed": 6,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "f5f4d485ea20a3395850492f6c53a61d495d936f29031a46c46199ebbfca8d78"
+    },
+    {
+      "name": "duplicate-update",
+      "old": "await chown(args[0], uid, gid);",
+      "new": "await chown(args[0], uid, gid); await chown(args[0], uid, gid);",
+      "exit_code": 1,
+      "passed": 5,
+      "failed": 4,
+      "skipped": 0,
+      "runtime_sha256": "2bd1e40bbf9f873635662840ad7fdf1dea675af15c079aae98e161fdb4708762"
+    },
+    {
+      "name": "update-before-validation",
+      "old": "const gid = ownerId(args[2]);",
+      "new": "await chown(args[0], uid, 0); const gid = ownerId(args[2]);",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "runtime_sha256": "be84bd2f67571eb1ccdc98b5cfd397852db49164bfddba03aee031f3ff14653b"
+    },
+    {
+      "name": "read-contents",
+      "old": "await chown(args[0], uid, gid);",
+      "new": "await readFile(args[0]); await chown(args[0], uid, gid);",
+      "exit_code": 1,
+      "passed": 4,
+      "failed": 5,
+      "skipped": 0,
+      "runtime_sha256": "d1575ad82d74b1af3bfff1426310f4ddcdeb9d7460cff5f6f0191cebd414114d"
+    },
+    {
+      "name": "update-symlink",
+      "old": "chmod, chown, rename",
+      "new": "chmod, lchown as chown, rename",
+      "exit_code": 1,
+      "passed": 3,
+      "failed": 6,
+      "skipped": 0,
+      "runtime_sha256": "302afa9a59e19f5270697aedb6dc4bb302a1310cd751612ac844bb48d3ad9e4f"
+    }
+  ]
+}

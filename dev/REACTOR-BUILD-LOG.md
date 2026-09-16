@@ -1066,3 +1066,43 @@ filesystem support for the entire Date range. Stored timestamp precision
 and range remain host-dependent. Windows was not exercised. The
 [validation record](validation/2026-09-15-file-times/README.md) contains
 captures, source hashes, scope and the control reproducer.
+
+## File ownership updates, 2026-09-15
+
+Base: `e253e46a3b4518c3ec6b923af2464f1433628382`.
+
+Operation 45 updates an existing entry's numeric owner and group IDs through
+one chown call. It validates the argument count and both canonical decimal
+IDs before the call. Accepted IDs range from 0 through 4294967294, excluding
+the host's possible unchanged-field sentinel. Paths retain native resolution.
+Success returns an empty answer; host errors resume with their error code.
+The body is unused under the shared decoding limits.
+
+Nine runtime tests cover ID order and bounds, native metadata and group
+changes, links, directories, special files, literal paths, rejected inputs,
+no content access and continued execution after errors. The shared arity
+matrix adds row 45. The compiled fixture checks request bytes, binary
+responses, output failures and stable terminal states, then exercises the
+operation through the native runtime.
+
+Validation reused the compiler verified against the file-times record:
+
+- The full runtime suite passed 279 tests, ten more than the base.
+- The compiled reactor suite passed 3330 checks, 202 more than the base,
+  within its unchanged 30-second watchdog. HOST-NAT passed 16/16.
+- The positive control passed nine tests with no skips. All 14 defect
+  controls failed assertions. A real supplementary-group change and
+  restoration passed without requiring privileged account changes.
+- JavaScript syntax, HOUSE, TRUSTED-LINES and whitespace checks passed.
+  Kernel lines remain 5246/5250; encoder lines remain 246/600.
+
+The initial reactor attempt timed out at 30 seconds without a verdict.
+The observed load average just afterward was 55.24. An isolated retry
+passed under the same limit. Both attempts remain in the validation record.
+Compiler sources and gate definitions retain their base hashes; the full
+compiler and milestone ladder was not rerun. Native validation used macOS
+and Node v23.10.0. Windows and arbitrary privileged owner changes were not
+exercised. Host authorization and filesystem support still determine
+whether accepted IDs can be stored. See the
+[validation record](validation/2026-09-15-file-chown/README.md) for captures,
+source hashes, scope and the reproducible controls.

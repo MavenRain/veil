@@ -1514,6 +1514,127 @@ try {
     }
   }
 
+  const fileChown = join(scratch, 'file-chown.wasm');
+  const fileChownBuild = run(['build', shared, fixture('file-chown'), '-o', fileChown,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileChownBuild.status, 0, fileChownBuild.stderr));
+  const fileChownBytes = readFileSync(fileChown);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileChownBytes)).length, 0));
+  const { instance: fileChownInstance } = await WebAssembly.instantiate(fileChownBytes);
+  const fileChownApi = fileChownInstance.exports;
+  const chownBytes = value => {
+    let bytes = fileChownApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileChownApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const fileChownArguments = ['../héllo//alias/../file', '2147483648', '4294967294'];
+  let fileChownWords = fileChownApi.emptyWords();
+  for (const text of [...fileChownArguments].reverse()) {
+    fileChownWords = fileChownApi.consWords(chownBytes(text), fileChownWords);
+  }
+  const fileChownPending = fileChownApi.init(fileChownWords);
+  verify(() => assert.equal(fileChownApi.requestCode(fileChownPending), 45));
+  let fileChownForwarded = fileChownApi.requestArgs(fileChownPending);
+  for (const text of fileChownArguments) {
+    verify(() => assert.equal(fileChownApi.wordsEmpty(fileChownForwarded), 0));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileChownApi,
+      fileChownApi.wordsHead(fileChownForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileChownForwarded = fileChownApi.wordsTail(fileChownForwarded);
+  }
+  verify(() => assert.equal(fileChownApi.wordsEmpty(fileChownForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileChownApi,
+    fileChownApi.requestBody(fileChownPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileChownApi.exitCode(fileChownPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EPERM: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileChownApi.resume(fileChownPending, status, chownBytes(answer));
+    verify(() => assert.equal(fileChownApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileChownApi.wordsEmpty(fileChownApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileChownApi,
+      fileChownApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileChownApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileChownApi.resume(reporting, outputStatus, fileChownApi.emptyBytes());
+      verify(() => assert.equal(fileChownApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileChownApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileChownApi.wordsEmpty(fileChownApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileChownApi.bytesEmpty(fileChownApi.requestBody(finished)), 1));
+      const stillFinished = fileChownApi.resume(finished, 1, chownBytes('ignored'));
+      verify(() => assert.equal(fileChownApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileChownApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const chownFile = join(scratch, 'chown file é');
+  const chownContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(chownFile, chownContent);
+  const chownBefore = statSync(chownFile, { bigint: true });
+  const chownIds = [String(chownBefore.uid), String(chownBefore.gid)];
+  if (process.platform !== 'win32') {
+    const chownDirectory = join(scratch, 'chown-directory');
+    const chownHard = join(scratch, 'chown-hard');
+    const chownLink = join(scratch, 'chown-link');
+    mkdirSync(chownDirectory);
+    linkSync(chownFile, chownHard);
+    symlinkSync(basename(chownFile), chownLink);
+    const chownLinkBefore = lstatSync(chownLink, { bigint: true });
+    for (const path of [basename(chownFile), chownDirectory + '/', chownHard, chownLink]) {
+      const nativePath = resolve(scratch, path);
+      const before = statSync(nativePath, { bigint: true });
+      const changed = runModule([fileChown, path, String(before.uid), String(before.gid)]);
+      verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stdout + changed.stderr));
+      verify(() => assert.equal(changed.stdout, ''));
+      verify(() => assert.equal(changed.stderr, ''));
+      const after = statSync(nativePath, { bigint: true });
+      for (const key of ['dev', 'ino', 'size', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs']) {
+        verify(() => assert.equal(after[key], before[key], key));
+      }
+    }
+    const chownLinkAfter = lstatSync(chownLink, { bigint: true });
+    for (const key of ['ino', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs']) {
+      verify(() => assert.equal(chownLinkAfter[key], chownLinkBefore[key], key));
+    }
+    verify(() => assert.equal(readlinkSync(chownLink), basename(chownFile)));
+    const chownDangling = join(scratch, 'chown-dangling');
+    const chownLoop = join(scratch, 'chown-loop');
+    symlinkSync('chown-missing', chownDangling);
+    symlinkSync('chown-loop', chownLoop);
+    for (const [path, error] of [[chownDangling, /^ENOENT:/], [chownLoop, /^ELOOP:/],
+      [chownFile + '/', /^ENOTDIR:/], [join(chownFile, 'child'), /^ENOTDIR:/]]) {
+      const failed = runModule([fileChown, path, ...chownIds]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.match(failed.stdout, error));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  verify(() => assert.deepEqual(readFileSync(chownFile), chownContent));
+  const chownStable = statSync(chownFile, { bigint: true });
+  for (const args of [[], [chownFile], [chownFile, chownIds[0]], [chownFile, ...chownIds, 'surplus']]) {
+    const failed = runModule([fileChown, ...args]);
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, `IO: OS request 45 expects 3 arguments, got ${args.length}`));
+    verify(() => assert.equal(failed.stderr, ''));
+  }
+  for (const value of ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']) {
+    for (const ids of [[value, chownIds[1]], [chownIds[0], value]]) {
+      const failed = runModule([fileChown, chownFile, ...ids]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  const chownAfterFailures = statSync(chownFile, { bigint: true });
+  for (const key of ['ino', 'size', 'mode', 'uid', 'gid', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+    verify(() => assert.equal(chownAfterFailures[key], chownStable[key], key));
+  }
+  if (process.platform !== 'win32') {
+    const missingChown = join(scratch, 'missing-chown');
+    const failed = runModule([fileChown, missingChown, ...chownIds]);
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.match(failed.stdout, /^ENOENT:/));
+    verify(() => assert.equal(failed.stderr, ''));
+    verify(() => assert.equal(existsSync(missingChown), false));
+  }
+
   const fileTimes = join(scratch, 'file-times.wasm');
   const fileTimesBuild = run(['build', shared, fixture('file-times'), '-o', fileTimes,
     ...reactorExports.flatMap(name => ['--export', name])]);

@@ -798,6 +798,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['filesystem inodes', 42, [s.out]],
     ['filesystem type', 43, [s.out]],
     ['file times', 44, [s.out, '1000', '2000']],
+    ['file chown', 45, [s.out, '1000', '2000']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -3266,6 +3267,205 @@ test('file times forwards host errors and resumes a subsequent successful update
   syncBuiltinESMExports();
   t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...script, { code: 44, args: ['path', '1000', '2000'], answer: '' }]);
+  assert.equal(change.mock.callCount(), script.length + 1);
+});
+
+test('file chown preserves file identity and contents and composes with owner inspection',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  const before = await stat(s.out, { bigint: true });
+  const ids = [String(before.uid), String(before.gid)];
+  await slotScript([
+    { code: 45, args: [s.out, ...ids], body: Buffer.alloc(65537, 255), answer: '' },
+    { code: 39, args: [s.out], answer: ids.join(':') },
+    { code: 45, args: [s.out, ...ids], answer: '' },
+  ]);
+  const after = await stat(s.out, { bigint: true });
+  for (const key of ['dev', 'ino', 'size', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs']) {
+    assert.equal(after[key], before[key], key);
+  }
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file chown changes the group to a supplementary group and back',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  const before = await stat(s.out);
+  const memberships = process.getgroups().filter(gid => gid < 4294967295);
+  const restore = memberships.includes(before.gid) ? before.gid : process.getgid();
+  const group = memberships.find(gid => gid !== restore);
+  if (group === undefined) { t.skip('requires a distinct supplementary group'); return; }
+  for (const gid of [group, restore]) {
+    await slotScript([
+      { code: 45, args: [s.out, String(before.uid), String(gid)], answer: '' },
+      { code: 39, args: [s.out], answer: `${before.uid}:${gid}` },
+    ]);
+    const after = await stat(s.out);
+    assert.equal(after.uid, before.uid);
+    assert.equal(after.gid, gid);
+    assert.equal(after.ino, before.ino);
+  }
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file chown supports directories and special files and follows links without opening contents',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  const hard = join(s.path, 'hard');
+  const live = join(s.path, 'live');
+  const directory = join(s.path, 'directory');
+  await fsPromises.link(s.out, hard);
+  await symlink('stdout', live);
+  await mkdir(directory);
+  const fifo = privateFifo(join(s.path, 'fifo'));
+  const linkBefore = await lstat(live, { bigint: true });
+  const guards = ['open', 'writeFile', 'truncate', 'lchown'].map(name =>
+    t.mock.method(fsPromises, name, () => assert.fail(`file chown called ${name}`)));
+  const originalRead = fsPromises.readFile;
+  const modulePath = new URL('../runtime/reactor.mjs', import.meta.url);
+  guards.push(t.mock.method(fsPromises, 'readFile', (path, ...args) => {
+    assert.ok(path instanceof URL && path.href === modulePath.href, 'file chown read file contents');
+    return originalRead(path, ...args);
+  }));
+  syncBuiltinESMExports();
+  t.after(() => { guards.forEach(guard => guard.mock.restore()); syncBuiltinESMExports(); });
+  for (const path of [directory + '/', fifo, hard, live]) {
+    const before = await stat(path, { bigint: true });
+    await slotScript([{ code: 45, args: [path, String(before.uid), String(before.gid)], answer: '' }]);
+    const after = await stat(path, { bigint: true });
+    for (const key of ['dev', 'ino', 'size', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs']) {
+      assert.equal(after[key], before[key], key);
+    }
+  }
+  assert.equal((await stat(hard)).ino, (await stat(s.out)).ino);
+  const linkAfter = await lstat(live, { bigint: true });
+  for (const key of ['ino', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs']) {
+    assert.equal(linkAfter[key], linkBefore[key], key);
+  }
+  assert.equal(await readlink(live), 'stdout');
+});
+
+test('file chown preserves relative Unicode paths and native parent symlink resolution',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const path of [actual, unicode]) await writeFile(path, 'kept');
+  const original = fsPromises.chown;
+  const change = t.mock.method(fsPromises, 'chown', (...args) => original(...args));
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  const paths = [relative(process.cwd(), unicode), alias + '//../data'];
+  for (const [index, path] of paths.entries()) {
+    const before = await stat([unicode, actual][index]);
+    await slotScript([{ code: 45, args: [path, String(before.uid), String(before.gid)], answer: '' }]);
+    assert.deepEqual(change.mock.calls[index].arguments, [path, before.uid, before.gid]);
+  }
+  assert.equal(change.mock.callCount(), paths.length);
+  await absent(join(s.path, 'data'));
+});
+
+test('file chown reports native path errors and continues without creating missing entries',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const dangling = join(s.path, 'dangling');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('missing', dangling);
+  await symlink('loop', loop);
+  const before = await stat(s.out);
+  const ids = [String(before.uid), String(before.gid)];
+  // Exercise the host binding's unsigned range without changing any ownership.
+  for (const pair of [['0', '4294967294'], ['4294967294', '0'], ['2147483648', '2147483647']]) {
+    await slotScript([{ code: 45, args: [missing, ...pair], status: 1, answer: /^ENOENT:/ }]);
+  }
+  for (const [path, answer] of [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [dangling, /^ENOENT:/], [join(s.out, 'child'), /^ENOTDIR:/],
+    [s.out + '/', /^ENOTDIR:/], [loop, /^ELOOP:/], ['', /^ENOENT:/]]) {
+    await slotScript([
+      { code: 45, args: [path, ...ids], status: 1, answer },
+      { code: 45, args: [s.out, ...ids], answer: '' },
+    ]);
+  }
+  await absent(missing);
+  assert.equal(await readlink(dangling), 'missing');
+  assert.equal(await readlink(loop), 'loop');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file chown rejects malformed IDs and argument counts before any host update', async t => {
+  const change = t.mock.method(fsPromises, 'chown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path'], ['path', '1000'], ['path', '1000', '2000', 'surplus']]
+    .map(args => ({ code: 45, args, status: 1,
+      answer: `IO: OS request 45 expects 3 arguments, got ${args.length}` })));
+  const invalid = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-1', '-0', '+1', '01', '00', '1.0', '1.5', '-0.5', '1e2', '0x10', '0b10',
+    'NaN', 'Infinity', '-Infinity', '１', '4294967295', '4294967296', '9007199254740991',
+    '9007199254740993', '4294967294.1', '9'.repeat(400)];
+  for (const value of invalid) {
+    for (const args of [['path', value, '2000'], ['path', '1000', value]]) {
+      await slotScript([{ code: 45, args, status: 1, answer: 'IO: invalid OS owner ID argument' }]);
+    }
+  }
+  assert.equal(change.mock.callCount(), 0);
+  await slotScript([{ code: 45, args: ['path', '1000', '2000'], answer: '' }]);
+  assert.equal(change.mock.callCount(), 1);
+});
+
+test('file chown rejects undecodable bytes in each argument before chown', async t => {
+  const change = t.mock.method(fsPromises, 'chown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (let index = 0; index < 3; index += 1) {
+      const args = ['path', '1000', '2000'];
+      args[index] = bytes;
+      await assert.rejects(slotScript([{ code: 45, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(change.mock.callCount(), 0);
+});
+
+test('file chown forwards ordered numeric IDs and range endpoints in one call and ignores the body', async t => {
+  const change = t.mock.method(fsPromises, 'chown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  const pairs = [[0, 1], [1, 0], [1000, 2000], [2147483647, 2147483648],
+    [4294967294, 0], [0, 4294967294]];
+  await slotScript(pairs.map(([uid, gid]) => ({ code: 45,
+    args: [path, String(uid), String(gid)], body: Buffer.alloc(65537, 255), answer: '' })));
+  assert.equal(change.mock.callCount(), pairs.length);
+  for (const [index, call] of change.mock.calls.entries()) {
+    assert.deepEqual(call.arguments, [path, ...pairs[index]]);
+  }
+});
+
+test('file chown forwards host errors and resumes a subsequent successful update', async t => {
+  const failures = ['EACCES', 'EPERM', 'EROFS', 'EIO', 'ENOSYS', 'EINVAL', 'EOVERFLOW']
+    .map(code => Object.assign(new Error('injected chown failure'), { code }));
+  failures.push(new Error('generic failure'));
+  const script = failures.map(error => ({ code: 45, args: ['path', '1000', '2000'],
+    status: 1, answer: `${error.code ?? 'IO'}: ${error.message}` }));
+  const change = t.mock.method(fsPromises, 'chown', async () => {
+    const error = failures.shift();
+    if (error) throw error;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...script, { code: 45, args: ['path', '1000', '2000'], answer: '' }]);
   assert.equal(change.mock.callCount(), script.length + 1);
 });
 
