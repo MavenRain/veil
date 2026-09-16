@@ -1635,6 +1635,112 @@ try {
     verify(() => assert.equal(existsSync(missingChown), false));
   }
 
+  const fileLchown = join(scratch, 'file-lchown.wasm');
+  const fileLchownBuild = run(['build', shared, fixture('file-lchown'), '-o', fileLchown,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileLchownBuild.status, 0, fileLchownBuild.stderr));
+  const fileLchownBytes = readFileSync(fileLchown);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileLchownBytes)).length, 0));
+  const { instance: fileLchownInstance } = await WebAssembly.instantiate(fileLchownBytes);
+  const fileLchownApi = fileLchownInstance.exports;
+  const lchownBytes = value => {
+    let bytes = fileLchownApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileLchownApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const fileLchownArguments = ['../héllo//alias/../file', '2147483648', '4294967294'];
+  let fileLchownWords = fileLchownApi.emptyWords();
+  for (const text of [...fileLchownArguments].reverse()) {
+    fileLchownWords = fileLchownApi.consWords(lchownBytes(text), fileLchownWords);
+  }
+  const fileLchownPending = fileLchownApi.init(fileLchownWords);
+  verify(() => assert.equal(fileLchownApi.requestCode(fileLchownPending), 46));
+  let fileLchownForwarded = fileLchownApi.requestArgs(fileLchownPending);
+  for (const text of fileLchownArguments) {
+    verify(() => assert.equal(fileLchownApi.wordsEmpty(fileLchownForwarded), 0));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLchownApi,
+      fileLchownApi.wordsHead(fileLchownForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileLchownForwarded = fileLchownApi.wordsTail(fileLchownForwarded);
+  }
+  verify(() => assert.equal(fileLchownApi.wordsEmpty(fileLchownForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLchownApi,
+    fileLchownApi.requestBody(fileLchownPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileLchownApi.exitCode(fileLchownPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EPERM: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileLchownApi.resume(fileLchownPending, status, lchownBytes(answer));
+    verify(() => assert.equal(fileLchownApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileLchownApi.wordsEmpty(fileLchownApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLchownApi,
+      fileLchownApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileLchownApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileLchownApi.resume(reporting, outputStatus, fileLchownApi.emptyBytes());
+      verify(() => assert.equal(fileLchownApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileLchownApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileLchownApi.wordsEmpty(fileLchownApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileLchownApi.bytesEmpty(fileLchownApi.requestBody(finished)), 1));
+      const stillFinished = fileLchownApi.resume(finished, 1, lchownBytes('ignored'));
+      verify(() => assert.equal(fileLchownApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileLchownApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const lchownFile = join(scratch, 'lchown file é');
+  const lchownContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(lchownFile, lchownContent);
+  const lchownBefore = statSync(lchownFile, { bigint: true });
+  const lchownIds = [String(lchownBefore.uid), String(lchownBefore.gid)];
+  if (process.platform !== 'win32') {
+    for (const [name, target] of [['lchown live é', basename(lchownFile)],
+      ['lchown-dangling', 'lchown-missing'], ['lchown-loop', 'lchown-loop']]) {
+      const path = join(scratch, name);
+      symlinkSync(target, path);
+      const before = lstatSync(path, { bigint: true });
+      const changed = runModule([fileLchown, name, String(before.uid), String(process.getgid())]);
+      verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stdout + changed.stderr));
+      verify(() => assert.equal(changed.stdout, ''));
+      verify(() => assert.equal(changed.stderr, ''));
+      const after = lstatSync(path, { bigint: true });
+      verify(() => assert.equal(after.gid, BigInt(process.getgid())));
+      for (const key of ['dev', 'ino', 'size', 'uid', 'nlink', 'mtimeNs']) {
+        verify(() => assert.equal(after[key], before[key], key));
+      }
+      verify(() => assert.equal(readlinkSync(path), target));
+    }
+    const targetAfter = statSync(lchownFile, { bigint: true });
+    for (const key of ['dev', 'ino', 'size', 'uid', 'gid', 'mode', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+      verify(() => assert.equal(targetAfter[key], lchownBefore[key], key));
+    }
+    for (const [path, error] of [[join(scratch, 'lchown-missing'), /^ENOENT:/],
+      [lchownFile + '/', /^ENOTDIR:/], [join(lchownFile, 'child'), /^ENOTDIR:/],
+      [join(scratch, 'lchown-loop', 'child'), /^ELOOP:/]]) {
+      const failed = runModule([fileLchown, path, ...lchownIds]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.match(failed.stdout, error));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+    verify(() => assert.equal(existsSync(join(scratch, 'lchown-missing')), false));
+  }
+  for (const args of [[], [lchownFile], [lchownFile, lchownIds[0]], [lchownFile, ...lchownIds, 'surplus']]) {
+    const failed = runModule([fileLchown, ...args]);
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, `IO: OS request 46 expects 3 arguments, got ${args.length}`));
+    verify(() => assert.equal(failed.stderr, ''));
+  }
+  for (const value of ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']) {
+    for (const ids of [[value, lchownIds[1]], [lchownIds[0], value]]) {
+      const failed = runModule([fileLchown, lchownFile, ...ids]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  const lchownAfterFailures = statSync(lchownFile, { bigint: true });
+  for (const key of ['ino', 'size', 'mode', 'uid', 'gid', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+    verify(() => assert.equal(lchownAfterFailures[key], lchownBefore[key], key));
+  }
+  verify(() => assert.deepEqual(readFileSync(lchownFile), lchownContent));
+
   const fileTimes = join(scratch, 'file-times.wasm');
   const fileTimesBuild = run(['build', shared, fixture('file-times'), '-o', fileTimes,
     ...reactorExports.flatMap(name => ['--export', name])]);

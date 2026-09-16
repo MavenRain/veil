@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-lchown",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 3520 checks passed\n",
+  "stderr": "",
+  "stdout_sha256": "85f803783c872e4d74f48c3e275cdd013eefaa3a440a2d123a4edaa6b0e5fdf4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

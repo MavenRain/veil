@@ -1,0 +1,33 @@
+-- Update an entry's ownership without following its final symlink.
+
+mu FileLchownState : Type 0 with
+| requested : Words -> FileLchownState
+| reporting : Nat -> Bytes -> FileLchownState
+| finished : Nat -> FileLchownState
+
+def init (argv : Words) : FileLchownState := requested argv
+def resume (state : FileLchownState) (status : Nat) (answer : Bytes) : FileLchownState :=
+  case state as current in FileLchownState return FileLchownState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileLchownState) : Nat :=
+  case state as current in FileLchownState return Nat with
+  | requested args => 46
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileLchownState) : Words :=
+  case state as current in FileLchownState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileLchownState) : Bytes :=
+  case state as current in FileLchownState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileLchownState) : Nat :=
+  case state as current in FileLchownState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

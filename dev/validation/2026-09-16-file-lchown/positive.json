@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file lchown ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-lchown-control-gqt4emx8",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "stdout": "TAP version 13\n# Subtest: file lchown updates live, dangling and cyclic links without touching their targets\nok 1 - file lchown updates live, dangling and cyclic links without touching their targets\n  ---\n  duration_ms: 194.035209\n  type: 'test'\n  ...\n# Subtest: file lchown changes a symlink group and restores a membership group\nok 2 - file lchown changes a symlink group and restores a membership group\n  ---\n  duration_ms: 11.279708\n  type: 'test'\n  ...\n# Subtest: file lchown preserves literal relative paths and native parent symlink resolution\nok 3 - file lchown preserves literal relative paths and native parent symlink resolution\n  ---\n  duration_ms: 25.522125\n  type: 'test'\n  ...\n# Subtest: file lchown supports regular files, hard links and directories without opening contents\nok 4 - file lchown supports regular files, hard links and directories without opening contents\n  ---\n  duration_ms: 21.6515\n  type: 'test'\n  ...\n# Subtest: file lchown returns native path failures and continues without creating entries\nok 5 - file lchown returns native path failures and continues without creating entries\n  ---\n  duration_ms: 28.417375\n  type: 'test'\n  ...\n# Subtest: file lchown validates both IDs and exact arity before any host update\nok 6 - file lchown validates both IDs and exact arity before any host update\n  ---\n  duration_ms: 133.351125\n  type: 'test'\n  ...\n# Subtest: file lchown rejects NUL and non-UTF-8 bytes before the host call\nok 7 - file lchown rejects NUL and non-UTF-8 bytes before the host call\n  ---\n  duration_ms: 3.472917\n  type: 'test'\n  ...\n# Subtest: file lchown forwards ordered unsigned IDs once and ignores the body\nok 8 - file lchown forwards ordered unsigned IDs once and ignores the body\n  ---\n  duration_ms: 65.822709\n  type: 'test'\n  ...\n# Subtest: file lchown forwards host errors and resumes the next request\nok 9 - file lchown forwards host errors and resumes the next request\n  ---\n  duration_ms: 18.155375\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 795.860875\n",
+  "stderr": "",
+  "stdout_sha256": "fed183bfcbe3271fd83e9d5d985413af5f77c60cf9927e1807c603bc6b6cc7e8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

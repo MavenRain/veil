@@ -799,6 +799,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['filesystem type', 43, [s.out]],
     ['file times', 44, [s.out, '1000', '2000']],
     ['file chown', 45, [s.out, '1000', '2000']],
+    ['file lchown', 46, [s.out, '1000', '2000']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -3466,6 +3467,219 @@ test('file chown forwards host errors and resumes a subsequent successful update
   syncBuiltinESMExports();
   t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...script, { code: 45, args: ['path', '1000', '2000'], answer: '' }]);
+  assert.equal(change.mock.callCount(), script.length + 1);
+});
+
+test('file lchown updates live, dangling and cyclic links without touching their targets',
+  { skip: process.platform === 'win32', timeout: 10000 }, async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content);
+  const targetBefore = await stat(s.out, { bigint: true });
+  const follow = t.mock.method(fsPromises, 'chown', () => assert.fail('followed a final symlink'));
+  syncBuiltinESMExports();
+  t.after(() => { follow.mock.restore(); syncBuiltinESMExports(); });
+  for (const [name, target] of [['live', 'stdout'], ['dangling', 'missing'], ['loop', 'loop']]) {
+    const path = join(s.path, name);
+    await slotScript([{ code: 25, args: [target, path], answer: '' }]);
+    const before = await lstat(path, { bigint: true });
+    await slotScript([
+      { code: 46, args: [path, String(before.uid), String(process.getgid())],
+        body: Buffer.alloc(65537, 255), answer: '' },
+      { code: 23, args: [path], answer: 'symlink' },
+      { code: 24, args: [path], answer: target },
+    ]);
+    const after = await lstat(path, { bigint: true });
+    assert.equal(after.uid, before.uid);
+    assert.equal(after.gid, BigInt(process.getgid()));
+    for (const key of ['dev', 'ino', 'size', 'nlink', 'mtimeNs']) {
+      assert.equal(after[key], before[key], key);
+    }
+    await slotScript([{ code: 19, args: [path], answer: '' }]);
+    await assert.rejects(lstat(path), { code: 'ENOENT' });
+  }
+  const targetAfter = await stat(s.out, { bigint: true });
+  for (const key of ['dev', 'ino', 'size', 'mode', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+    assert.equal(targetAfter[key], targetBefore[key], key);
+  }
+  assert.deepEqual(await readFile(s.out), content);
+  await absent(join(s.path, 'missing'));
+  assert.equal(follow.mock.callCount(), 0);
+});
+
+test('file lchown changes a symlink group and restores a membership group',
+  { skip: process.platform === 'win32', timeout: 10000 }, async t => {
+  const s = await sandbox(t);
+  const path = join(s.path, 'link');
+  await writeFile(s.out, 'kept');
+  await symlink('stdout', path);
+  const before = await lstat(path);
+  const targetBefore = await stat(s.out, { bigint: true });
+  const memberships = [...new Set([process.getgid(), ...process.getgroups()])]
+    .filter(gid => gid < 4294967295);
+  const restore = memberships.includes(before.gid) ? before.gid : process.getgid();
+  const group = memberships.find(gid => gid !== before.gid && gid !== restore);
+  if (group === undefined) { t.skip('requires a distinct supplementary group'); return; }
+  try {
+    await slotScript([{ code: 46, args: [path, String(before.uid), String(group)], answer: '' }]);
+    const after = await lstat(path);
+    assert.equal(after.uid, before.uid);
+    assert.equal(after.gid, group);
+    assert.equal(after.ino, before.ino);
+    const targetAfter = await stat(s.out, { bigint: true });
+    for (const key of ['uid', 'gid', 'mode', 'ctimeNs', 'mtimeNs']) {
+      assert.equal(targetAfter[key], targetBefore[key], key);
+    }
+  } finally {
+    await slotScript([{ code: 46, args: [path, String(before.uid), String(restore)], answer: '' }]);
+  }
+  assert.equal((await lstat(path)).gid, restore);
+  assert.equal(await readlink(path), 'stdout');
+});
+
+test('file lchown preserves literal relative paths and native parent symlink resolution',
+  { skip: process.platform === 'win32', timeout: 10000 }, async t => {
+  const s = await sandbox(t);
+  const real = join(s.path, 'real');
+  const alias = join(s.path, 'alias');
+  await mkdir(join(real, 'nested'), { recursive: true });
+  await symlink(join(real, 'nested'), alias);
+  const actual = join(real, 'data');
+  const unicode = join(s.path, 'héllo space');
+  for (const path of [actual, unicode]) await symlink('missing', path);
+  const original = fsPromises.lchown;
+  const change = t.mock.method(fsPromises, 'lchown', (...args) => original(...args));
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  for (const [index, path] of [relative(process.cwd(), unicode), alias + '//../data'].entries()) {
+    const before = await lstat([unicode, actual][index]);
+    await slotScript([{ code: 46, args: [path, String(before.uid), String(process.getgid())], answer: '' }]);
+    assert.deepEqual(change.mock.calls[index].arguments, [path, before.uid, process.getgid()]);
+    assert.equal((await lstat([unicode, actual][index])).gid, process.getgid());
+  }
+  assert.equal(change.mock.callCount(), 2);
+  await assert.rejects(lstat(join(s.path, 'data')), { code: 'ENOENT' });
+});
+
+test('file lchown supports regular files, hard links and directories without opening contents',
+  { skip: process.platform === 'win32', timeout: 10000 }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  const hard = join(s.path, 'hard');
+  const directory = join(s.path, 'directory');
+  await fsPromises.link(s.out, hard);
+  await mkdir(directory);
+  const guards = ['open', 'writeFile', 'truncate', 'chown', 'realpath'].map(name =>
+    t.mock.method(fsPromises, name, () => assert.fail(`file lchown called ${name}`)));
+  const originalRead = fsPromises.readFile;
+  const modulePath = new URL('../runtime/reactor.mjs', import.meta.url);
+  guards.push(t.mock.method(fsPromises, 'readFile', (path, ...args) => {
+    assert.ok(path instanceof URL && path.href === modulePath.href, 'file lchown read contents');
+    return originalRead(path, ...args);
+  }));
+  syncBuiltinESMExports();
+  t.after(() => { guards.forEach(guard => guard.mock.restore()); syncBuiltinESMExports(); });
+  for (const path of [s.out, hard, directory + '/']) {
+    const before = await lstat(path, { bigint: true });
+    await slotScript([{ code: 46, args: [path, String(before.uid), String(process.getgid())], answer: '' }]);
+    const after = await lstat(path, { bigint: true });
+    assert.equal(after.gid, BigInt(process.getgid()));
+    for (const key of ['dev', 'ino', 'size', 'uid', 'nlink', 'atimeNs', 'mtimeNs']) {
+      assert.equal(after[key], before[key], key);
+    }
+  }
+  assert.equal((await lstat(hard)).ino, (await lstat(s.out)).ino);
+  assert.equal(await originalRead(s.out, 'utf8'), 'kept');
+});
+
+test('file lchown returns native path failures and continues without creating entries',
+  { skip: process.platform === 'win32', timeout: 10000 }, async t => {
+  const s = await sandbox(t);
+  const missing = join(s.path, 'missing');
+  const loop = join(s.path, 'loop');
+  await writeFile(s.out, 'kept');
+  await symlink('loop', loop);
+  const ids = [String(process.getuid()), String(process.getgid())];
+  for (const pair of [['0', '4294967294'], ['4294967294', '0'], ['2147483648', '2147483647']]) {
+    await slotScript([{ code: 46, args: [missing, ...pair], status: 1, answer: /^ENOENT:/ }]);
+  }
+  for (const [path, answer] of [[missing, /^ENOENT:/], [join(missing, 'child'), /^ENOENT:/],
+    [join(s.out, 'child'), /^ENOTDIR:/], [s.out + '/', /^ENOTDIR:/],
+    [join(loop, 'child'), /^ELOOP:/], ['', /^ENOENT:/]]) {
+    await slotScript([
+      { code: 46, args: [path, ...ids], status: 1, answer },
+      { code: 46, args: [loop, ...ids], answer: '' },
+    ]);
+  }
+  await absent(missing);
+  assert.equal(await readlink(loop), 'loop');
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file lchown validates both IDs and exact arity before any host update', async t => {
+  const change = t.mock.method(fsPromises, 'lchown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path'], ['path', '1000'], ['path', '1000', '2000', 'surplus']]
+    .map(args => ({ code: 46, args, status: 1,
+      answer: `IO: OS request 46 expects 3 arguments, got ${args.length}` })));
+  const invalid = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-1', '-0', '+1', '01', '00', '1.0', '1.5', '-0.5', '1e2', '0x10', '0b10',
+    'NaN', 'Infinity', '-Infinity', '１', '4294967295', '4294967296', '9007199254740991',
+    '9007199254740993', '4294967294.1', '9'.repeat(400)];
+  for (const value of invalid) {
+    for (const args of [['path', value, '2000'], ['path', '1000', value]]) {
+      await slotScript([{ code: 46, args, status: 1, answer: 'IO: invalid OS owner ID argument' }]);
+    }
+  }
+  assert.equal(change.mock.callCount(), 0);
+  await slotScript([{ code: 46, args: ['path', '1000', '2000'], answer: '' }]);
+  assert.equal(change.mock.callCount(), 1);
+});
+
+test('file lchown rejects NUL and non-UTF-8 bytes before the host call', async t => {
+  const change = t.mock.method(fsPromises, 'lchown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (let index = 0; index < 3; index += 1) {
+      const args = ['path', '1000', '2000'];
+      args[index] = bytes;
+      await assert.rejects(slotScript([{ code: 46, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(change.mock.callCount(), 0);
+});
+
+test('file lchown forwards ordered unsigned IDs once and ignores the body', async t => {
+  const change = t.mock.method(fsPromises, 'lchown', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  const pairs = [[0, 1], [1, 0], [1000, 2000], [2147483647, 2147483648],
+    [4294967294, 0], [0, 4294967294]];
+  await slotScript(pairs.map(([uid, gid]) => ({ code: 46,
+    args: [path, String(uid), String(gid)], body: Buffer.alloc(65537, 255), answer: '' })));
+  assert.equal(change.mock.callCount(), pairs.length);
+  for (const [index, call] of change.mock.calls.entries()) {
+    assert.deepEqual(call.arguments, [path, ...pairs[index]]);
+  }
+});
+
+test('file lchown forwards host errors and resumes the next request', async t => {
+  const failures = ['EACCES', 'EPERM', 'EROFS', 'EIO', 'ENOSYS', 'EINVAL', 'EOVERFLOW']
+    .map(code => Object.assign(new Error('injected lchown failure'), { code }));
+  failures.push(new Error('generic failure'));
+  const script = failures.map(error => ({ code: 46, args: ['path', '1000', '2000'],
+    status: 1, answer: `${error.code ?? 'IO'}: ${error.message}` }));
+  const change = t.mock.method(fsPromises, 'lchown', async () => {
+    const error = failures.shift();
+    if (error) throw error;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...script, { code: 46, args: ['path', '1000', '2000'], answer: '' }]);
   assert.equal(change.mock.callCount(), script.length + 1);
 });
 

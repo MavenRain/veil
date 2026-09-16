@@ -108,6 +108,9 @@ cover pre-epoch times, input bounds, links, path resolution and host errors.
 Operation 45 updates numeric owner and group IDs on existing entries. The
 [ownership update regressions](dev/FILE-CHOWN.md) cover ID validation,
 native group changes, links, literal paths and host errors.
+Operation 46 updates ownership on the entry itself, including dangling and
+cyclic symlinks. The [link ownership regressions](dev/FILE-LCHOWN.md) cover
+target preservation, group changes, literal paths and request failures.
 
 Function parameters can share a type and quantity:
 

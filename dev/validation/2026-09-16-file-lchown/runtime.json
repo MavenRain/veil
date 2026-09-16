@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "kanoncho",
+    "test",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-lchown",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "OK test: 289 passed\n",
+  "stderr": "",
+  "stdout_sha256": "836b607cea15bef3680558008f9005b7f0b8daeb5059949dd6eab3005148c0a3",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

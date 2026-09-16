@@ -1106,3 +1106,38 @@ exercised. Host authorization and filesystem support still determine
 whether accepted IDs can be stored. See the
 [validation record](validation/2026-09-15-file-chown/README.md) for captures,
 source hashes, scope and the reproducible controls.
+
+## Link ownership updates, 2026-09-16
+
+Base: `5c9becf1e0eb91ec463aeac3ef73d5c1f200fb10`.
+
+Operation 46 updates an entry's owner and group IDs with one `lchown`
+call, after checking exact arity and both canonical unsigned IDs. Final
+symlinks receive the update themselves, including dangling and cyclic
+links. Paths retain native parent-component and trailing-slash behavior.
+The operation returns an empty answer on success and resumes with status
+1 on validation or host errors. It reuses operation 45's ID parser.
+
+Nine runtime tests cover target preservation, a real group change and
+restoration, ordinary entries, literal paths, path failures, validation
+before effects, byte decoding, ignored bodies and host-error recovery.
+The shared arity matrix adds row 46. The compiled fixture exercises the
+ABI and CLI, including binary responses and stable terminal states.
+
+Validation reused the compiler verified against the file-chown record:
+
+- Full runtime suite: 289 passed, ten more than the base.
+- Full compiled reactor suite: 3520 checks passed, 190 more than the base.
+  HOST-NAT passed 16/16.
+- Positive control: nine passed, no failures or skips. All seven defect
+  controls failed assertions.
+- Syntax, HOUSE, TRUSTED-LINES and whitespace checks passed. Kernel lines
+  remain 5246/5250; encoder lines remain 246/600.
+
+The first reactor attempt expired without a verdict at 30 seconds. The
+isolated retry passed under the same watchdog. Both captures are retained.
+Compiler sources and gate scripts retain their base hashes. The compiler
+and full milestone ladder were not rebuilt or rerun. Validation used
+macOS and Node v23.10.0. Windows and privileged owner changes were not
+exercised. The [validation record](validation/2026-09-16-file-lchown/README.md)
+contains the source hashes, captures, scope and reproducible controls.

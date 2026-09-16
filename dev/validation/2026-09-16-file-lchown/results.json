@@ -1,0 +1,98 @@
+{
+  "base": "5c9becf1e0eb91ec463aeac3ef73d5c1f200fb10",
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-lchown",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "validation_scope": {
+    "compiler_rebuilt": false,
+    "full_milestone_ladder_rerun": false,
+    "compiler_sources_and_gates_unchanged": true,
+    "source_scope_capture": "source-scope.json",
+    "native_platform": "macOS",
+    "windows_exercised": false,
+    "privileged_owner_changes_exercised": false,
+    "native_supplementary_group_change": true,
+    "unsigned_id_endpoints": "mocked forwarding and native ENOENT on a missing path"
+  },
+  "checks": {
+    "runtime": {
+      "passed": 289,
+      "delta": 10,
+      "capture": "runtime.json"
+    },
+    "reactor": {
+      "passed": 3520,
+      "delta": 190,
+      "watchdog_ms": 30000,
+      "capture": "reactor.json"
+    },
+    "host_nat": {
+      "passed": 16,
+      "capture": "host-nat.json"
+    },
+    "positive_control": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "defect_controls": {
+      "killed": 7,
+      "survived": 0
+    },
+    "syntax": "passed",
+    "house": "passed",
+    "trusted_lines": "5246/5250 and 246/600",
+    "diff_check": "passed"
+  },
+  "development_attempts": [
+    {
+      "capture": "reactor-initial-timeout.json",
+      "exit_code": 124,
+      "reason": "Initial 30-second watchdog expired without a verdict. Isolated retry passed with the same watchdog and gate definition."
+    }
+  ],
+  "source_sha256": {
+    "REACTOR.md": "f0162b5df0697775763b632f2b3e4cac466f7fb93eb360fdc8231822f2a8918f",
+    "README.md": "6d235021877c5ecd9e2f9f2436483c54bc8c7e3b5be1ea901a071bac25d36fe7",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "dev/FILE-LCHOWN.md": "f740d99ee5f1bb26a17550f780fb731b3fea77e11bf48af9fb07b83f169bc53f",
+    "dev/REACTOR-BUILD-LOG.md": "2bdbdb3ac99b168404da86451a20ed79d8d171123c4fd4c2e374a83b35559b1f",
+    "dev/REQUEST-ARITY.md": "7801a580738688dc021f769de3b07727e44ecb3456333a08579430897b83f07f",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/reactor-test.mjs": "496ff3eca2e2cd5c674f29e3ba21d865c25da68dc89c8b628e5d26de8d615e0a",
+    "dev/runtime-test.mjs": "88f4883df97a3a164455a03ec531ab5a25e7c32e0e2fe7f9589a0e478b494121",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-16-file-lchown/README.md": "e3eac4c17ace5cf5ec970d106aa3e9670d7f07d4dca62565f26cf426a939b93d",
+    "dev/validation/2026-09-16-file-lchown/reproduce-controls.py": "1f54e75af191ad08c8d8a15e8c1dfa6a6607b1e5efca378c9497545952430243",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/reactor.mjs": "b5f2c40f8989e668afb185139ee6d1b429d81161006641bf2aac7caa46a56632",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "test/fixtures/reactor/file-lchown.kan": "0571767220d5db3f5f89c7a59a2d77dd5feb1d96222ba9a7bbd62cf6c5de6417"
+  },
+  "capture_sha256": {
+    "dev/validation/2026-09-16-file-lchown/allow-sentinel.json": "68acfff5d97c564aa2c8d57f65ce6f6880b5c90e7aaa92ed59ccbea747cf08b6",
+    "dev/validation/2026-09-16-file-lchown/control-run.json": "1982fdfaf02f5a4853245041c5d89775c4dba5bc14cb90b8a16865637c9603ac",
+    "dev/validation/2026-09-16-file-lchown/controls.json": "977edfb90108f60834590b2e46c82c9ede6be0f78e216901eb9e08b01f356478",
+    "dev/validation/2026-09-16-file-lchown/diff-check.json": "de58224d643cc4c6ef05b404f7c1f2b25114814cb0d6c9138c9f1c2e23093450",
+    "dev/validation/2026-09-16-file-lchown/follow-target.json": "fbb717bd872e2f2afae82f086f780ee8dc26cb79d65f06ee356644119c99ac86",
+    "dev/validation/2026-09-16-file-lchown/host-nat.json": "3c78fcea46c866602891071917141cdf87a099cca5b3e25124aa57e20ac37bd6",
+    "dev/validation/2026-09-16-file-lchown/house.json": "6a184f257b9315c59a781507c59b74173f8f6ea397350b5770e2c46105ceab16",
+    "dev/validation/2026-09-16-file-lchown/missing-arity.json": "7cee7dee706bb1cd2b0362bb8407a5f46623471dbdc796eed2e1519a084f469f",
+    "dev/validation/2026-09-16-file-lchown/missing-operation.json": "f847573e7577cd4cfd4f4d8fbd4658fb09ca0f5233a342edd39450cede7a6b3f",
+    "dev/validation/2026-09-16-file-lchown/normalize-path.json": "58be3996d319a676b83674a7748344701137b18621a889082043a7ceb4572794",
+    "dev/validation/2026-09-16-file-lchown/positive.json": "d114b216683d52e4c6384b95cb9ca711b7fc172d572e93519e019b44ce2f565e",
+    "dev/validation/2026-09-16-file-lchown/reactor-initial-timeout.json": "14cfa2a2b5df37629e69ecc552bf6341ceb35359b240f8e1aa8d22f030400ea7",
+    "dev/validation/2026-09-16-file-lchown/reactor.json": "2bc7cbee8613fe766a06409c7a2e41b2418018caf6a082283bdd62927bd33ef1",
+    "dev/validation/2026-09-16-file-lchown/runtime.json": "91cbdf3b3ed29622b99e25eef72e85a3533112b6d06c6fd4d52a7fe23ce42deb",
+    "dev/validation/2026-09-16-file-lchown/source-scope.json": "1bde353114f58642f1d9aacbb7a87fbb097599b3323bae8b7b32a454f76d9f82",
+    "dev/validation/2026-09-16-file-lchown/swap-ids.json": "aaa05eec2fc916bcded5ce5e86e8509e05fc525ec12ac5851dc1a09dda788ea0",
+    "dev/validation/2026-09-16-file-lchown/syntax-reactor-tests.json": "b4ca5d4c33f761c010e7692a6c27a989e19fa92546d14b11f8116d3b9a8fe632",
+    "dev/validation/2026-09-16-file-lchown/syntax-runtime-tests.json": "5ee58571ab5afd20b3e43af393d781e662b7ebe6cb8ea986c80baa57be567aff",
+    "dev/validation/2026-09-16-file-lchown/syntax-runtime.json": "7cac63618ebb6eb97f8ee40a39bbec089c59749565b964251bf162308e3bc049",
+    "dev/validation/2026-09-16-file-lchown/trusted-lines.json": "97a5acbf61f3ce2688ca64e05afdcb3cc61460609bfcc914016b35a298355ae1",
+    "dev/validation/2026-09-16-file-lchown/update-before-validation.json": "d24f9cb2decea5caccf04c2795e5bd7ae1314460acf936383852072fe554a2a6",
+    "dev/validation/2026-09-16-file-lchown/gates-review.log": "d89a70aeda8a29f19d43af2831b504f7bf192e88e02688ce80ce2d8f7bd76355"
+  }
+}

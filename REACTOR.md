@@ -178,8 +178,9 @@ the left list's length.
 | 43 | path | Read the host's filesystem type identifier as an exact decimal integer |
 | 44 | path, atime, mtime | Set access and modification times from decimal milliseconds; return an empty answer |
 | 45 | path, uid, gid | Set numeric owner and group IDs on an existing entry; return an empty answer |
+| 46 | path, uid, gid | Set ownership without following the final symlink; return an empty answer |
 
-Operations 1 to 45 check argument counts before performing the operation.
+Operations 1 to 46 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -216,7 +217,8 @@ cover operation 41, the
 [filesystem inode regressions](dev/FILESYSTEM-INODES.md) cover operation 42,
 the [filesystem type regressions](dev/FILESYSTEM-TYPE.md) cover operation 43,
 the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44,
-and the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45.
+the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45,
+and the [link ownership regressions](dev/FILE-LCHOWN.md) cover operation 46.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -735,6 +737,24 @@ filesystem behavior determine whether an accepted pair can be stored.
 Host errors resume with status 1 and `CODE: message`; undecodable arguments
 end the run with exit 2 before host dispatch. See the
 [ownership update contract and tests](dev/FILE-CHOWN.md).
+
+Operation 46 takes the same three arguments and ID format as operation 45,
+validates both IDs, and calls `lchown(path, uid, gid)` once. Success returns
+status 0 with an empty answer. When the final path component is a symlink,
+the update applies to the link itself, so dangling and cyclic links work
+without accessing their targets. Ordinary files and directories also work
+when permitted by the host. Literal paths keep native resolution of parent
+components and trailing slashes. This is not a sandbox for path traversal;
+a trailing slash can require traversal of a link to a directory.
+
+The body is unused under shared decoding limits. Missing entries are not
+created. Host failures, including unsupported operations and permission
+errors, resume with status 1 and `CODE: message`. ID errors use the same
+`IO:` response as operation 45, and undecodable arguments end the run
+before dispatch. Host rules govern ctime and special permission bits on
+the updated entry. Operation 39 follows final symlinks, so its answer
+describes a link's target rather than the link's own IDs. See the
+[link ownership contract and tests](dev/FILE-LCHOWN.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

@@ -1,0 +1,88 @@
+{
+  "source_sha256": {
+    "runtime/reactor.mjs": "b5f2c40f8989e668afb185139ee6d1b429d81161006641bf2aac7caa46a56632",
+    "dev/runtime-test.mjs": "88f4883df97a3a164455a03ec531ab5a25e7c32e0e2fe7f9589a0e478b494121"
+  },
+  "controls": [
+    {
+      "name": "positive",
+      "old": null,
+      "new": null,
+      "exit_code": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "runtime_sha256": "b5f2c40f8989e668afb185139ee6d1b429d81161006641bf2aac7caa46a56632"
+    },
+    {
+      "name": "missing-operation",
+      "old": "    case 46: {\n      const uid = ownerId(args[1]);\n      const gid = ownerId(args[2]);\n      await lchown(args[0], uid, gid);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "runtime_sha256": "27055d03dca8d06db1822125b918b04b2c0107e5c8ad3f8d5d4ffbf54a11888f"
+    },
+    {
+      "name": "missing-arity",
+      "old": ", 3, 3, 3];",
+      "new": ", 3, 3];",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "dfbdc31a1f8eedba2a16750bdd0c5ba7149ab1e00b60197d6ee1e1e7dd621357"
+    },
+    {
+      "name": "follow-target",
+      "old": "await lchown(args[0], uid, gid);",
+      "new": "await chown(args[0], uid, gid);",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "runtime_sha256": "f4d6de1dad43d100eb07719a7ed04cc84b2673a8b1be89959b7451eaac5c7062"
+    },
+    {
+      "name": "swap-ids",
+      "old": "await lchown(args[0], uid, gid);",
+      "new": "await lchown(args[0], gid, uid);",
+      "exit_code": 1,
+      "passed": 3,
+      "failed": 6,
+      "skipped": 0,
+      "runtime_sha256": "e1d77be164fdf53ff05dce9202366182635be53ee0664a78cca173c28f1e34bf"
+    },
+    {
+      "name": "normalize-path",
+      "old": "await lchown(args[0], uid, gid);",
+      "new": "await lchown(resolve(args[0]), uid, gid);",
+      "exit_code": 1,
+      "passed": 6,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "ae71daa0b0a4985a4f74ddf3100faf551d70a2e9d9ccfc19d915199f024811f6"
+    },
+    {
+      "name": "update-before-validation",
+      "old": "    case 46: {\n      const uid = ownerId(args[1]);\n      const gid = ownerId(args[2]);\n      await lchown(args[0], uid, gid);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 46: {\n      const uid = ownerId(args[1]);\n      await lchown(args[0], uid, 0); const gid = ownerId(args[2]);\n      await lchown(args[0], uid, gid);\n      return Buffer.alloc(0);\n    }\n",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 8,
+      "skipped": 0,
+      "runtime_sha256": "47431c14a28a84d48137fa5ea737821a8800077d4a32ed47e3c817bce1b0dcfc"
+    },
+    {
+      "name": "allow-sentinel",
+      "old": "id > 4294967294",
+      "new": "id > 4294967295",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "5fb9711cc066170a252d6c2758f2e12b9379e42598aadb777a2e22b085ac724e"
+    }
+  ]
+}
