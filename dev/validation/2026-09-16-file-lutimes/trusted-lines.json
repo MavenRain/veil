@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "zsh",
+    "dev/trusted-lines.sh"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-lutimes",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "timed_out": false,
+  "signal": 0,
+  "stdout": "TRUSTED-LINES kernel=5246/5250 encoder=246/600 OK\n",
+  "stderr": "",
+  "stdout_sha256": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

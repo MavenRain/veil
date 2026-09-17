@@ -1,0 +1,98 @@
+{
+  "source_sha256": {
+    "runtime/reactor.mjs": "9e039e7de2cccde048a3e0c62a26e16bde5cebb57dae319709a3c9e15c7e2664",
+    "dev/runtime-test.mjs": "954db94e0c367d35d2b4e16b9b3298f2d450b4c982687071baac7327db1a9428"
+  },
+  "controls": [
+    {
+      "name": "positive",
+      "old": null,
+      "new": null,
+      "exit_code": 0,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "runtime_sha256": "9e039e7de2cccde048a3e0c62a26e16bde5cebb57dae319709a3c9e15c7e2664"
+    },
+    {
+      "name": "missing-operation",
+      "old": "    case 47: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await lutimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 7,
+      "skipped": 0,
+      "runtime_sha256": "e9107e3e3ae368c57d446c691cb179a993cb57548a4bd313e15f08fa158cdc75"
+    },
+    {
+      "name": "missing-arity",
+      "old": ", 3, 3, 3, 3];",
+      "new": ", 3, 3, 3];",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "86f3d9e15346ec5a760e7dbe0bec0ae3e4f8581b9436d80a7e9817741818c1e0"
+    },
+    {
+      "name": "follow-target",
+      "old": "await lutimes(args[0], atime, mtime);",
+      "new": "await utimes(args[0], atime, mtime);",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 7,
+      "skipped": 0,
+      "runtime_sha256": "bdc332589493dbdbc4a795bee9e9ba1db4ac9dc0c856a2afd3f7a0ca30c16f78"
+    },
+    {
+      "name": "swap-times",
+      "old": "await lutimes(args[0], atime, mtime);",
+      "new": "await lutimes(args[0], mtime, atime);",
+      "exit_code": 1,
+      "passed": 3,
+      "failed": 5,
+      "skipped": 0,
+      "runtime_sha256": "a260247ef021742a85e320c6bf7e7d8836ea516331cfcaf2490c1a4c4e929f6f"
+    },
+    {
+      "name": "normalize-path",
+      "old": "await lutimes(args[0], atime, mtime);",
+      "new": "await lutimes(resolve(args[0]), atime, mtime);",
+      "exit_code": 1,
+      "passed": 5,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "3804a95cbca639182e3c792c1fcbc19aee01f5638a823c450fc809c9455e007f"
+    },
+    {
+      "name": "update-before-validation",
+      "old": "    case 47: {\n      const atime = timestamp(args[1]);\n      const mtime = timestamp(args[2]);\n      await lutimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 47: {\n      const atime = timestamp(args[1]);\n      await lutimes(args[0], atime, new Date(0)); const mtime = timestamp(args[2]);\n      await lutimes(args[0], atime, mtime);\n      return Buffer.alloc(0);\n    }\n",
+      "exit_code": 1,
+      "passed": 4,
+      "failed": 4,
+      "skipped": 0,
+      "runtime_sha256": "bde1600b84065c0e38c120941ccf30b6f37f9318b99097dc2139906848c90b05"
+    },
+    {
+      "name": "negative-seconds",
+      "old": "await lutimes(args[0], atime, mtime);",
+      "new": "await lutimes(args[0], atime.getTime() / 1000, mtime.getTime() / 1000);",
+      "exit_code": 1,
+      "passed": 5,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "56bf34a4acb1d0082b15c6cd24654163a9dcf52f43cb1ba30ca7957df829eca4"
+    },
+    {
+      "name": "noncanonical-times",
+      "old": "String(milliseconds) !== value",
+      "new": "false",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "095b0d9653259bdd2c145af80352f528ad7f30678e8403d4d34eba19b92c31d5"
+    }
+  ]
+}

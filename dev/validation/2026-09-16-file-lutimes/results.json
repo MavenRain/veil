@@ -1,0 +1,98 @@
+{
+  "base": "4422f308d97cf4cccdaf4a24f8a59a9168031c02",
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-lutimes",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "validation_scope": {
+    "compiler_rebuilt": false,
+    "full_milestone_ladder_rerun": false,
+    "compiler_sources_and_gates_unchanged": true,
+    "source_scope_capture": "source-scope.json",
+    "native_platform": "macOS",
+    "windows_exercised": false,
+    "date_range_endpoints": "mocked forwarding",
+    "unsupported_operation_errors": "mocked errors and continuation"
+  },
+  "checks": {
+    "focused": {
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "capture": "focused.json"
+    },
+    "runtime": {
+      "passed": 298,
+      "failed": 0,
+      "skipped": 0,
+      "delta": 9,
+      "capture": "runtime.json"
+    },
+    "reactor": {
+      "passed": 3811,
+      "delta": 291,
+      "capture": "reactor.json"
+    },
+    "host_nat": {
+      "passed": 16,
+      "capture": "host-nat.json"
+    },
+    "positive_control": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "defect_controls": {
+      "killed": 8,
+      "survived": 0
+    },
+    "syntax": "passed",
+    "house": "passed",
+    "trusted_lines": "5246/5250 and 246/600",
+    "diff_check": "passed"
+  },
+  "source_sha256": {
+    "REACTOR.md": "0ff951fc54d4f25b1786dc9eb5ad325855ef55329178bf03a78082889cfb9bab",
+    "README.md": "5ee843e48631a64490fd994683f759621757dab2fe17fa6cd0c508e2ca22760a",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "dev/FILE-LUTIMES.md": "d88ffdf745d3f97c26c60282be9c08444584dcdb9a996a8c1c258ca1a9871f5e",
+    "dev/REACTOR-BUILD-LOG.md": "a6f93ad3043fe7634adfcfe1bfaa651e64def00b6a3b71c9280cfbce8d5b6a2b",
+    "dev/REQUEST-ARITY.md": "c60cef1e3e272b7c5aa555dd77ae914e95b098b057aaacd648c7070aae5e3774",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/reactor-test.mjs": "649c8e530d04b1010e39bb3f7edba0785bd4b3e1d3bb7f551ad43a4d48990a25",
+    "dev/runtime-test.mjs": "954db94e0c367d35d2b4e16b9b3298f2d450b4c982687071baac7327db1a9428",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-16-file-lutimes/README.md": "d443b23b14fa9d26292338d91e7a904baf910b21697b474faf32bf1b24908fad",
+    "dev/validation/2026-09-16-file-lutimes/reproduce-controls.py": "9bab69400dddd7694f80e6eb53ecaffc98602c25abc96863a4bc7467363d2cff",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/reactor.mjs": "9e039e7de2cccde048a3e0c62a26e16bde5cebb57dae319709a3c9e15c7e2664",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "test/fixtures/reactor/file-lutimes.kan": "347d3a7e6ed099e5fcbb0c2b09ccd6d94de087e913c1ba063f8125078b04922f"
+  },
+  "capture_sha256": {
+    "dev/validation/2026-09-16-file-lutimes/control-run.json": "64dde713190e62e30bc07eabf4169b315e29a8fd83aa8c9882655949dd6a445e",
+    "dev/validation/2026-09-16-file-lutimes/controls.json": "3ce55fbac45dc453f59c896d856d39bd764af455ef225233dce8cbbb0586d923",
+    "dev/validation/2026-09-16-file-lutimes/diff-check.json": "c0dd75c51b0fca0ef4bafd59b19a16c2b994c946c0464b626c2def5a9ef0d9a4",
+    "dev/validation/2026-09-16-file-lutimes/focused.json": "d110f7ce7357c226a6b1e3c0edc5135ee5ac1f86f97681ad8842d2891a01bb99",
+    "dev/validation/2026-09-16-file-lutimes/follow-target.json": "493a1b35e50b3f1cdc9285b30fa89362ce580e1407e365548cc5b2721757fc82",
+    "dev/validation/2026-09-16-file-lutimes/host-nat.json": "244c31cd05bd282eebe54fb6cbc527d53fbfb00ae204cbb7d3abc56f5d85c746",
+    "dev/validation/2026-09-16-file-lutimes/house.json": "d5ced190e0332cfe7a50e35edaf8650af1fb0629ef58be6ddac201e80a162a1d",
+    "dev/validation/2026-09-16-file-lutimes/missing-arity.json": "682edadf6c813756e89cbb6c45607bdf0856af0da02dd49202c288ed0e9fb9ab",
+    "dev/validation/2026-09-16-file-lutimes/missing-operation.json": "7289f10c0f8fcd47fdd8b8a7d9b4a6070cd939e41af05bebe00d3d10cd09ae0f",
+    "dev/validation/2026-09-16-file-lutimes/negative-seconds.json": "0cd0cd58986ecccb0af3e53b571b1892e85b0713702db2f59f4b2e10015b71d7",
+    "dev/validation/2026-09-16-file-lutimes/noncanonical-times.json": "ae0ee753ff9fea512d9a3ce7e3399e4b3d0a3c91cd23c94adf310cab5a741c3d",
+    "dev/validation/2026-09-16-file-lutimes/normalize-path.json": "df4b6b72beb53422a891fd7a71cc9334ddadbedaeb7b1b0e258347b6c23538b1",
+    "dev/validation/2026-09-16-file-lutimes/positive.json": "f0aaeade49862c317612e0d3625cdc48b0004972b6e28bb7e01749b08c8a6418",
+    "dev/validation/2026-09-16-file-lutimes/reactor.json": "6351275335711fb308beddc2df9af4c3446c89372c0c64431ce6e3b8c42c015f",
+    "dev/validation/2026-09-16-file-lutimes/runtime.json": "a9b4f6b21e072465d7fb479b1b1956aa25879dbdd4747861f96f58959a7e4202",
+    "dev/validation/2026-09-16-file-lutimes/source-scope.json": "3d2c5d806ca54ee9553b5509709b02c6d9fcbdff035fb6dfd456a39e295c5ff5",
+    "dev/validation/2026-09-16-file-lutimes/swap-times.json": "24c4dc9b788a4ff27e8d1d096932354850b06e8f0d7cc66bf25da7d6f879887a",
+    "dev/validation/2026-09-16-file-lutimes/syntax-reactor-tests.json": "e83fd38b79d79b82017264d630f49bd83010cc3b18022ad75a7c7071d692a256",
+    "dev/validation/2026-09-16-file-lutimes/syntax-runtime-tests.json": "0828ee6398d074efef279dfceeb39733516aa664e379e2d9f6b5adff223a33e0",
+    "dev/validation/2026-09-16-file-lutimes/syntax-runtime.json": "de4f334be5d67c1c2db152d2c8d7d994f95fc17eba9d8740faf56ef72a4b1d96",
+    "dev/validation/2026-09-16-file-lutimes/trusted-lines.json": "961d67bce22f99623286d19a69fea5228ca62993373ef4cefd41992cd2538de7",
+    "dev/validation/2026-09-16-file-lutimes/update-before-validation.json": "b40b52c892eb1db5c6fc2cb2192406a10c98fb067799d75bbe9e961d42211361",
+    "dev/validation/2026-09-16-file-lutimes/gates-review.log": "05d0d764b8b86ef7e530bd49c5b1804018a75ae25e620e746c0e032fef38106f"
+  }
+}

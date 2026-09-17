@@ -111,6 +111,10 @@ native group changes, links, literal paths and host errors.
 Operation 46 updates ownership on the entry itself, including dangling and
 cyclic symlinks. The [link ownership regressions](dev/FILE-LCHOWN.md) cover
 target preservation, group changes, literal paths and request failures.
+Operation 47 updates access and modification times on the entry itself,
+including dangling and cyclic symlinks. The
+[link timestamp regressions](dev/FILE-LUTIMES.md) cover target preservation,
+pre-epoch values, literal paths, timestamp bounds and request failures.
 
 Function parameters can share a type and quantity:
 

@@ -1141,3 +1141,38 @@ and full milestone ladder were not rebuilt or rerun. Validation used
 macOS and Node v23.10.0. Windows and privileged owner changes were not
 exercised. The [validation record](validation/2026-09-16-file-lchown/README.md)
 contains the source hashes, captures, scope and reproducible controls.
+
+## Entry timestamp update without following final symlinks, 2026-09-16
+
+Base: `4422f308d97cf4cccdaf4a24f8a59a9168031c02`.
+
+Operation 47 accepts `[path, atime, mtime]`, validates both timestamps with
+operation 44's canonical signed millisecond parser, then calls `lutimes`
+once with Date values. It updates a final symlink itself, including dangling
+and cyclic links. Success resumes with an empty status-0 answer; host errors
+resume with status 1. Paths retain native parent-component resolution.
+
+Eight runtime tests cover target preservation, epoch and pre-epoch times,
+millisecond precision, literal Unicode paths, parent symlinks, ordinary files,
+hard links, directories, FIFOs, malformed requests and recovery after host
+errors. The arity matrix includes operation 47. A compiled Kanon fixture
+checks argument bytes, status and binary-answer forwarding, output failures,
+terminal states and real symlink updates through the command runner.
+
+Validation passed with the reused compiler from the base:
+
+- Full runtime suite: 298 passed, no failures or skips, nine more than the base.
+- Full compiled reactor suite: 3811 checks passed, 291 more than the base.
+- HOST-NAT: 16/16. Positive control: eight passed, no failures or skips.
+- All eight defect controls failed assertions: missing dispatch, missing
+  arity, following the target, swapped times, normalized paths, update before
+  validation, numeric negative seconds and noncanonical timestamp acceptance.
+- Syntax, HOUSE, TRUSTED-LINES and whitespace checks passed. Kernel lines
+  remain 5246/5250; encoder lines remain 246/600.
+
+Compiler sources and gate scripts retain their base hashes. The compiler
+and full milestone ladder were not rebuilt or rerun. Native validation used
+macOS and Node v23.10.0. Windows was not exercised; Date range endpoints and
+unsupported-operation errors were checked with injected host calls. The
+[validation record](validation/2026-09-16-file-lutimes/README.md) contains
+source hashes, captures, scope and reproducible controls.

@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file lutimes ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-lutimes-control-qt2hrxd7",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "stdout": "TAP version 13\n# Subtest: file lutimes updates live, dangling and cyclic links without touching their targets\nok 1 - file lutimes updates live, dangling and cyclic links without touching their targets\n  ---\n  duration_ms: 186.946083\n  type: 'test'\n  ...\n# Subtest: file lutimes preserves literal relative paths and native parent symlink resolution\nok 2 - file lutimes preserves literal relative paths and native parent symlink resolution\n  ---\n  duration_ms: 4.825333\n  type: 'test'\n  ...\n# Subtest: file lutimes supports regular files, hard links, directories and special files without opening contents\nok 3 - file lutimes supports regular files, hard links, directories and special files without opening contents\n  ---\n  duration_ms: 12.860833\n  type: 'test'\n  ...\n# Subtest: file lutimes returns native path failures and continues without creating entries\nok 4 - file lutimes returns native path failures and continues without creating entries\n  ---\n  duration_ms: 5.504084\n  type: 'test'\n  ...\n# Subtest: file lutimes validates both timestamps and exact arity before any host update\nok 5 - file lutimes validates both timestamps and exact arity before any host update\n  ---\n  duration_ms: 22.541833\n  type: 'test'\n  ...\n# Subtest: file lutimes rejects undecodable bytes in each argument before the host call\nok 6 - file lutimes rejects undecodable bytes in each argument before the host call\n  ---\n  duration_ms: 2.430708\n  type: 'test'\n  ...\n# Subtest: file lutimes forwards ordered Date values and range endpoints once and ignores the body\nok 7 - file lutimes forwards ordered Date values and range endpoints once and ignores the body\n  ---\n  duration_ms: 40.1255\n  type: 'test'\n  ...\n# Subtest: file lutimes forwards host errors and resumes the next request\nok 8 - file lutimes forwards host errors and resumes the next request\n  ---\n  duration_ms: 3.169584\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 8\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 383.8115\n",
+  "stderr": "",
+  "stdout_sha256": "ac105ecaa23e88105385b66ff84b0a03d1f3e730dc051bd0c7ac680ccf6f5521",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

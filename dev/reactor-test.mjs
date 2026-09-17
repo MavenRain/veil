@@ -1741,6 +1741,112 @@ try {
   }
   verify(() => assert.deepEqual(readFileSync(lchownFile), lchownContent));
 
+  const fileLutimes = join(scratch, 'file-lutimes.wasm');
+  const fileLutimesBuild = run(['build', shared, fixture('file-lutimes'), '-o', fileLutimes,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileLutimesBuild.status, 0, fileLutimesBuild.stderr));
+  const fileLutimesBytes = readFileSync(fileLutimes);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileLutimesBytes)).length, 0));
+  const { instance: fileLutimesInstance } = await WebAssembly.instantiate(fileLutimesBytes);
+  const fileLutimesApi = fileLutimesInstance.exports;
+  const lutimesBytes = value => {
+    let bytes = fileLutimesApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileLutimesApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const fileLutimesArguments = ['../héllo//alias/../file', '-8640000000000000', '8640000000000000'];
+  let fileLutimesWords = fileLutimesApi.emptyWords();
+  for (const text of [...fileLutimesArguments].reverse()) {
+    fileLutimesWords = fileLutimesApi.consWords(lutimesBytes(text), fileLutimesWords);
+  }
+  const fileLutimesPending = fileLutimesApi.init(fileLutimesWords);
+  verify(() => assert.equal(fileLutimesApi.requestCode(fileLutimesPending), 47));
+  let fileLutimesForwarded = fileLutimesApi.requestArgs(fileLutimesPending);
+  for (const text of fileLutimesArguments) {
+    verify(() => assert.equal(fileLutimesApi.wordsEmpty(fileLutimesForwarded), 0));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLutimesApi,
+      fileLutimesApi.wordsHead(fileLutimesForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileLutimesForwarded = fileLutimesApi.wordsTail(fileLutimesForwarded);
+  }
+  verify(() => assert.equal(fileLutimesApi.wordsEmpty(fileLutimesForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLutimesApi,
+    fileLutimesApi.requestBody(fileLutimesPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileLutimesApi.exitCode(fileLutimesPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EPERM: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileLutimesApi.resume(fileLutimesPending, status, lutimesBytes(answer));
+    verify(() => assert.equal(fileLutimesApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileLutimesApi.wordsEmpty(fileLutimesApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileLutimesApi,
+      fileLutimesApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileLutimesApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileLutimesApi.resume(reporting, outputStatus, fileLutimesApi.emptyBytes());
+      verify(() => assert.equal(fileLutimesApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileLutimesApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileLutimesApi.wordsEmpty(fileLutimesApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileLutimesApi.bytesEmpty(fileLutimesApi.requestBody(finished)), 1));
+      const stillFinished = fileLutimesApi.resume(finished, 1, lutimesBytes('ignored'));
+      verify(() => assert.equal(fileLutimesApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileLutimesApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const lutimesFile = join(scratch, 'lutimes file é');
+  const lutimesContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(lutimesFile, lutimesContent);
+  const lutimesBefore = statSync(lutimesFile, { bigint: true });
+  if (process.platform !== 'win32') {
+    for (const [name, target] of [['lutimes live é', basename(lutimesFile)],
+      ['lutimes-dangling', 'lutimes-missing'], ['lutimes-loop', 'lutimes-loop']]) {
+      const path = join(scratch, name);
+      symlinkSync(target, path);
+      const before = lstatSync(path, { bigint: true });
+      for (const [atime, mtime] of [[1000, 3000], [0, 2000], [-2000, -1000], [1234, 5678]]) {
+        const changed = runModule([fileLutimes, name, String(atime), String(mtime)]);
+        verify(() => assert.equal(changed.status, 0, changed.error ?? changed.stdout + changed.stderr));
+        verify(() => assert.equal(changed.stdout, ''));
+        verify(() => assert.equal(changed.stderr, ''));
+        const after = lstatSync(path, { bigint: true });
+        for (const [actual, milliseconds] of [[after.atimeNs, atime], [after.mtimeNs, mtime]]) {
+          const delta = actual - BigInt(milliseconds) * 1000000n;
+          verify(() => assert.ok(delta >= -1000n && delta <= 1000n, `timestamp differs by ${delta} ns`));
+        }
+        for (const key of ['dev', 'ino', 'size', 'mode', 'uid', 'gid', 'nlink']) {
+          verify(() => assert.equal(after[key], before[key], key));
+        }
+      }
+      verify(() => assert.equal(readlinkSync(path), target));
+    }
+    for (const [path, error] of [[join(scratch, 'lutimes-missing'), /^ENOENT:/],
+      [lutimesFile + '/', /^ENOTDIR:/], [join(lutimesFile, 'child'), /^ENOTDIR:/],
+      [join(scratch, 'lutimes-loop', 'child'), /^ELOOP:/]]) {
+      const failed = runModule([fileLutimes, path, '1000', '2000']);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.match(failed.stdout, error));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+    verify(() => assert.equal(existsSync(join(scratch, 'lutimes-missing')), false));
+  }
+  for (const args of [[], [lutimesFile], [lutimesFile, '1000'], [lutimesFile, '1000', '2000', 'surplus']]) {
+    const failed = runModule([fileLutimes, ...args]);
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, `IO: OS request 47 expects 3 arguments, got ${args.length}`));
+    verify(() => assert.equal(failed.stderr, ''));
+  }
+  for (const value of ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']) {
+    for (const times of [[value, '2000'], ['1000', value]]) {
+      const failed = runModule([fileLutimes, lutimesFile, ...times]);
+      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+      verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  const lutimesAfter = statSync(lutimesFile, { bigint: true });
+  for (const key of ['dev', 'ino', 'size', 'mode', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
+    verify(() => assert.equal(lutimesAfter[key], lutimesBefore[key], key));
+  }
+  verify(() => assert.deepEqual(readFileSync(lutimesFile), lutimesContent));
+
   const fileTimes = join(scratch, 'file-times.wasm');
   const fileTimesBuild = run(['build', shared, fixture('file-times'), '-o', fileTimes,
     ...reactorExports.flatMap(name => ['--export', name])]);

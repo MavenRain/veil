@@ -179,8 +179,9 @@ the left list's length.
 | 44 | path, atime, mtime | Set access and modification times from decimal milliseconds; return an empty answer |
 | 45 | path, uid, gid | Set numeric owner and group IDs on an existing entry; return an empty answer |
 | 46 | path, uid, gid | Set ownership without following the final symlink; return an empty answer |
+| 47 | path, atime, mtime | Set access and modification times without following the final symlink; return an empty answer |
 
-Operations 1 to 46 check argument counts before performing the operation.
+Operations 1 to 47 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -218,7 +219,8 @@ cover operation 41, the
 the [filesystem type regressions](dev/FILESYSTEM-TYPE.md) cover operation 43,
 the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44,
 the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45,
-and the [link ownership regressions](dev/FILE-LCHOWN.md) cover operation 46.
+the [link ownership regressions](dev/FILE-LCHOWN.md) cover operation 46,
+and the [link timestamp regressions](dev/FILE-LUTIMES.md) cover operation 47.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -755,6 +757,23 @@ before dispatch. Host rules govern ctime and special permission bits on
 the updated entry. Operation 39 follows final symlinks, so its answer
 describes a link's target rather than the link's own IDs. See the
 [link ownership contract and tests](dev/FILE-LCHOWN.md).
+
+Operation 47 takes the same three arguments and timestamp format as operation
+44, validates both times, and calls `lutimes(path, atime, mtime)` once with
+`Date` values. Success returns status 0 with an empty answer. A final symlink
+receives its own timestamp update, including dangling and cyclic links.
+Ordinary files, hard links and directories retain native timestamp behavior.
+Paths pass literally to the host; parent components and trailing slashes keep
+native resolution. The operation does not guarantee path containment.
+
+Both timestamps use canonical signed decimal milliseconds in
+`-8640000000000000..8640000000000000`. The body is unused under shared
+decoding limits. Missing entries are not created. Timestamp and arity errors
+resume with status 1 and an `IO:` message, while host failures preserve their
+error code. Undecodable arguments end the run before dispatch. Host support,
+timestamp range and filesystem precision govern what can be stored.
+Operations 33 and 34 follow final symlinks, so they read the target's times.
+See the [link timestamp contract and tests](dev/FILE-LUTIMES.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The
