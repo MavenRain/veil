@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "base_head": "0955e62c4a866bf25d867d24f737c120fe7ad46e",
+  "validation_cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+  "summary": {
+    "snapshot": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity.py",
+        "snapshot",
+        "--output",
+        "dev/m2-init"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    "regressions": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity-test.py"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    "live": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity.py",
+        "verify",
+        "--live"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    "house": {
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    "parity-gate": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity.py",
+        "gate"
+      ],
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-parity",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    }
+  },
+  "baseline": {
+    "declarations": 51980,
+    "exported_kinds": {
+      "axiom": 32248,
+      "constructor": 842,
+      "definition": 12015,
+      "inductive": 616,
+      "quotient": 4,
+      "recursor": 618,
+      "theorem": 5637
+    },
+    "inventory_sha256": "80dd1223088490394b6177e7b5fb8aa9e43b57799b9c8fa70504a2d4eb6e0cf4",
+    "kernel_rechecks": 0,
+    "modules": 628,
+    "parity_gate_passed": false,
+    "parity_percent": 0,
+    "toolchain": "leanprover/lean4:v4.33.0-rc1",
+    "translation_attempts": 0,
+    "translation_gaps": 51980
+  },
+  "source_sha256": {
+    "README.md": "6b07a732fe0664b180ef95eeb24213e0f483d0c12f724e431da73b9d4a918f96",
+    "dev/M2-READINESS.md": "a2e3b850f3de5df47ee551632db6afc29eb22b0b0d48d5e3f3d89fa34610767f",
+    "dev/M2-PARITY.md": "f76ac9a6b7df7468f8996ca9778a8cf455a1bd290e7895093bfee6ba5e8a027f",
+    "dev/M2-BUILD-LOG.md": "ff3320d1b7cccb1ee489e3f543166a455ca2764d16516d94a2c32632d2d2b826",
+    "dev/m2-parity.py": "5792b173e92d616b2fdd418c9574e05f6dcc7fdd2d7761529207a83c9c689014",
+    "dev/m2-parity-test.py": "1555cb790f7250ea82fb0fce65b160a296a5c6189518b9764dc02b289c6ead26",
+    "meta/ExportInit.lean": "0734ee83adb1aea302cda147320f16f5bbb0bfb2127e1176c3989d7a7e5daa6c",
+    "meta/lean-toolchain": "62c2d9c0fc1ec4c67e151c11eff41ca004ef38e179cf9476c230406e6defedef",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/house-catchalls.py": "34a766b306276b831159eb288f817f4dfc4ac8c12bc083462f387e55ef7eec30",
+    "dev/m2-init/inventory.jsonl": "80dd1223088490394b6177e7b5fb8aa9e43b57799b9c8fa70504a2d4eb6e0cf4",
+    "dev/m2-init/pin.json": "829a3e712ae0f7159ab3a4f9e0748f9bc0c477c63f95989794598afc007c008e",
+    "dev/m2-init/baseline.json": "abf2f7e15caabcddd717381adeb2b1f7d02403156a0fc4ce88f80196a80afc32"
+  },
+  "capture_sha256": {
+    "README.md": "e15f2f206823c94ae53062906a58e88443d103d20e90edb600fcf53096a5d577",
+    "gates-review.log": "920d5b9f6291fde0d3b22ab6a00b27665abc34561a9bc14c09121d8d3a8f4a18",
+    "house.json": "d4f0850e6b84381d8c412a69ca768e3c74ee8bf5d13547fe5280173b3a1ac028",
+    "house.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "house.stdout": "a44bbd2fbe2622870d6cbb088a9834a6c12b81f7dd6d432b156026a93d52f52c",
+    "live.json": "b5a54141abaaab3f3efce6d24fd0ee9a7be2c9852503511eae1a455dcec4379d",
+    "live.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "live.stdout": "14aac83700c153459cc0a1c26234cfd71fea7106a7fe386c8061b0ed08dd432e",
+    "parity-gate.json": "fa6100700669a3f4eb059e2a445c22d1976ec7e30d25279a044731e51f2b799a",
+    "parity-gate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "parity-gate.stdout": "14aac83700c153459cc0a1c26234cfd71fea7106a7fe386c8061b0ed08dd432e",
+    "regressions.json": "51fd39ffb44ab03c3c616d905c1a9357ddf2840d33e25406a40f3ee577e33841",
+    "regressions.stderr": "e98a5aa0b29022ba4f070c16c41e4be094d39ff67fc46a7671053caa9d455f6d",
+    "regressions.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "snapshot.json": "fff51d0824c51b4bed3914197b2a244aee6380493ee816e07a12dd0d245c063a",
+    "snapshot.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "snapshot.stdout": "14aac83700c153459cc0a1c26234cfd71fea7106a7fe386c8061b0ed08dd432e"
+  },
+  "scope": "Inventory tooling only. No translation, kernel re-check, full M1 battery or M2 exit claim."
+}

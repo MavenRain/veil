@@ -177,8 +177,11 @@ all 27 gate legs, including REACTOR, RUNTIME and the binding performance
 checks, on 2026-09-17.
 The [validation record](dev/validation/2026-09-17-m2-readiness/README.md)
 retains both runs, source hashes and measurements.  The
-[M2 readiness record](dev/M2-READINESS.md) lists the entry steps and proposed
-first increment.
+[M2 readiness record](dev/M2-READINESS.md) lists the entry steps.
+The [M2 parity inventory](dev/M2-PARITY.md) now pins 51,980 exported Lean
+`Init` declarations and records every name as an unattempted translation gap.
+Its integrity and live reproduction checks pass; translation coverage is 0
+percent and the M2 parity gate remains open.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive
 indexed and mutual `mu` families, dependent matching, structural

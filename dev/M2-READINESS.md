@@ -2,8 +2,9 @@
 
 The M1 closure candidate passes all 27 current gates.  Its source starts at
 `f0f3561dff00af8f4de90d1e0eec89e9130ef777` and adds bounded CLI batching to
-the reactor tests.  M2 implementation has not started.  The closure increment
-still needs the user's commit and M1 exit ratification.
+the reactor tests.  At that capture, M2 implementation had not started, and
+the closure increment still needed the user's commit and M1 exit ratification.
+See the follow-up below for the committed increment and parity tooling.
 
 The [validation record](validation/2026-09-17-m2-readiness/README.md) retains
 the failed baseline, the passing candidate, complete transcripts, source
@@ -27,8 +28,9 @@ hashes, regression tests and three killed controls.
 The external [M1 plan, section 12](../../kanon-m1/M1-PLAN.md#12-m1-exit-stamp-decisions-corrections)
 requires every leg to be green on the committed tree.  Its ratification row
 says: "the user writes the date and \"ratified\" here; nothing else counts".
-The next steps are to commit this increment, run `zsh dev/gates.sh` on that
-commit, and record the user's M1 exit stamp.  This record leaves that stamp open.
+The recorded entry sequence was to commit this increment, run
+`zsh dev/gates.sh` on that commit, and record the user's M1 exit stamp.
+This record leaves that stamp open.
 
 ## M2 scope and first increment
 
@@ -64,3 +66,12 @@ definition changes takes at most 120 ms.  These are future exit criteria.
 The [foundation audit](FOUNDATION-AUDIT.md) still leaves general typed
 interpretation, compiler preservation and full Lean parity open.  The present
 finite tests and bounded semantic bridges do not discharge those obligations.
+
+## Follow-up, 2026-09-17
+
+The closure increment is committed as `0955e62`.  The first M2 tooling slice
+now provides the [parity inventory and gate specification](M2-PARITY.md).
+It pins all 51,980 declarations from the exported Lean `Init` environment,
+retains every name in a 0-percent baseline, and verifies the pinned module
+artifacts against a fresh export.  The translator and M2 language features
+remain unimplemented by this slice.  The user's M1 exit stamp remains open.
