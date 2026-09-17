@@ -1,0 +1,31 @@
+{
+  "name": "missing-arity",
+  "defect": "Remove the final argument-count entry.",
+  "replacement": {
+    "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2, 1];",
+    "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2];"
+  },
+  "runtime_sha256": "33facf62b67bfbca1504b5da8b4a79bb12c686b0805d9574b122142fbeb82370",
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file create ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s",
+  "temporary_copy_retained": false,
+  "watchdog_ms": 30000,
+  "exit_code": 1,
+  "tests": 10,
+  "pass": 9,
+  "fail": 1,
+  "cancelled": 0,
+  "skipped": 0,
+  "stdout": "TAP version 13\n# Subtest: file create writes empty, binary and maximum-size payloads and composes with file operations\nok 1 - file create writes empty, binary and maximum-size payloads and composes with file operations\n  ---\n  duration_ms: 80.333792\n  type: 'test'\n  ...\n# Subtest: file create requests private permissions subject to umask for empty and nonempty files\nok 2 - file create requests private permissions subject to umask for empty and nonempty files\n  ---\n  duration_ms: 8.598833\n  type: 'test'\n  ...\n# Subtest: file create refuses existing files, directories, hard links and final symlinks without changing them\nok 3 - file create refuses existing files, directories, hard links and final symlinks without changing them\n  ---\n  duration_ms: 12.225417\n  type: 'test'\n  ...\n# Subtest: file create preserves relative Unicode paths and native parent symlink resolution\nok 4 - file create preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 3.684459\n  type: 'test'\n  ...\n# Subtest: file create reports native path failures without creating parents and continues\nok 5 - file create reports native path failures without creating parents and continues\n  ---\n  duration_ms: 8.165375\n  type: 'test'\n  ...\n# Subtest: file create reports denied parent access without leaving a file\nok 6 - file create reports denied parent access without leaving a file\n  ---\n  duration_ms: 1.985167\n  type: 'test'\n  ...\n# Subtest: file create rejects oversized payloads before creating or changing files\nok 7 - file create rejects oversized payloads before creating or changing files\n  ---\n  duration_ms: 23.010833\n  type: 'test'\n  ...\n# Subtest: file create rejects malformed requests before the host call and forwards exact bytes and flags\nnot ok 8 - file create rejects malformed requests before the host call and forwards exact bytes and flags\n  ---\n  duration_ms: 4.06475\n  type: 'test'\n  location: '/private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/dev/runtime-test.mjs:4491:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    step 0, operation 49: \n    \n    0 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/dev/runtime-test.mjs:720:14)\n    api.resume (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/dev/runtime-test.mjs:745:12)\n    runReactor (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/runtime/reactor.mjs:514:19)\n    async slotScript (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/dev/runtime-test.mjs:749:18)\n    async TestContext.<anonymous> (file:///private/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s/dev/runtime-test.mjs:4495:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: file create awaits one host write before resuming\nok 9 - file create awaits one host write before resuming\n  ---\n  duration_ms: 4.170583\n  type: 'test'\n  ...\n# Subtest: file create forwards host failures, retains a partial new file and resumes later requests\nok 10 - file create forwards host failures, retains a partial new file and resumes later requests\n  ---\n  duration_ms: 7.92775\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 9\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 316.475667\n",
+  "stderr": "",
+  "stdout_sha256": "1cbd03f341190413c602b376c9c9c1b0748bc499f0e688af80b255eae286207f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

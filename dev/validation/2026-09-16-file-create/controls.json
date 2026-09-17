@@ -1,0 +1,300 @@
+{
+  "source_sha256": {
+    "runtime/reactor.mjs": "ad36d569c1145c8674ff924a980b084659db795473b1cc840690fb75111967fb",
+    "dev/runtime-test.mjs": "0156c91b738c3dbb01d8a559e251d55524cf1da9c3462e364910dc3e7237029a"
+  },
+  "reproducer_sha256": "8692feaeeefd86b3c42b2bc3fb5f0ab1188eeeef062c448b9beb08d7ba281cc5",
+  "pattern": "^file create ",
+  "controls": [
+    {
+      "name": "positive",
+      "defect": "Unchanged final source.",
+      "replacement": {
+        "before": "",
+        "after": ""
+      },
+      "runtime_sha256": "ad36d569c1145c8674ff924a980b084659db795473b1cc840690fb75111967fb",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-0tuxchkh",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "687fce6711814a365b973f1674c3c8e0784d38984fd7c4bba91532382fe1c13d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing-operation",
+      "defect": "Remove operation 49.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": ""
+      },
+      "runtime_sha256": "4b71cd69d4e69b6e0530117d6eb3029a6ec5859fbe59ffcca0fa455392989776",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-mfnq3a3r",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "fd1cc500d38ef514b814b9d30f0a45e5215c518b94b6cfc70f566c664171b414",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing-arity",
+      "defect": "Remove the final argument-count entry.",
+      "replacement": {
+        "before": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2, 1];",
+        "after": "const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2];"
+      },
+      "runtime_sha256": "33facf62b67bfbca1504b5da8b4a79bb12c686b0805d9574b122142fbeb82370",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-7w4s65_s",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 9,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "1cbd03f341190413c602b376c9c9c1b0748bc499f0e688af80b255eae286207f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "overwrite-existing",
+      "defect": "Open with truncating, nonexclusive flags.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'w', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "278d6165b67118f621e216a25834b6aa16e849810f41c8aed4db59d1f2f2886f",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-14ggnqd6",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 7,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "22f196d4768b67f01176a4687bc06f102085ccbd0b42394b80b96ac18793a2ea",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "public-mode",
+      "defect": "Request group and other access when creating files.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o666 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "b7874fdabb83c21de438ace4ae438e6e3c55e48a2c6a457d7a0e3f7caad42601",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-zmdffyzx",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 8,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "07089fc2a4854f0a35e6a185b900d32034641756450f0778386a89df6b9b70f9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "text-body",
+      "defect": "Decode the binary payload as UTF-8 before writing it.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body.toString(), { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "be0bea40d948cc66ec460f4ed7fc2fef8656ef017c2dd5aa47253e9a1df66c3d",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-jbg84ima",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 5,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "5464840e705eef258c91c84369b8041427397cb33256884421e67efd97982079",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing-bound",
+      "defect": "Permit payloads above the maximum OS chunk size.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "aa7d62a470d7b4aebf98a52ba927866ec58c8ea60c89d411333cf9b3ee14e8ff",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-g17ehvd1",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 8,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "3fd5a808ebb6e51307879c3927198d0e102d2666caa4307522a706da8ba1a010",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "normalize-path",
+      "defect": "Resolve paths lexically before the filesystem sees parent symlinks.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(resolve(args[0]), body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "9974a5817aecf6e79314dbc0bc516aa222ef119a67b4a70b7098f6e90e53e073",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-jjt8f7lg",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 7,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "85ce728d5fd1243ca3d6081c58261bf98f4bfc0c3ca828d2e7237cfd1cbb33a0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "omit-write",
+      "defect": "Return success without a host write.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      \n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "dccd167de114b76a025ea37070218d3570f147014720dbdee2b5a63ce3bce957",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-v66riv7x",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 1,
+      "fail": 9,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "40ea6e55589cc1ee440ecb02330f02c36afcd81b13d2538677f47e8863f062ca",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing-await",
+      "defect": "Resume before the host write settles.",
+      "replacement": {
+        "before": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n",
+        "after": "    case 49: {\n      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');\n      writeFile(args[0], body, { flag: 'wx', mode: 0o600 });\n      return Buffer.alloc(0);\n    }\n"
+      },
+      "runtime_sha256": "64a8b72caee3032727bc66f433566cf312c5d2d61b1296304075f146f2deb397",
+      "argv": [
+        "gtimeout",
+        "30",
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=^file create ",
+        "dev/runtime-test.mjs"
+      ],
+      "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-znawal7v",
+      "temporary_copy_retained": false,
+      "watchdog_ms": 30000,
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 3,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "stdout_sha256": "a5e5fb9ea3d59914c8e8d68ed9df89523c74bb72d020a3c54cef7b85d48ffa4c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

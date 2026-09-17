@@ -1216,3 +1216,44 @@ base contents. The compiler and full milestone ladder were not rebuilt or
 rerun. Native validation used macOS and Node v23.10.0; Windows was not
 exercised. The [validation record](validation/2026-09-16-file-access/README.md)
 contains source hashes, captures, scope and reproducible controls.
+
+## Exclusive file creation, 2026-09-16
+
+Base: `6bd7ffdb82215d52950d0fe5340369a9d3613af9`.
+
+Operation 49 takes one path and a raw body of at most 65536 bytes. It
+creates a file with exclusive flag `wx` and requested mode `0o600`, then
+resumes with an empty answer. Existing entries are refused. Paths retain
+native resolution; no parent directory or temporary replacement is made.
+Host failures resume with status 1, and a partial new file is retained if
+writing fails. The contract distinguishes exclusive creation from whole
+payload publication and durable storage.
+
+Ten runtime tests cover payload boundaries, umask, existing entries, links,
+native denied access, native path failures without created parents, literal
+paths, request decoding, exact flags, awaiting completion and recovery after
+host failures. The arity matrix now
+includes operation 49. The compiled fixture checks argument and payload
+ordering, answer forwarding, output errors, terminal states and real
+creation requests, including refusal of a private FIFO. Repeated requests
+share one subprocess, and the new cases have their own temporary directory.
+
+Validation reused the compiler whose hash matches the predecessor record:
+
+- RUNTIME passed 318 tests with no failures, cancellations or skips, 11
+  more than the predecessor's recorded count.
+- REACTOR passed 4128 checks within its unchanged 30-second watchdog,
+  110 more than the predecessor's recorded count.
+- HOST-NAT passed 16/16. The unchanged positive control passed ten tests.
+  All nine defect controls failed assertions: a removed operation, omitted
+  arity, overwrite flags, public permissions, text decoding, missing size
+  bounds, path normalization, omitted writes and omitted awaiting.
+- JavaScript syntax, HOUSE, TRUSTED-LINES and whitespace checks passed.
+  Kernel lines remain 5246/5250; encoder lines remain 246/600.
+
+All original test bodies, compiler sources and gate scripts retain their
+base contents. The compiler and full milestone ladder were not rebuilt or
+rerun. Native validation used macOS and Node v23.10.0; Windows and network
+filesystems were not exercised. The
+[validation record](validation/2026-09-16-file-create/README.md) retains
+captures, source hashes, scope and a reproducer for the defect controls.

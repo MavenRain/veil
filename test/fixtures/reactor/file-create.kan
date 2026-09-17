@@ -1,0 +1,32 @@
+-- Create a file from fixed binary bytes, then report the host result on stdout.
+mu FileCreateState : Type 0 with
+| requested : Words -> FileCreateState
+| reporting : Nat -> Bytes -> FileCreateState
+| finished : Nat -> FileCreateState
+
+def init (argv : Words) : FileCreateState := requested argv
+def resume (state : FileCreateState) (status : Nat) (answer : Bytes) : FileCreateState :=
+  case state as current in FileCreateState return FileCreateState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileCreateState) : Nat :=
+  case state as current in FileCreateState return Nat with
+  | requested args => 49
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileCreateState) : Words :=
+  case state as current in FileCreateState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileCreateState) : Bytes :=
+  case state as current in FileCreateState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileCreateState) : Nat :=
+  case state as current in FileCreateState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

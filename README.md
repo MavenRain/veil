@@ -119,6 +119,9 @@ Operation 48 checks existence or a combination of read, write and execute
 access using the host's access rules. The
 [file access regressions](dev/FILE-ACCESS.md) cover every mode, native
 permissions, links, literal paths and request failures.
+Operation 49 creates a private file from at most 65536 bytes, refusing an
+existing destination. The [file creation regressions](dev/FILE-CREATE.md)
+cover binary payloads, existing entries, permissions and failure recovery.
 
 Function parameters can share a type and quantity:
 

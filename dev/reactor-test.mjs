@@ -1741,6 +1741,137 @@ try {
   }
   verify(() => assert.deepEqual(readFileSync(lchownFile), lchownContent));
 
+  const fileCreate = join(scratch, 'file-create.wasm');
+  const fileCreateBuild = run(['build', shared, fixture('file-create'), '-o', fileCreate,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileCreateBuild.status, 0, fileCreateBuild.stderr));
+  const fileCreateBytes = readFileSync(fileCreate);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileCreateBytes)).length, 0));
+  const { instance: fileCreateInstance } = await WebAssembly.instantiate(fileCreateBytes);
+  const fileCreateApi = fileCreateInstance.exports;
+  const createBytes = value => {
+    let bytes = fileCreateApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileCreateApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const createArgument = '../héllo//alias/../file';
+  const fileCreatePending = fileCreateApi.init(fileCreateApi.consWords(
+    createBytes(createArgument), fileCreateApi.emptyWords()));
+  verify(() => assert.equal(fileCreateApi.requestCode(fileCreatePending), 49));
+  const createForwarded = fileCreateApi.requestArgs(fileCreatePending);
+  verify(() => assert.equal(fileCreateApi.wordsEmpty(createForwarded), 0));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileCreateApi,
+    fileCreateApi.wordsHead(createForwarded), Buffer.byteLength(createArgument))), Buffer.from(createArgument)));
+  verify(() => assert.equal(fileCreateApi.wordsEmpty(fileCreateApi.wordsTail(createForwarded)), 1));
+  const createPayload = Buffer.from([0, 255, 65]);
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileCreateApi,
+    fileCreateApi.requestBody(fileCreatePending), 3)), createPayload));
+  verify(() => assert.equal(fileCreateApi.exitCode(fileCreatePending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EEXIST: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileCreateApi.resume(fileCreatePending, status, createBytes(answer));
+    verify(() => assert.equal(fileCreateApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileCreateApi.wordsEmpty(fileCreateApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileCreateApi,
+      fileCreateApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileCreateApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileCreateApi.resume(reporting, outputStatus, fileCreateApi.emptyBytes());
+      verify(() => assert.equal(fileCreateApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileCreateApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileCreateApi.wordsEmpty(fileCreateApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileCreateApi.bytesEmpty(fileCreateApi.requestBody(finished)), 1));
+      const stillFinished = fileCreateApi.resume(finished, 1, createBytes('ignored'));
+      verify(() => assert.equal(fileCreateApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileCreateApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const createScratch = mkdtempSync(join(scratch, 'exclusive-create-'));
+  const createPath = join(createScratch, 'create file ?# é');
+  const created = runModule([fileCreate, basename(createPath)], createScratch);
+  verify(() => assert.equal(created.status, 0, created.stderr || created.stdout));
+  verify(() => assert.equal(created.stdout, ''));
+  verify(() => assert.equal(created.stderr, ''));
+  verify(() => assert.deepEqual(readFileSync(createPath), createPayload));
+  verify(() => assert.ok(lstatSync(createPath).isFile()));
+  if (process.platform !== 'win32') {
+    verify(() => assert.equal(statSync(createPath).mode & 0o777, 0o600 & ~process.umask()));
+  }
+  const createBefore = statSync(createPath, { bigint: true });
+  const runCreateBatch = inputs => {
+    const source = `
+      import { runReactor } from ${JSON.stringify(new URL('../runtime/reactor.mjs', import.meta.url).href)};
+      for (const args of JSON.parse(process.argv[1])) {
+        const status = await runReactor(${JSON.stringify(fileCreate)}, args);
+        process.stdout.write('\\0' + status + '\\0');
+      }
+    `;
+    const done = spawnSync(process.execPath, ['--input-type=module', '-e', source, JSON.stringify(inputs)],
+      { encoding: 'utf8', cwd: createScratch, timeout: 20000 });
+    verify(() => assert.equal(done.status, 0, done.error ?? done.stderr));
+    verify(() => assert.equal(done.stderr, ''));
+    const parts = done.stdout.split('\0');
+    verify(() => assert.equal(parts.length, inputs.length * 2 + 1));
+    verify(() => assert.equal(parts.at(-1), ''));
+    return inputs.map((_, index) => ({ stdout: parts[index * 2], status: Number(parts[index * 2 + 1]) }));
+  };
+  const createChecks = [
+    { args: [createPath], error: /^EEXIST:/ },
+    { args: [], error: /^IO: OS request 49 expects 1 argument, got 0$/ },
+    { args: [createPath, 'surplus'], error: /^IO: OS request 49 expects 1 argument, got 2$/ },
+    { args: [join(createScratch, 'create-missing', 'child')], error: /^ENOENT:/ },
+  ];
+  if (process.platform !== 'win32') {
+    const hard = join(createScratch, 'create-hard');
+    const live = join(createScratch, 'create-live');
+    const dangling = join(createScratch, 'create-dangling');
+    const cyclic = join(createScratch, 'create-cyclic');
+    const fifo = join(createScratch, 'create-fifo');
+    linkSync(createPath, hard);
+    symlinkSync(basename(createPath), live);
+    symlinkSync('create-absent', dangling);
+    symlinkSync('create-cyclic', cyclic);
+    const madeFifo = spawnSync('mkfifo', [fifo], { encoding: 'utf8', timeout: 2000 });
+    verify(() => assert.equal(madeFifo.status, 0, madeFifo.error ?? madeFifo.stderr));
+    for (const path of [createScratch, hard, live, dangling, cyclic, fifo]) {
+      createChecks.push({ args: [path], error: /^EEXIST:/ });
+    }
+    const parent = join(createScratch, 'create-parent');
+    mkdirSync(join(parent, 'deep'), { recursive: true });
+    symlinkSync(join(parent, 'deep'), join(createScratch, 'create-alias'));
+    const literal = runModule([fileCreate, 'create-alias//../target'], createScratch);
+    verify(() => assert.equal(literal.status, 0, literal.stderr || literal.stdout));
+    verify(() => assert.equal(literal.stdout, ''));
+    verify(() => assert.equal(literal.stderr, ''));
+    verify(() => assert.deepEqual(readFileSync(join(parent, 'target')), createPayload));
+    verify(() => assert.equal(existsSync(join(createScratch, 'target')), false));
+    createChecks.push({ args: [createPath + '/child'], error: /^ENOTDIR:/ });
+    createChecks.push({ args: [createPath + '/'], error: /^(ENOTDIR|EEXIST):/ });
+    createChecks.push({ args: [''], error: /^ENOENT:/ });
+  }
+  createChecks.push({ args: [join(createScratch, 'create-after-errors')] });
+  const createResults = runCreateBatch(createChecks.map(check => check.args));
+  for (const [index, result] of createResults.entries()) {
+    const { error } = createChecks[index];
+    verify(() => assert.equal(result.status, error ? 1 : 0, result.stdout));
+    if (error) verify(() => assert.match(result.stdout, error));
+    else verify(() => assert.equal(result.stdout, ''));
+  }
+  const createAfter = statSync(createPath, { bigint: true });
+  verify(() => assert.deepEqual([createAfter.dev, createAfter.ino, createAfter.mode, createAfter.mtimeNs],
+    [createBefore.dev, createBefore.ino, createBefore.mode, createBefore.mtimeNs]));
+  verify(() => assert.deepEqual(readFileSync(createPath), createPayload));
+  verify(() => assert.deepEqual(readFileSync(join(createScratch, 'create-after-errors')), createPayload));
+  verify(() => assert.equal(existsSync(join(createScratch, 'create-missing')), false));
+  verify(() => assert.equal(existsSync(join(createScratch, 'create-absent')), false));
+  if (process.platform !== 'win32') {
+    verify(() => assert.equal(readlinkSync(join(createScratch, 'create-live')), basename(createPath)));
+    verify(() => assert.equal(readlinkSync(join(createScratch, 'create-dangling')), 'create-absent'));
+    verify(() => assert.equal(readlinkSync(join(createScratch, 'create-cyclic')), 'create-cyclic'));
+    verify(() => assert.ok(lstatSync(join(createScratch, 'create-fifo')).isFIFO()));
+    verify(() => assert.deepEqual(readFileSync(join(createScratch, 'create-hard')), createPayload));
+  }
+
   const fileAccess = join(scratch, 'file-access.wasm');
   const fileAccessBuild = run(['build', shared, fixture('file-access'), '-o', fileAccess,
     ...reactorExports.flatMap(name => ['--export', name])]);

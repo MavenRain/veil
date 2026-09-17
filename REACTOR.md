@@ -181,8 +181,9 @@ the left list's length.
 | 46 | path, uid, gid | Set ownership without following the final symlink; return an empty answer |
 | 47 | path, atime, mtime | Set access and modification times without following the final symlink; return an empty answer |
 | 48 | path, mode | Check existence or read/write/execute access; return an empty answer on success |
+| 49 | path; payload is content | Create a private file without replacing an existing entry; at most 65536 bytes; return an empty answer |
 
-Operations 1 to 48 check argument counts before performing the operation.
+Operations 1 to 49 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -222,7 +223,8 @@ the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44,
 the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45,
 the [link ownership regressions](dev/FILE-LCHOWN.md) cover operation 46,
 the [link timestamp regressions](dev/FILE-LUTIMES.md) cover operation 47,
-and the [file access regressions](dev/FILE-ACCESS.md) cover operation 48.
+the [file access regressions](dev/FILE-ACCESS.md) cover operation 48,
+and the [file creation regressions](dev/FILE-CREATE.md) cover operation 49.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -798,6 +800,23 @@ operation succeeds. Applications should perform the desired operation and
 handle its errors directly. On Windows, execute checks behave like existence
 checks, and the Node binding does not inspect Windows ACLs. See the
 [access contract and tests](dev/FILE-ACCESS.md) for platform limits.
+
+Operation 49 takes one path and creates a file from the raw request body,
+including an empty body. It rejects payloads above 65536 bytes before any
+host write, then awaits `writeFile(path, body, { flag: 'wx', mode: 0o600 })`.
+The requested mode is subject to the host umask. No parent is created.
+Success resumes with status 0 and an empty answer. Host failures resume
+with status 1 and their native error code and message. Arity and payload
+errors use an `IO:` message; undecodable paths end the run before dispatch.
+
+The host's exclusive-create flag refuses existing entries, including final
+symlinks on POSIX, even dangling ones. Parent symlinks and dot segments keep
+native resolution. Paths are neither normalized nor contained. Exclusivity
+depends on host filesystem support and may be unreliable on network
+filesystems. The operation does not publish the whole payload atomically or
+flush it to durable storage. A failed write may leave a partial new file;
+the runtime does not unlink it. See the
+[file creation contract and tests](dev/FILE-CREATE.md).
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

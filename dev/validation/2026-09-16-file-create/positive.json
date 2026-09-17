@@ -1,0 +1,31 @@
+{
+  "name": "positive",
+  "defect": "Unchanged final source.",
+  "replacement": {
+    "before": "",
+    "after": ""
+  },
+  "runtime_sha256": "ad36d569c1145c8674ff924a980b084659db795473b1cc840690fb75111967fb",
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^file create ",
+    "dev/runtime-test.mjs"
+  ],
+  "cwd": "/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/veil-create-control-0tuxchkh",
+  "temporary_copy_retained": false,
+  "watchdog_ms": 30000,
+  "exit_code": 0,
+  "tests": 10,
+  "pass": 10,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "stdout": "TAP version 13\n# Subtest: file create writes empty, binary and maximum-size payloads and composes with file operations\nok 1 - file create writes empty, binary and maximum-size payloads and composes with file operations\n  ---\n  duration_ms: 72.908333\n  type: 'test'\n  ...\n# Subtest: file create requests private permissions subject to umask for empty and nonempty files\nok 2 - file create requests private permissions subject to umask for empty and nonempty files\n  ---\n  duration_ms: 7.911542\n  type: 'test'\n  ...\n# Subtest: file create refuses existing files, directories, hard links and final symlinks without changing them\nok 3 - file create refuses existing files, directories, hard links and final symlinks without changing them\n  ---\n  duration_ms: 13.258583\n  type: 'test'\n  ...\n# Subtest: file create preserves relative Unicode paths and native parent symlink resolution\nok 4 - file create preserves relative Unicode paths and native parent symlink resolution\n  ---\n  duration_ms: 8.949166\n  type: 'test'\n  ...\n# Subtest: file create reports native path failures without creating parents and continues\nok 5 - file create reports native path failures without creating parents and continues\n  ---\n  duration_ms: 8.267625\n  type: 'test'\n  ...\n# Subtest: file create reports denied parent access without leaving a file\nok 6 - file create reports denied parent access without leaving a file\n  ---\n  duration_ms: 2.45975\n  type: 'test'\n  ...\n# Subtest: file create rejects oversized payloads before creating or changing files\nok 7 - file create rejects oversized payloads before creating or changing files\n  ---\n  duration_ms: 29.450833\n  type: 'test'\n  ...\n# Subtest: file create rejects malformed requests before the host call and forwards exact bytes and flags\nok 8 - file create rejects malformed requests before the host call and forwards exact bytes and flags\n  ---\n  duration_ms: 17.721041\n  type: 'test'\n  ...\n# Subtest: file create awaits one host write before resuming\nok 9 - file create awaits one host write before resuming\n  ---\n  duration_ms: 1.793958\n  type: 'test'\n  ...\n# Subtest: file create forwards host failures, retains a partial new file and resumes later requests\nok 10 - file create forwards host failures, retains a partial new file and resumes later requests\n  ---\n  duration_ms: 10.990084\n  type: 'test'\n  ...\n1..10\n# tests 10\n# suites 0\n# pass 10\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 420.215958\n",
+  "stderr": "",
+  "stdout_sha256": "687fce6711814a365b973f1674c3c8e0784d38984fd7c4bba91532382fe1c13d",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

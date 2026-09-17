@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "gtimeout",
+    "30",
+    "node",
+    "dev/reactor-test.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-create",
+  "exit_code": 0,
+  "watchdog_ms": 30000,
+  "capture_timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 4128 checks passed\n",
+  "stderr": "",
+  "stdout_sha256": "e01ce04a04ca27e7b78e7e719a833e8685b4aaffa963b18773aa9d2342b8e67b",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

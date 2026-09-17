@@ -236,7 +236,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2, 1];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -423,6 +423,11 @@ async function perform(code, args, body, interrupted, blobs) {
       const flags = (mode & 4 ? fsConstants.R_OK : 0) |
         (mode & 2 ? fsConstants.W_OK : 0) | (mode & 1 ? fsConstants.X_OK : 0);
       await access(args[0], flags);
+      return Buffer.alloc(0);
+    }
+    case 49: {
+      if (body.length > MAX_IO) throw new RangeError('create exceeds maximum OS chunk size');
+      await writeFile(args[0], body, { flag: 'wx', mode: 0o600 });
       return Buffer.alloc(0);
     }
     default: throw new Error(`unknown OS request ${code}`);
