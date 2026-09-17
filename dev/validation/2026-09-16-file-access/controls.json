@@ -1,0 +1,98 @@
+{
+  "source_sha256": {
+    "runtime/reactor.mjs": "6a0ecd05f539f499e37edc04a59355787f6967830b2de5f5ae10e5b1dd71323d",
+    "dev/runtime-test.mjs": "de3aed0e55a5968f188a1f8ad1e57e4d5dcdc8ef71980af8da1f915c63edd623"
+  },
+  "controls": [
+    {
+      "name": "positive",
+      "old": null,
+      "new": null,
+      "exit_code": 0,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "runtime_sha256": "6a0ecd05f539f499e37edc04a59355787f6967830b2de5f5ae10e5b1dd71323d"
+    },
+    {
+      "name": "missing-operation",
+      "old": "    case 48: {\n      const mode = Number(args[1]);\n      if (!Number.isInteger(mode) || mode < 0 || mode > 7 || String(mode) !== args[1]) {\n        throw new RangeError('invalid OS access mode argument');\n      }\n      const flags = (mode & 4 ? fsConstants.R_OK : 0) |\n        (mode & 2 ? fsConstants.W_OK : 0) | (mode & 1 ? fsConstants.X_OK : 0);\n      await access(args[0], flags);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 7,
+      "skipped": 0,
+      "runtime_sha256": "6863b015cc64018adce05f467e6fb0dd399aafe9e518b701aaf4775f33fbf8f9"
+    },
+    {
+      "name": "missing-arity",
+      "old": ", 3, 3, 3, 3, 2];",
+      "new": ", 3, 3, 3, 3];",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "4cd2db30094558c8e1d34ffa74c44ee4da078e848ea828553a55ed558f92b2e6"
+    },
+    {
+      "name": "ignore-access",
+      "old": "await access(args[0], flags);",
+      "new": "",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 7,
+      "skipped": 0,
+      "runtime_sha256": "facf900960181bd09ca1d947d45310726e1a0aac36b52a9c23d1bb70c1a59708"
+    },
+    {
+      "name": "wrong-flags",
+      "old": "await access(args[0], flags);",
+      "new": "await access(args[0], fsConstants.F_OK);",
+      "exit_code": 1,
+      "passed": 6,
+      "failed": 2,
+      "skipped": 0,
+      "runtime_sha256": "27415d2ff32b06ffb9d7866c8bb1396dba45a3006e5e91639eb834648d63861f"
+    },
+    {
+      "name": "normalize-path",
+      "old": "await access(args[0], flags);",
+      "new": "await access(resolve(args[0]), flags);",
+      "exit_code": 1,
+      "passed": 5,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "5ddc1e33de7032ccb10a1e37f1546ca0acd0bc19e0bbff4cf8a7d932995d5fb1"
+    },
+    {
+      "name": "check-before-validation",
+      "old": "    case 48: {\n      const mode = Number(args[1]);\n      if (!Number.isInteger(mode) || mode < 0 || mode > 7 || String(mode) !== args[1]) {\n        throw new RangeError('invalid OS access mode argument');\n      }\n      const flags = (mode & 4 ? fsConstants.R_OK : 0) |\n        (mode & 2 ? fsConstants.W_OK : 0) | (mode & 1 ? fsConstants.X_OK : 0);\n      await access(args[0], flags);\n      return Buffer.alloc(0);\n    }\n",
+      "new": "    case 48: {\n      await access(args[0], fsConstants.F_OK); const mode = Number(args[1]);\n      if (!Number.isInteger(mode) || mode < 0 || mode > 7 || String(mode) !== args[1]) {\n        throw new RangeError('invalid OS access mode argument');\n      }\n      const flags = (mode & 4 ? fsConstants.R_OK : 0) |\n        (mode & 2 ? fsConstants.W_OK : 0) | (mode & 1 ? fsConstants.X_OK : 0);\n      await access(args[0], flags);\n      return Buffer.alloc(0);\n    }\n",
+      "exit_code": 1,
+      "passed": 5,
+      "failed": 3,
+      "skipped": 0,
+      "runtime_sha256": "7bfd7cddeb0896e2da7f06eb6fe4acf31ff012253b406a387b5a7bd2316e8627"
+    },
+    {
+      "name": "noncanonical-mode",
+      "old": "String(mode) !== args[1]",
+      "new": "false",
+      "exit_code": 1,
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "runtime_sha256": "2b4caf8f8a42bcae3768f3d2c6bc099de964d3daf1f6a31fa7426599cdb16e4c"
+    },
+    {
+      "name": "unawaited-access",
+      "old": "await access(args[0], flags);",
+      "new": "access(args[0], flags);",
+      "exit_code": 1,
+      "passed": 3,
+      "failed": 5,
+      "skipped": 0,
+      "runtime_sha256": "06d3c1b3d7f25b562fd044b3d05c75ca8b48c375e1d6dc9fb455c7010807db39"
+    }
+  ]
+}

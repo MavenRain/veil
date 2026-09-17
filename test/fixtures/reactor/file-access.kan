@@ -1,0 +1,33 @@
+-- Check filesystem access, then report the host answer and output status.
+
+mu FileAccessState : Type 0 with
+| requested : Words -> FileAccessState
+| reporting : Nat -> Bytes -> FileAccessState
+| finished : Nat -> FileAccessState
+
+def init (argv : Words) : FileAccessState := requested argv
+def resume (state : FileAccessState) (status : Nat) (answer : Bytes) : FileAccessState :=
+  case state as current in FileAccessState return FileAccessState with
+  | requested args => reporting status answer
+  | reporting result body => finished (natAdd result status)
+  | finished result => finished result
+def requestCode (state : FileAccessState) : Nat :=
+  case state as current in FileAccessState return Nat with
+  | requested args => 48
+  | reporting result body => 6
+  | finished result => 0
+def requestArgs (state : FileAccessState) : Words :=
+  case state as current in FileAccessState return Words with
+  | requested args => args
+  | reporting result body => wordsNil
+  | finished result => wordsNil
+def requestBody (state : FileAccessState) : Bytes :=
+  case state as current in FileAccessState return Bytes with
+  | requested args => bytesCons 0 (bytesCons 255 (bytesCons 65 bytesNil))
+  | reporting result body => body
+  | finished result => bytesNil
+def exitCode (state : FileAccessState) : Nat :=
+  case state as current in FileAccessState return Nat with
+  | requested args => 1
+  | reporting result body => result
+  | finished result => result

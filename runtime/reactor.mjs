@@ -1,6 +1,6 @@
 // Generic OS driver for a pure Kanon request/response state machine.
 // Application decisions and serialization belong to the compiled program.
-import { readFile, open, opendir, mkdir, mkdtemp, chmod, chown, lchown, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate, utimes, lutimes } from 'node:fs/promises';
+import { readFile, open, opendir, mkdir, mkdtemp, chmod, chown, lchown, rename, unlink, rmdir, stat, statfs, lstat, realpath, readlink, symlink, link, copyFile, writeFile, appendFile, truncate, utimes, lutimes, access } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import { resolve, dirname, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -236,7 +236,7 @@ const writeSlot = (blobs, flag, plain) => {
 
 // REACTOR.md request rows, indexed by operation code. Process argv and
 // joint-computation shares are variadic; every other row has an exact arity.
-const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3];
+const requestArities = [0, 2, 3, 1, 5, 1, 0, 0, 1, 2, 2, 3, 2, 3, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 2];
 
 async function listDirectory(path) {
   const directory = await opendir(path, { encoding: 'buffer' });
@@ -413,6 +413,16 @@ async function perform(code, args, body, interrupted, blobs) {
       const atime = timestamp(args[1]);
       const mtime = timestamp(args[2]);
       await lutimes(args[0], atime, mtime);
+      return Buffer.alloc(0);
+    }
+    case 48: {
+      const mode = Number(args[1]);
+      if (!Number.isInteger(mode) || mode < 0 || mode > 7 || String(mode) !== args[1]) {
+        throw new RangeError('invalid OS access mode argument');
+      }
+      const flags = (mode & 4 ? fsConstants.R_OK : 0) |
+        (mode & 2 ? fsConstants.W_OK : 0) | (mode & 1 ? fsConstants.X_OK : 0);
+      await access(args[0], flags);
       return Buffer.alloc(0);
     }
     default: throw new Error(`unknown OS request ${code}`);

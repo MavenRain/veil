@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, statfsSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync, chmodSync, linkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSync, readdirSync, statSync, statfsSync, lstatSync, existsSync, renameSync, symlinkSync, readlinkSync, utimesSync, chmodSync, linkSync, accessSync, constants as fsConstants } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1740,6 +1740,148 @@ try {
     verify(() => assert.equal(lchownAfterFailures[key], lchownBefore[key], key));
   }
   verify(() => assert.deepEqual(readFileSync(lchownFile), lchownContent));
+
+  const fileAccess = join(scratch, 'file-access.wasm');
+  const fileAccessBuild = run(['build', shared, fixture('file-access'), '-o', fileAccess,
+    ...reactorExports.flatMap(name => ['--export', name])]);
+  verify(() => assert.equal(fileAccessBuild.status, 0, fileAccessBuild.stderr));
+  const fileAccessBytes = readFileSync(fileAccess);
+  verify(() => assert.equal(WebAssembly.Module.imports(new WebAssembly.Module(fileAccessBytes)).length, 0));
+  const { instance: fileAccessInstance } = await WebAssembly.instantiate(fileAccessBytes);
+  const fileAccessApi = fileAccessInstance.exports;
+  const accessBytes = value => {
+    let bytes = fileAccessApi.emptyBytes();
+    for (const byte of Buffer.from(value).reverse()) bytes = fileAccessApi.consBytes(byte, bytes);
+    return bytes;
+  };
+  const fileAccessArguments = ['../héllo//alias/../file', '7'];
+  let fileAccessWords = fileAccessApi.emptyWords();
+  for (const text of [...fileAccessArguments].reverse()) {
+    fileAccessWords = fileAccessApi.consWords(accessBytes(text), fileAccessWords);
+  }
+  const fileAccessPending = fileAccessApi.init(fileAccessWords);
+  verify(() => assert.equal(fileAccessApi.requestCode(fileAccessPending), 48));
+  let fileAccessForwarded = fileAccessApi.requestArgs(fileAccessPending);
+  for (const text of fileAccessArguments) {
+    verify(() => assert.equal(fileAccessApi.wordsEmpty(fileAccessForwarded), 0));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAccessApi,
+      fileAccessApi.wordsHead(fileAccessForwarded), Buffer.byteLength(text))), Buffer.from(text)));
+    fileAccessForwarded = fileAccessApi.wordsTail(fileAccessForwarded);
+  }
+  verify(() => assert.equal(fileAccessApi.wordsEmpty(fileAccessForwarded), 1));
+  verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAccessApi,
+    fileAccessApi.requestBody(fileAccessPending), 3)), Buffer.from([0, 255, 65])));
+  verify(() => assert.equal(fileAccessApi.exitCode(fileAccessPending), 1));
+  for (const [status, answer] of [[0, Buffer.alloc(0)], [1, Buffer.from('EACCES: injected failure')],
+    [1, Buffer.from([0, 255, 65])]]) {
+    const reporting = fileAccessApi.resume(fileAccessPending, status, accessBytes(answer));
+    verify(() => assert.equal(fileAccessApi.requestCode(reporting), 6));
+    verify(() => assert.equal(fileAccessApi.wordsEmpty(fileAccessApi.requestArgs(reporting)), 1));
+    verify(() => assert.deepEqual(Buffer.from(decodeBytes(fileAccessApi,
+      fileAccessApi.requestBody(reporting), answer.length)), answer));
+    verify(() => assert.equal(fileAccessApi.exitCode(reporting), status));
+    for (const outputStatus of [0, 1]) {
+      const finished = fileAccessApi.resume(reporting, outputStatus, fileAccessApi.emptyBytes());
+      verify(() => assert.equal(fileAccessApi.requestCode(finished), 0));
+      verify(() => assert.equal(fileAccessApi.exitCode(finished), status + outputStatus));
+      verify(() => assert.equal(fileAccessApi.wordsEmpty(fileAccessApi.requestArgs(finished)), 1));
+      verify(() => assert.equal(fileAccessApi.bytesEmpty(fileAccessApi.requestBody(finished)), 1));
+      const stillFinished = fileAccessApi.resume(finished, 1, accessBytes('ignored'));
+      verify(() => assert.equal(fileAccessApi.requestCode(stillFinished), 0));
+      verify(() => assert.equal(fileAccessApi.exitCode(stillFinished), status + outputStatus));
+    }
+  }
+  const accessFile = join(scratch, 'access file ?# é');
+  const accessContent = Buffer.from([0, 255, 65, 254, 10]);
+  writeFileSync(accessFile, accessContent, { mode: 0o600 });
+  const accessBefore = statSync(accessFile, { bigint: true });
+  // Repeated requests share a Node process to avoid charging startup time
+  // for each mode. Each request still instantiates the compiled module and
+  // uses the real reactor, filesystem and output stream.
+  const runAccessBatch = inputs => {
+    const source = `
+      import { runReactor } from ${JSON.stringify(new URL('../runtime/reactor.mjs', import.meta.url).href)};
+      for (const args of JSON.parse(process.argv[1])) {
+        const status = await runReactor(${JSON.stringify(fileAccess)}, args);
+        process.stdout.write('\\0' + status + '\\0');
+      }
+    `;
+    const done = spawnSync(process.execPath, ['--input-type=module', '-e', source, JSON.stringify(inputs)],
+      { encoding: 'utf8', cwd: scratch, timeout: 20000 });
+    verify(() => assert.equal(done.status, 0, done.stderr));
+    verify(() => assert.equal(done.stderr, ''));
+    const parts = done.stdout.split('\0');
+    verify(() => assert.equal(parts.length, inputs.length * 2 + 1));
+    verify(() => assert.equal(parts.at(-1), ''));
+    return inputs.map((_, index) => ({ stdout: parts[index * 2], status: Number(parts[index * 2 + 1]) }));
+  };
+  const accessMasks = [fsConstants.F_OK, fsConstants.X_OK, fsConstants.W_OK,
+    fsConstants.W_OK | fsConstants.X_OK, fsConstants.R_OK, fsConstants.R_OK | fsConstants.X_OK,
+    fsConstants.R_OK | fsConstants.W_OK, fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK];
+  const accessChecks = [];
+  for (const path of [accessFile, scratch]) {
+    for (const [mode, flags] of accessMasks.entries()) {
+      let nativeError;
+      try { accessSync(path, flags); } catch (error) { nativeError = error; }
+      accessChecks.push({ args: [path, String(mode)], nativeError });
+    }
+  }
+  const accessResults = runAccessBatch(accessChecks.map(check => check.args));
+  for (const [index, checked] of accessResults.entries()) {
+    const { nativeError } = accessChecks[index];
+    verify(() => assert.equal(checked.status, nativeError ? 1 : 0, checked.stdout));
+    if (nativeError) verify(() => assert.ok(checked.stdout.startsWith(`${nativeError.code}:`), checked.stdout));
+    else verify(() => assert.equal(checked.stdout, ''));
+  }
+  if (process.platform !== 'win32') {
+    const live = join(scratch, 'access-live');
+    const dangling = join(scratch, 'access-dangling');
+    const cyclic = join(scratch, 'access-cyclic');
+    symlinkSync(basename(accessFile), live);
+    symlinkSync('access-missing', dangling);
+    symlinkSync('access-cyclic', cyclic);
+    const parent = join(scratch, 'access-parent');
+    mkdirSync(join(parent, 'deep'), { recursive: true });
+    writeFileSync(join(parent, 'target'), 'kept');
+    symlinkSync(join(parent, 'deep'), join(scratch, 'access-alias'));
+    for (const path of [live, basename(accessFile), 'access-alias/../target', `${parent}//target`]) {
+      const checked = runModule([fileAccess, path, '0']);
+      verify(() => assert.equal(checked.status, 0, checked.stderr || checked.stdout));
+      verify(() => assert.equal(checked.stdout, ''));
+      verify(() => assert.equal(checked.stderr, ''));
+    }
+    for (const [path, error] of [[dangling, /^ENOENT:/], [cyclic, /^ELOOP:/],
+      [accessFile + '/', /^ENOTDIR:/], [join(accessFile, 'child'), /^ENOTDIR:/],
+      ['access-missing/../' + basename(accessFile), /^ENOENT:/], ['', /^ENOENT:/]]) {
+      const failed = runModule([fileAccess, path, '0']);
+      verify(() => assert.equal(failed.status, 1, failed.stderr));
+      verify(() => assert.match(failed.stdout, error));
+      verify(() => assert.equal(failed.stderr, ''));
+    }
+  }
+  for (const args of [[], [accessFile], [accessFile, '0', 'surplus']]) {
+    const failed = runModule([fileAccess, ...args]);
+    verify(() => assert.equal(failed.status, 1, failed.stderr));
+    verify(() => assert.equal(failed.stdout, `IO: OS request 48 expects 2 arguments, got ${args.length}`));
+    verify(() => assert.equal(failed.stderr, ''));
+  }
+  const invalidAccessModes = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-0', '-1', '+1', '01', '00', '1.0', '0.5', '1e0', '0x1', 'NaN', 'Infinity', '１',
+    '8', '511', '4294967296', '9007199254740993', '7.0000000000000001', '9'.repeat(400)];
+  for (const failed of runAccessBatch(invalidAccessModes.map(mode => [accessFile, mode]))) {
+    verify(() => assert.equal(failed.status, 1, failed.stdout));
+    verify(() => assert.equal(failed.stdout, 'IO: invalid OS access mode argument'));
+  }
+  const invalidAccessCli = runModule([fileAccess, accessFile, '8']);
+  verify(() => assert.equal(invalidAccessCli.status, 1, invalidAccessCli.stderr));
+  verify(() => assert.equal(invalidAccessCli.stdout, 'IO: invalid OS access mode argument'));
+  verify(() => assert.equal(invalidAccessCli.stderr, ''));
+  const accessAfter = statSync(accessFile, { bigint: true });
+  for (const key of ['dev', 'ino', 'mode', 'nlink', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs']) {
+    verify(() => assert.equal(accessAfter[key], accessBefore[key], key));
+  }
+  verify(() => assert.deepEqual(readFileSync(accessFile), accessContent));
+  verify(() => assert.equal(existsSync(join(scratch, 'access-missing')), false));
 
   const fileLutimes = join(scratch, 'file-lutimes.wasm');
   const fileLutimesBuild = run(['build', shared, fixture('file-lutimes'), '-o', fileLutimes,

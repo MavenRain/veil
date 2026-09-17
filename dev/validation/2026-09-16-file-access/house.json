@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "zsh",
+    "dev/house.sh"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-access",
+  "exit_code": 0,
+  "watchdog_ms": null,
+  "diagnostic_only": false,
+  "external_watchdog_expired": false,
+  "capture_timed_out": false,
+  "signal": 0,
+  "stdout": "HOUSE no-exception OK\nHOUSE no-mutable-state OK\nHOUSE one-catch-site OK\n/Users/oobi/Documents/gpt3/veil-file-access/test/sys_io.ml:19:  try Ok (thunk ()) with Sys_error m -> Error m\nHOUSE no-bool-match OK\nHOUSE no-em-dash OK\nHOUSE OK\n",
+  "stderr": "",
+  "stdout_sha256": "a88cdd236e380a3cbfcaa5c03a7d87947547afa253d4e7a4d17f4c8dddaf3d36",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

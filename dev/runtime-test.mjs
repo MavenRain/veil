@@ -801,6 +801,7 @@ test('request arities reject missing and surplus arguments before host effects',
     ['file chown', 45, [s.out, '1000', '2000']],
     ['file lchown', 46, [s.out, '1000', '2000']],
     ['file lutimes', 47, [s.out, '1000', '2000']],
+    ['file access', 48, [s.out, '0']],
   ];
   for (const [name, code, args] of requests) {
     await t.test(name, async () => {
@@ -3270,6 +3271,166 @@ test('file times forwards host errors and resumes a subsequent successful update
   t.after(() => { change.mock.restore(); syncBuiltinESMExports(); });
   await slotScript([...script, { code: 44, args: ['path', '1000', '2000'], answer: '' }]);
   assert.equal(change.mock.callCount(), script.length + 1);
+});
+
+test('file access checks every mode against native permissions without changing metadata', async t => {
+  const s = await sandbox(t);
+  const content = Buffer.from([0, 255, 65, 254, 10]);
+  await writeFile(s.out, content, { mode: 0o600 });
+  const before = await stat(s.out, { bigint: true });
+  const masks = [fsConstants.F_OK, fsConstants.X_OK, fsConstants.W_OK,
+    fsConstants.W_OK | fsConstants.X_OK, fsConstants.R_OK, fsConstants.R_OK | fsConstants.X_OK,
+    fsConstants.R_OK | fsConstants.W_OK, fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK];
+  const script = [];
+  for (const path of [s.out, s.path]) {
+    for (const [mode, flags] of masks.entries()) {
+      const request = { code: 48, args: [path, String(mode)], answer: '' };
+      try { await access(path, flags); }
+      catch (error) { request.status = 1; request.answer = `${error.code}: ${error.message}`; }
+      script.push(request);
+    }
+  }
+  await slotScript(script);
+  const after = await stat(s.out, { bigint: true });
+  for (const key of ['dev', 'ino', 'mode', 'nlink', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs']) {
+    assert.equal(after[key], before[key], key);
+  }
+  assert.deepEqual(await readFile(s.out), content);
+});
+
+test('file access preserves literal paths and native parent symlink resolution',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  const parent = join(s.path, 'parent é');
+  await mkdir(join(parent, 'deep'), { recursive: true });
+  const target = join(parent, 'target ?# é');
+  await writeFile(target, 'kept');
+  const alias = join(s.path, 'alias');
+  await symlink(join(parent, 'deep'), alias);
+  const literal = `${alias}/../target ?# é`;
+  await slotScript([
+    ...[literal, `${relative(process.cwd(), alias)}/../target ?# é`, `${parent}//target ?# é`, `${parent}/`]
+      .map(path => ({ code: 48, args: [path, '0'], answer: '' })),
+    { code: 48, args: [resolve(literal), '0'], status: 1, answer: /^ENOENT:/ },
+    { code: 48, args: [target, '4'], answer: '' },
+  ]);
+  assert.equal(await readFile(target, 'utf8'), 'kept');
+});
+
+test('file access follows final symlinks and supports hard links and special files without opening them',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept', { mode: 0o600 });
+  const live = join(s.path, 'live');
+  const hard = join(s.path, 'hard');
+  const dangling = join(s.path, 'dangling');
+  const cyclic = join(s.path, 'cyclic');
+  await symlink(basename(s.out), live);
+  await fsPromises.link(s.out, hard);
+  await symlink('missing', dangling);
+  await symlink('cyclic', cyclic);
+  const fifo = privateFifo(join(s.path, 'fifo'));
+  const forbidden = ['open', 'writeFile', 'appendFile', 'chmod', 'stat', 'lstat', 'realpath']
+    .map(name => t.mock.method(fsPromises, name, () => assert.fail(`file access called ${name}`)));
+  const originalRead = fsPromises.readFile;
+  const modulePath = new URL('../runtime/reactor.mjs', import.meta.url);
+  forbidden.push(t.mock.method(fsPromises, 'readFile', (path, ...args) => {
+    assert.ok(path instanceof URL && path.href === modulePath.href, 'file access read contents');
+    return originalRead(path, ...args);
+  }));
+  syncBuiltinESMExports();
+  t.after(() => { forbidden.forEach(mock => mock.mock.restore()); syncBuiltinESMExports(); });
+  await slotScript([
+    ...[live, hard, fifo, s.path].map(path => ({ code: 48, args: [path, '0'], answer: '' })),
+    { code: 48, args: [dangling, '0'], status: 1, answer: /^ENOENT:/ },
+    { code: 48, args: [cyclic, '0'], status: 1, answer: /^ELOOP:/ },
+    { code: 48, args: [live, '6'], answer: '' },
+  ]);
+});
+
+test('file access returns native path failures and recovers without creating entries',
+  { skip: process.platform === 'win32' }, async t => {
+  const s = await sandbox(t);
+  await writeFile(s.out, 'kept');
+  const missing = join(s.path, 'missing');
+  await slotScript([
+    ...[['', /^ENOENT:/], [missing, /^ENOENT:/], [s.out + '/', /^ENOTDIR:/],
+      [join(s.out, 'child'), /^ENOTDIR:/], [`${missing}/../stdout`, /^ENOENT:/]]
+      .map(([path, answer]) => ({ code: 48, args: [path, '0'], status: 1, answer })),
+    { code: 48, args: [s.out, '0'], answer: '' },
+    { code: 31, args: [s.out, '448'], answer: '' },
+    { code: 48, args: [s.out, '7'], answer: '' },
+  ]);
+  await absent(missing);
+  assert.equal(await readFile(s.out, 'utf8'), 'kept');
+});
+
+test('file access validates canonical modes and exact arity before the host call', async t => {
+  const check = t.mock.method(fsPromises, 'access', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { check.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([[], ['path'], ['path', '0', 'surplus']]
+    .map(args => ({ code: 48, args, status: 1,
+      answer: `IO: OS request 48 expects 2 arguments, got ${args.length}` })));
+  const invalid = ['', ' ', ' 1', '1 ', '1\n', '1\r', '1\r\n', '1\t', '1\u2028', '1\u2029',
+    '-0', '-1', '+1', '01', '00', '1.0', '0.5', '1e0', '0x1', 'NaN', 'Infinity', '-Infinity',
+    '１', '8', '511', '4294967296', '9007199254740993', '7.0000000000000001', '9'.repeat(400)];
+  await slotScript(invalid.map(mode => ({ code: 48, args: ['path', mode], status: 1,
+    answer: 'IO: invalid OS access mode argument' })));
+  assert.equal(check.mock.callCount(), 0);
+  await slotScript([{ code: 48, args: ['path', '0'], answer: '' }]);
+  assert.equal(check.mock.callCount(), 1);
+});
+
+test('file access rejects undecodable bytes in either argument before the host call', async t => {
+  const check = t.mock.method(fsPromises, 'access', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { check.mock.restore(); syncBuiltinESMExports(); });
+  for (const [bytes, message] of [[Buffer.from('x\0y'), 'NUL in OS string argument'],
+    [Buffer.from([255]), 'non-UTF-8 bytes in OS string argument']]) {
+    for (let index = 0; index < 2; index += 1) {
+      const args = ['path', '0'];
+      args[index] = bytes;
+      await assert.rejects(slotScript([{ code: 48, args, answer: '' }]), { message });
+    }
+  }
+  assert.equal(check.mock.callCount(), 0);
+});
+
+test('file access forwards every flag combination once and ignores the request body', async t => {
+  const check = t.mock.method(fsPromises, 'access', async () => {});
+  syncBuiltinESMExports();
+  t.after(() => { check.mock.restore(); syncBuiltinESMExports(); });
+  const path = '../héllo//alias/../file';
+  const masks = [fsConstants.F_OK, fsConstants.X_OK, fsConstants.W_OK,
+    fsConstants.W_OK | fsConstants.X_OK, fsConstants.R_OK, fsConstants.R_OK | fsConstants.X_OK,
+    fsConstants.R_OK | fsConstants.W_OK, fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK];
+  await slotScript(masks.map((_, mode) => ({ code: 48, args: [path, String(mode)],
+    body: Buffer.alloc(65537, 255), answer: '' })));
+  assert.equal(check.mock.callCount(), masks.length);
+  for (const [index, call] of check.mock.calls.entries()) {
+    assert.deepEqual(call.arguments, [path, masks[index]]);
+  }
+});
+
+test('file access forwards host errors and awaits completion before resuming', async t => {
+  const failures = ['EACCES', 'EPERM', 'EROFS', 'EIO', 'ENOSYS', 'ENOTSUP', 'EINVAL']
+    .map(code => Object.assign(new Error('injected access failure'), { code }));
+  failures.push(new Error('generic failure'));
+  const script = failures.map(error => ({ code: 48, args: ['path', '4'], status: 1,
+    answer: `${error.code ?? 'IO'}: ${error.message}` }));
+  let finished = 0;
+  const check = t.mock.method(fsPromises, 'access', async () => {
+    await new Promise(resolveCheck => setImmediate(resolveCheck));
+    finished += 1;
+    const error = failures.shift();
+    if (error) throw error;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { check.mock.restore(); syncBuiltinESMExports(); });
+  await slotScript([...script, { code: 48, args: ['path', '4'], answer: '' }]);
+  assert.equal(check.mock.callCount(), script.length + 1);
+  assert.equal(finished, script.length + 1);
 });
 
 test('file lutimes updates live, dangling and cyclic links without touching their targets',

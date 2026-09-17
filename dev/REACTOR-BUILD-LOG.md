@@ -1176,3 +1176,43 @@ macOS and Node v23.10.0. Windows was not exercised; Date range endpoints and
 unsupported-operation errors were checked with injected host calls. The
 [validation record](validation/2026-09-16-file-lutimes/README.md) contains
 source hashes, captures, scope and reproducible controls.
+
+## Filesystem access checks, 2026-09-16
+
+Base: `8888c1d8d561d58e67c13b16144becc5f5a90211`.
+
+Operation 48 accepts `[path, mode]`, validates a single decimal digit in
+0..7, translates read/write/execute bits to host access flags, and awaits
+one access call. Mode 0 checks existence. Success resumes with an empty
+status-0 answer; host and validation failures resume with status 1.
+Paths retain native resolution, including final and parent symlinks.
+The result is a snapshot and cannot authorize a later operation.
+
+Eight runtime tests cover every mode against native permissions, unchanged
+contents and metadata, literal paths, links, FIFOs, malformed requests,
+exact flag forwarding and host errors. The arity matrix includes operation
+48. A compiled Kanon fixture checks ordered bytes, answer forwarding,
+output failures, terminal states and real requests through the runtime and
+CLI. Repeated mode cases share a Node process to limit startup overhead.
+
+Validation used the verified compiler from the base:
+
+- Full runtime suite: 307 passed, no failures or skips, nine more than base.
+- Compiled functional diagnostic: 4018 passed, 207 more than base.
+- HOST-NAT: 16/16. Positive control: eight passed, no failures or skips.
+- All eight defect controls failed assertions.
+- Syntax, HOUSE, TRUSTED-LINES and whitespace checks passed. Kernel lines
+  remain 5246/5250; encoder lines remain 246/600.
+
+The REACTOR gate did not pass its unchanged 30-second watchdog in four
+attempts. Diagnostic captures with a 120-second ceiling show the original
+harness passing 3811 checks in 42.987 seconds and the final harness passing
+4018 checks in 35.284 seconds. Load varied between runs, so these timings
+are not a comparative performance result. Functional checks pass, but a
+green 30-second REACTOR verdict remains outstanding.
+
+All original test bodies, compiler sources and gate scripts retain their
+base contents. The compiler and full milestone ladder were not rebuilt or
+rerun. Native validation used macOS and Node v23.10.0; Windows was not
+exercised. The [validation record](validation/2026-09-16-file-access/README.md)
+contains source hashes, captures, scope and reproducible controls.

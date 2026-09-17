@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "node",
+    "--import",
+    "./.gatework/access-diagnostics/timing.mjs",
+    ".gatework/access-diagnostics/baseline.mjs",
+    "_build/default/bin/kanon.exe"
+  ],
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-access",
+  "exit_code": 0,
+  "watchdog_ms": 120000,
+  "diagnostic_only": true,
+  "external_watchdog_expired": false,
+  "capture_timed_out": false,
+  "signal": 0,
+  "stdout": "reactor: 3811 checks passed\n",
+  "stderr": "{\"elapsed_ms\":42987,\"subprocess_ms\":42145,\"calls\":501,\"slowest\":[{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/file-chown.wasm\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/chown file \u00e9\"],\"elapsed_ms\":827,\"status\":1},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/list-cycles.wasm\",\"words\"],\"elapsed_ms\":661,\"status\":2},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/directory-listing.wasm\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/listing-bounded\"],\"elapsed_ms\":513,\"status\":0},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/directory-create.wasm\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/created h\u00e9llo\"],\"elapsed_ms\":495,\"status\":1},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/file-identity.wasm\",\"\"],\"elapsed_ms\":438,\"status\":1},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/file-permissions.wasm\",\"mode h\u00e9llo\"],\"elapsed_ms\":372,\"status\":0},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/file-lchown.wasm\",\"lchown-dangling\"],\"elapsed_ms\":347,\"status\":0},{\"executable\":\"/opt/homebrew/Cellar/node/23.10.0_1/bin/node\",\"arguments\":[\"/Users/oobi/Documents/gpt3/veil-file-access/runtime/run.mjs\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/file-lchown.wasm\",\"/var/folders/d4/9sdgktzs23s857pdkm4yfndw0000gn/T/kanon-reactor-0GA4kD/lchown file \u00e9\"],\"elapsed_ms\":331,\"status\":1}]}\n",
+  "stdout_sha256": "18c7c7416f71fcb426a9d1c4fd8b6469b779039195116b179ae93dd60396b9e8",
+  "stderr_sha256": "6cb086bd4cc6e15b0596728bcd7cdcc32680ba7ab039757c7a0c20fc2d7351d5"
+}

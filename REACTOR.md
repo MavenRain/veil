@@ -180,8 +180,9 @@ the left list's length.
 | 45 | path, uid, gid | Set numeric owner and group IDs on an existing entry; return an empty answer |
 | 46 | path, uid, gid | Set ownership without following the final symlink; return an empty answer |
 | 47 | path, atime, mtime | Set access and modification times without following the final symlink; return an empty answer |
+| 48 | path, mode | Check existence or read/write/execute access; return an empty answer on success |
 
-Operations 1 to 47 check argument counts before performing the operation.
+Operations 1 to 48 check argument counts before performing the operation.
 Each fixed row requires exactly the listed arguments. Operation 4 requires
 at least five arguments, including the executable; further arguments are
 passed to that executable. Operation 16 requires a subset, a function code
@@ -220,7 +221,8 @@ the [filesystem type regressions](dev/FILESYSTEM-TYPE.md) cover operation 43,
 the [timestamp update regressions](dev/FILE-TIMES.md) cover operation 44,
 the [ownership update regressions](dev/FILE-CHOWN.md) cover operation 45,
 the [link ownership regressions](dev/FILE-LCHOWN.md) cover operation 46,
-and the [link timestamp regressions](dev/FILE-LUTIMES.md) cover operation 47.
+the [link timestamp regressions](dev/FILE-LUTIMES.md) cover operation 47,
+and the [file access regressions](dev/FILE-ACCESS.md) cover operation 48.
 The [release regressions](dev/BLOB-RELEASE.md) cover the behavior of operation 18.
 
 Operations 19 and 20 let a reactor clean up its files and temporary directories.
@@ -774,6 +776,28 @@ error code. Undecodable arguments end the run before dispatch. Host support,
 timestamp range and filesystem precision govern what can be stored.
 Operations 33 and 34 follow final symlinks, so they read the target's times.
 See the [link timestamp contract and tests](dev/FILE-LUTIMES.md).
+
+Operation 48 takes `[path, mode]` and calls the host's `access` once. Mode is
+one ASCII digit from `0` to `7`: `0` checks existence, `4` checks read access,
+`2` checks write access and `1` checks execute access (directory search on
+POSIX). Combine the nonzero bits to require all selected permissions. For
+example, `6` checks read and write access. Other spellings, including leading
+zeros, whitespace, signs, fractions and exponent notation, are rejected
+before the host call. The body is ignored under shared decoding limits.
+
+Success resumes with status 0 and an empty answer. An unavailable path or
+denied access resumes with status 1 and the native error code and message.
+Arity and mode errors also resume with status 1, using an `IO:` message.
+Undecodable arguments end the run before dispatch. Relative paths use the
+process working directory; final and parent symlinks, dot segments and
+trailing slashes keep native resolution. No file is created or opened.
+
+This is a snapshot of host access rules, which can differ from permission
+bits alone. It does not reserve access or guarantee that a later file
+operation succeeds. Applications should perform the desired operation and
+handle its errors directly. On Windows, execute checks behave like existence
+checks, and the Node binding does not inspect Windows ACLs. See the
+[access contract and tests](dev/FILE-ACCESS.md) for platform limits.
 
 Operation 1 resolves the root against the host working directory, creates it
 if needed, and creates a fresh private directory directly inside it. The

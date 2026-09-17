@@ -115,6 +115,10 @@ Operation 47 updates access and modification times on the entry itself,
 including dangling and cyclic symlinks. The
 [link timestamp regressions](dev/FILE-LUTIMES.md) cover target preservation,
 pre-epoch values, literal paths, timestamp bounds and request failures.
+Operation 48 checks existence or a combination of read, write and execute
+access using the host's access rules. The
+[file access regressions](dev/FILE-ACCESS.md) cover every mode, native
+permissions, links, literal paths and request failures.
 
 Function parameters can share a type and quantity:
 

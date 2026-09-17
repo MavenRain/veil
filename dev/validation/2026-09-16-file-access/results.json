@@ -1,0 +1,110 @@
+{
+  "base": "8888c1d8d561d58e67c13b16144becc5f5a90211",
+  "cwd": "/Users/oobi/Documents/gpt3/veil-file-access",
+  "platform": "macOS-26.4-arm64-arm-64bit-Mach-O",
+  "node": "v23.10.0",
+  "validation_scope": {
+    "compiler_rebuilt": false,
+    "full_milestone_ladder_rerun": false,
+    "compiler_sources_and_gates_unchanged": true,
+    "source_scope_capture": "source-scope.json",
+    "native_platform": "macOS",
+    "windows_exercised": false,
+    "unsupported_operation_errors": "injected errors and continuation",
+    "reactor_30_second_gate": "outstanding: four watchdog expirations"
+  },
+  "checks": {
+    "runtime": {
+      "passed": 307,
+      "failed": 0,
+      "skipped": 0,
+      "delta": 9,
+      "capture": "runtime.json"
+    },
+    "reactor_functional": {
+      "passed": 4018,
+      "delta": 207,
+      "capture": "reactor.json",
+      "diagnostic_only": true,
+      "elapsed_ms": 35284
+    },
+    "reactor_gate": {
+      "passed": false,
+      "exit_code": 124,
+      "watchdog_ms": 30000,
+      "attempts": 4
+    },
+    "baseline_harness": {
+      "passed": 3811,
+      "elapsed_ms": 42987,
+      "capture": "baseline.json"
+    },
+    "host_nat": {
+      "passed": 16,
+      "capture": "host-nat.json"
+    },
+    "positive_control": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "defect_controls": {
+      "killed": 8,
+      "survived": 0
+    },
+    "syntax": "passed",
+    "house": "passed",
+    "trusted_lines": "5246/5250 and 246/600",
+    "diff_check": "passed"
+  },
+  "source_sha256": {
+    "REACTOR.md": "59c2c390bcba88b819f4f85038169e17d71e0c0376ec0cb3392a4ed166d560a0",
+    "README.md": "c54bbf8a29d4a3a7f272ec4b31a0584e78de04db7b426d20d068c7f03c05c1c4",
+    "_build/default/bin/kanon.exe": "ba114dff6ab0e6f38753321393c0502c76b4937ff9896989ee962498e94a4ed0",
+    "dev/FILE-ACCESS.md": "0e69674757fb17f7dbdf94b3aa40fc7397065b8d0845b2503817e55483016e8a",
+    "dev/REACTOR-BUILD-LOG.md": "d7e9f5f1ef739e2448638e29073cbc45cab58fe5308fdca648e88dabcf616996",
+    "dev/REQUEST-ARITY.md": "343e71ed889e13317411164aad0d04545248d8c5d3d6c118ce7af4e78e940b81",
+    "dev/gates.sh": "d64ccb03f137f798a234e810cc306e6017973ae2d24d39b1c4fe3afa07e9ec35",
+    "dev/host-nat-test.mjs": "98ec86cf5558069868a650ed79b6b902be6338647bb8c325e2939ae31458319b",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/reactor-test.mjs": "045dc8efd4f51368c1eab82357e585097d0b531cfb4ca4e6f952e7f57443cca5",
+    "dev/runtime-test.mjs": "de3aed0e55a5968f188a1f8ad1e57e4d5dcdc8ef71980af8da1f915c63edd623",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-16-file-access/README.md": "f384cd3024db795fb123b651c578d8a982cd0a21dddb6bb4cb99ddd20fa92b07",
+    "dev/validation/2026-09-16-file-access/reproduce-controls.py": "d17fb4b226be752340bd384c28fb7f62f324c886d355f35c90d1cf1b62039573",
+    "dev/validation/2026-09-16-file-access/timing-probe.mjs": "3a27a0bf8635389b9ec03aee3324f703ff5d4c16a00c6b5a6f15ed04dcb3725f",
+    "runtime/reactor.kan": "9f45639fbfe9840e09ba920060e3a2f6fc977ef3f3fbc093e75c859aa5e9dc28",
+    "runtime/reactor.mjs": "6a0ecd05f539f499e37edc04a59355787f6967830b2de5f5ae10e5b1dd71323d",
+    "runtime/run.mjs": "49986b21cfbfa49a3b8e8da76342cb9d6c86a1c6d60fc1f76dc5462f906fe785",
+    "test/fixtures/reactor/file-access.kan": "08ca93642bc789264b9f36351bdc3587ade1db5f1ffde5be129439f34c9d831d"
+  },
+  "capture_sha256": {
+    "dev/validation/2026-09-16-file-access/baseline.json": "842a866c1471ba280fb1994c5de7f99f647f390a285552c81ea21f526d40525b",
+    "dev/validation/2026-09-16-file-access/check-before-validation.json": "2e8d901f921cf64d233a6f0f8cf78de15fdf042cbfd5cce8313e81bc56c92c7a",
+    "dev/validation/2026-09-16-file-access/control-run.json": "fc97617d8ccd4a9b50a2acaae2f25231e9061501b2aefffe862ed67c62a5a31b",
+    "dev/validation/2026-09-16-file-access/controls.json": "61e99daeae7df4858a044e818a681b903d0f05f45ab4547576c365cb20f10080",
+    "dev/validation/2026-09-16-file-access/diff-check.json": "dc95028207b6489b6d2ba08445e1fbcd6ecbfe61b5d9919e55639a4ec8aa2df5",
+    "dev/validation/2026-09-16-file-access/host-nat.json": "a20e323bd6c5b5c0b7b533610dc0f2ce008f1759501da053cb0ff63a76eb2903",
+    "dev/validation/2026-09-16-file-access/house.json": "bae4349309dfc4e1aeb72eefa06fa6212901e4c0c9fe5b2f49a79e936ef2f1ca",
+    "dev/validation/2026-09-16-file-access/ignore-access.json": "dc65d282d4cda33d3e7a3a2402886d3583fffef98aaa43f8ae3c5ec3b20dbf02",
+    "dev/validation/2026-09-16-file-access/missing-arity.json": "75c0d98c7734cba0b437138fe0944e2fa99e3bc53eb195ce7c6d5af91445addc",
+    "dev/validation/2026-09-16-file-access/missing-operation.json": "19a826226357e906c319a781dd0a1ab67e97d03a7443b849b5662355f26d792e",
+    "dev/validation/2026-09-16-file-access/noncanonical-mode.json": "5ecbb441b0150bfea1c9bceb1b5e58e875f32bf879117f9c3b88a4c1b43239f8",
+    "dev/validation/2026-09-16-file-access/normalize-path.json": "e4dfc8f00e9fe76186905a19cb92d790c76281f13ef364849a2c89e00d852b60",
+    "dev/validation/2026-09-16-file-access/positive.json": "bb213bed5399489c2ea486f6435e1043dc47551521c28a5321ec81837c44c4f7",
+    "dev/validation/2026-09-16-file-access/reactor-timeout-1.json": "a768f0d5dc0db0346bb927f2ef9f09fc649f5260ad6572be0ca10d38fcd1060f",
+    "dev/validation/2026-09-16-file-access/reactor-timeout-2.json": "a768f0d5dc0db0346bb927f2ef9f09fc649f5260ad6572be0ca10d38fcd1060f",
+    "dev/validation/2026-09-16-file-access/reactor-timeout-3.json": "a768f0d5dc0db0346bb927f2ef9f09fc649f5260ad6572be0ca10d38fcd1060f",
+    "dev/validation/2026-09-16-file-access/reactor-timeout-4.json": "a768f0d5dc0db0346bb927f2ef9f09fc649f5260ad6572be0ca10d38fcd1060f",
+    "dev/validation/2026-09-16-file-access/reactor.json": "b989458ce752823b5241d5c51796cf4859588aa16510819dd95068b228295bcb",
+    "dev/validation/2026-09-16-file-access/runtime.json": "80d9f1a8b3653da5a4a5f117220ef0c98e75f0252f4f179d926bba2f8821a95e",
+    "dev/validation/2026-09-16-file-access/source-scope.json": "a0badbf97c82b7ae226fc97d2c5e30fc78cd87c95fa6a5ed0a21da315a619cc9",
+    "dev/validation/2026-09-16-file-access/syntax-reactor-tests.json": "7953586203f22c0423c17116afa6dcba6d337c9e98676977d673b9a8c30fafe4",
+    "dev/validation/2026-09-16-file-access/syntax-runtime-tests.json": "852a1a1db76459188c31fc3f936ff3ad3ea7d6d4267fd9812714eb6854d64049",
+    "dev/validation/2026-09-16-file-access/syntax-runtime.json": "d877951f29ea8ad179e9a71f55c4c73ba4b0b8ce83d81be437b9817e1e3f2ef5",
+    "dev/validation/2026-09-16-file-access/trusted-lines.json": "5eba0db82554131a8b010ef3c920febe45bf765db78bc7528e10ba39b0b938fe",
+    "dev/validation/2026-09-16-file-access/unawaited-access.json": "c53934d51ff9f599d940beb2e4053a418b7d8035ec4279caf03dea0c26297e8f",
+    "dev/validation/2026-09-16-file-access/wrong-flags.json": "13f3933ca8902d4022d000bcccc974a9d7ef3a75254dd2a02d5b4a61566bdd90",
+    "dev/validation/2026-09-16-file-access/gates-review.log": "ad9ce47de0b70153eaadb3725c76b7271d55870cfa776e7f2ac3ed15b9817bd9"
+  }
+}
