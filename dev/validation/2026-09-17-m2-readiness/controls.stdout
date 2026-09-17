@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "test_sha256": "b388f447ba7a882a30025eec8ce5b59a00cc47397cee18e379f53bee4d022cd8",
+  "variants": {
+    "baseline": {
+      "exit_code": 0,
+      "source_sha256": "b849676df90df4a7d4d4bdbd1ba20aa594dc5471c216dd68dc5cf5cdbed50d48",
+      "stdout": "OK test: 4 passed\n",
+      "stderr": ""
+    },
+    "zero-exit": {
+      "exit_code": 1,
+      "source_sha256": "121cb9feb4ca839b9449da667ec5f1da2b43af6b8d7a735ed0bd9a9594463d1a",
+      "stdout": "F /private/tmp/claude-501/kanon-cli-control-mate19jg/cli-batch-test.mjs:9:1    1: status\nF /private/tmp/claude-501/kanon-cli-control-mate19jg/cli-batch-test.mjs:35:1    Expected values to be strictly equal:\nFAIL test: 2 failed, 2 passed\n",
+      "stderr": ""
+    },
+    "hide-timeout": {
+      "exit_code": 1,
+      "source_sha256": "f31f579edcb2a48eaaad2307adc40c53e82ee27cb23a76e6e652fa7e7e30595d",
+      "stdout": "F /private/tmp/claude-501/kanon-cli-control-4i5r119g/cli-batch-test.mjs:35:1    Expected values to be strictly equal:\nFAIL test: 1 failed, 3 passed\n",
+      "stderr": ""
+    },
+    "early-reject": {
+      "exit_code": 1,
+      "source_sha256": "074e0503954a63323d28141d00994b7efd63783ad3a345e4211f2f3384df72b4",
+      "stdout": "F /private/tmp/claude-501/kanon-cli-control-flj2pla4/cli-batch-test.mjs:77:1    \"ENOENT: no such file or directory, open '/tmp/claude-501/kanon-cli-batch-KneA8m/finished'\"\nFAIL test: 1 failed, 3 passed\n",
+      "stderr": ""
+    }
+  }
+}

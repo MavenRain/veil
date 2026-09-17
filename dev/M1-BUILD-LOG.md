@@ -2306,3 +2306,80 @@ scope; the external semantic models do not establish compiler preservation.
 M1 exit ratification remains open. This record does not fill the user's
 M1-EXIT stamp or claim full Lean parity, general arithmetic agreement,
 or source-to-Wasm preservation.
+
+## M1 closure candidate and M2 readiness (2026-09-17)
+
+The candidate on `f0f3561dff00af8f4de90d1e0eec89e9130ef777` passes all 27
+current gates.  The clean independent snapshot matched 2,187 tracked files
+and the vendored pin.  The initial run failed M0-TIME and the REACTOR
+watchdog.  A separate diagnostic passed 4,128 reactor checks and identified
+459 serial runtime CLI invocations consuming 30.726 seconds.
+
+The change batches 84 independent invalid-argument CLI cases with at most
+four live children.  Each retains its own process, assertions, timeout and
+output bound.  Stateful success cases remain sequential.  The existing
+RUNTIME leg now also runs four helper regressions for exit propagation,
+timeouts, output limits, ordering, bounded concurrency and batch cleanup.
+Three mutation controls fail those regressions as intended.  The helper result
+is not the `spawnSync` result in three fields: `status` is null for every
+killed child, `signal` is null on the output-limit path, and `error.code` is
+absent on every killed path.  The regressions pin this shape.
+
+The final `zsh dev/gates.sh` exits 0 with `GATES-OK`.  The complete MEASURE
+table, all streams and source hashes are in the
+[validation record](validation/2026-09-17-m2-readiness/README.md).
+
+| Binding observation | Result | Bound |
+| --- | ---: | ---: |
+| M0-TIME, three five-run medians | 106.063 ms | 150 ms |
+| M0-RATIO | 1.230804 | 2.000 |
+| M1-CORPUS, 1,000 lines, main=814 | 214.371 ms | 713 ms |
+| REACTOR whole leg | 18,121.015 ms | 30,000 ms |
+| RUNTIME whole leg | 6,630.078 ms | 30,000 ms |
+
+The final performance samples report load1 12.512.  The initial M0-TIME
+sample reported load1 45.666.  The runs establish a passing candidate, not a
+controlled speedup estimate.  The compiler, host runtime, watchdogs and
+performance bounds are unchanged.  AGREEMENT passes all 7,445 cases.
+
+The retained latest Lean evidence still matches all 56 pinned `meta/` source
+files and every capture.  Its source checker reports only the historical
+README mismatch.  This reuses the recorded builds and makes no new Lean
+build claim.  The September 7 mutation audit remains historical evidence.
+
+The [M2 handoff](M2-READINESS.md) records the proposed parity inventory and
+the existing M2 exit criteria.  Commit this closure increment and check the
+committed tree before the user's M1 exit stamp.  This entry does not ratify
+M1 or begin M2 implementation.
+
+### Review 2026-09-17 (M2 readiness)
+
+The slice review kept five low findings.  All five are corrected here.
+
+- A-1, low, dev/cli-batch-test.mjs:53.  A new case writes 600 kB on each
+  stream and then idles under a 3,000 ms timeout.  The case asserts the
+  `ENOBUFS` code and an elapsed time below 2,000 ms.  This pins the early
+  kill of the output cap by time.
+- A-2, low, dev/cli-batch.mjs:16.  A comment above the resolve names the
+  three fields that differ from `spawnSync`.  The slice section above
+  repeats them.  The both-stream case asserts `signal === null`.
+- A-4, low, dev/cli-batch-test.mjs:50.  The both-stream payload is now the
+  precomposed character U+00E9, 400,000 times on each stream.  A character
+  count of the two streams stays below the limit, thus a count mutant of
+  the byte counter fails.
+- C-3, low, README.md:177.  The status row is broken before the link.  All
+  rows of the status paragraph are at or below 80 columns.
+- D-2, low, dev/validation/2026-09-17-m2-readiness/verify.py:18.  The report
+  gives the two manifest sizes and a new `gate_drift` field.  The field
+  lists the shared keys whose final pin supersedes the gate pin.  The drift
+  is not an error, because the post-gate document edits are declared.
+
+CARRY: the `spawnSync` result shape of a killed child in dev/cli-batch.mjs
+is carried for a user ruling.  To send the code `ETIMEDOUT`, to keep the
+real exit status, or to carry the signal through the output-limit path is a
+design change and not a defect correction.
+
+The helper regressions give `OK test: 4 passed`.  The three mutation
+controls stay at exit 1, and controls.stdout reports `passed` true.  The
+reactor harness gives `reactor: 4128 checks passed`.  The runtime twin
+gives 322 of 322 tests.

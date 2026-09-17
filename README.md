@@ -172,10 +172,13 @@ constructor-preserving maps between base algebras, retaining dependent witnesses
 through pullback, composition, substitution and renaming.
 General typed interpretation, compiler preservation and full Lean parity remain open.
 
-Status: M1 Stage L implementation complete. The current compiler passed
-all 21 gate legs, including REACTOR, RUNTIME and the binding performance
-checks, on 2026-09-07. The [validation record](dev/M1-BUILD-LOG.md#current-compiler-validation-2026-09-07)
-retains the source revision, complete output and measurements.
+Status: M1 Stage L implementation complete.  The M1 closure candidate passed
+all 27 gate legs, including REACTOR, RUNTIME and the binding performance
+checks, on 2026-09-17.
+The [validation record](dev/validation/2026-09-17-m2-readiness/README.md)
+retains both runs, source hashes and measurements.  The
+[M2 readiness record](dev/M2-READINESS.md) lists the entry steps and proposed
+first increment.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive
 indexed and mutual `mu` families, dependent matching, structural
@@ -484,7 +487,7 @@ M1-CORPUS        the 1000-line corpus, through check and all runtime hosts
 M1-SUITE         feature ledger, negative twins, One, Nat and surface cases
 AGREEMENT        5445 unary witnesses and 2000 independent full-range cases
 REACTOR          compiled module ABI, byte literals and realpath CLI integration
-RUNTIME          OS operations, process cleanup and interruption status
+RUNTIME          OS operations, process cleanup, interruption and CLI batching
 ```
 
 Several verdict lines include observations, such as `main=521`, timing

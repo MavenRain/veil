@@ -1,0 +1,12 @@
+{
+  "README.md": "b7d181ecd0283e6d138c9f39280d1cc70c2ae6e3a1040acce427c05502ba0ffa",
+  "dev/M1-BUILD-LOG.md": "5902aeb07e7b7efdc817b83a9267e875c9e7b352a2db6a0428d5214770cb112e",
+  "dev/M2-READINESS.md": "fc9fee4bea7ef0274c9d8ac797f2d268bc5114738795f6c83cd01f416c0c2ec5",
+  "dev/gates.sh": "f909ede881a4706a7c3ee7ae8ccc430fa573edb4fa6f90fb4113d2bed66e46a5",
+  "dev/reactor-test.mjs": "a731e9edc9e1bec1c15c3963cd407bbcfdb6dfa042cd7a8edf1b6d815673e57c",
+  "dev/cli-batch.mjs": "a4fa2ea1ecab5ce14559c71e5164969b623a4da5e83c35f5855b9bd41ef58896",
+  "dev/cli-batch-test.mjs": "e532d7be5d25da9ccc41990c6f641778f4d0df718315aa086608de9d08b9b880",
+  "dev/validation/2026-09-17-m2-readiness/README.md": "959fad7dea52303ecfaaf51fa32409d255dffb31986fe8adddc35208a3adf220",
+  "dev/validation/2026-09-17-m2-readiness/controls.py": "bc795d51d723f51ce3a5d66ff45edd570ce993e74c18b5c9889e3c5969c61ce1",
+  "dev/validation/2026-09-17-m2-readiness/verify.py": "175c2940b523f1323f6df4c64b2ef5325700fe221f22e5ffd5038b069a705574"
+}

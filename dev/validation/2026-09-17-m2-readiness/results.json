@@ -1,0 +1,476 @@
+{
+  "date": "2026-09-17",
+  "head": "f0f3561dff00af8f4de90d1e0eec89e9130ef777",
+  "tree": "e89e56e186698656a14fd44c96f71fc665d871ae",
+  "snapshot": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+  "vendor_head": "8cf0b8bfbb574e344d8d489ba6fd6b81de4cf562",
+  "baseline_clean": true,
+  "gate_sources": "gate-sources.json",
+  "captures": {
+    "gates-before": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-m2-readiness/.kanon-exec/run-3M5xta",
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+      "command": "zsh dev/gates.sh",
+      "exit_code": 1,
+      "streams": {
+        "stdout": {
+          "path": "gates-before.stdout",
+          "sha256": "38868b87f3b1cb9dd7482436040482cdb7234f2008df8f60d07032fc7f203f0d"
+        },
+        "stderr": {
+          "path": "gates-before.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "gates-after": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-m2-readiness/.kanon-exec/run-wSNgQf",
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+      "command": "zsh dev/gates.sh",
+      "exit_code": 0,
+      "streams": {
+        "stdout": {
+          "path": "gates-after.stdout",
+          "sha256": "5728332da6fd3e0947a22dd5e463c046d080a2f9835f25899d5c1ab4b13051d7"
+        },
+        "stderr": {
+          "path": "gates-after.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "reactor-profile": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-m2-readiness/.kanon-exec/run-tWwVvF",
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+      "command": "gtimeout 120 node --import /Users/oobi/Documents/gpt3/veil-reactor-profile.mjs dev/reactor-test.mjs _build/default/bin/kanon.exe",
+      "exit_code": 0,
+      "streams": {
+        "stdout": {
+          "path": "reactor-profile.stdout",
+          "sha256": "e01ce04a04ca27e7b78e7e719a833e8685b4aaffa963b18773aa9d2342b8e67b"
+        },
+        "stderr": {
+          "path": "reactor-profile.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "controls": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-m2-readiness/.kanon-exec/run-M7HUKD",
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+      "command": "python3 -I dev/validation/2026-09-17-m2-readiness/controls.py",
+      "exit_code": 0,
+      "streams": {
+        "stdout": {
+          "path": "controls.stdout",
+          "sha256": "8cb2aed5fb2885f551d5de31219b35a98eb7a932ec8117a56c77bf6221b2bb86"
+        },
+        "stderr": {
+          "path": "controls.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "lean-evidence-check": {
+      "artifact": "/Users/oobi/Documents/gpt3/veil-m2-readiness/.kanon-exec/run-urnKKQ",
+      "cwd": "/Users/oobi/Documents/gpt3/veil-m2-readiness",
+      "command": "python3 -I dev/validation/2026-09-09-finitary-elim-base-change/check_sources.py",
+      "exit_code": 1,
+      "streams": {
+        "stdout": {
+          "path": "lean-evidence-check.stdout",
+          "sha256": "81477df69f75aa7f9121094f6c69e5b6d363ed415d28a13c5fbe60b1489b5443"
+        },
+        "stderr": {
+          "path": "lean-evidence-check.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  },
+  "measures": {
+    "gates-before": [
+      {
+        "name": "BUILD",
+        "tier": "SLOW",
+        "elapsed_ms": 4261.114,
+        "exit_code": 0
+      },
+      {
+        "name": "CARRY",
+        "tier": "MED",
+        "elapsed_ms": 1724.5,
+        "exit_code": 0
+      },
+      {
+        "name": "R0-COUNT",
+        "tier": "FAST",
+        "elapsed_ms": 367.927,
+        "exit_code": 0
+      },
+      {
+        "name": "R0-AUDIT",
+        "tier": "FAST",
+        "elapsed_ms": 24.769,
+        "exit_code": 0
+      },
+      {
+        "name": "SUITE-KERNEL",
+        "tier": "SUITE",
+        "elapsed_ms": 706.856,
+        "exit_code": 0
+      },
+      {
+        "name": "SUITE-WASM",
+        "tier": "SUITE",
+        "elapsed_ms": 6241.17,
+        "exit_code": 0
+      },
+      {
+        "name": "ENCODER-SUBSET",
+        "tier": "FAST",
+        "elapsed_ms": 181.512,
+        "exit_code": 0
+      },
+      {
+        "name": "AXIOMS",
+        "tier": "MED",
+        "elapsed_ms": 60.41,
+        "exit_code": 0
+      },
+      {
+        "name": "M0-E2E",
+        "tier": "SLOW",
+        "elapsed_ms": 808.249,
+        "exit_code": 0
+      },
+      {
+        "name": "M0-TIME",
+        "tier": "SLOW",
+        "elapsed_ms": 4658.328,
+        "exit_code": 1
+      },
+      {
+        "name": "M0-RATIO",
+        "tier": "SLOW",
+        "elapsed_ms": 294.966,
+        "exit_code": 0
+      },
+      {
+        "name": "TRUSTED-LINES",
+        "tier": "FAST",
+        "elapsed_ms": 27.338,
+        "exit_code": 0
+      },
+      {
+        "name": "CIRCUIT",
+        "tier": "FAST",
+        "elapsed_ms": 380.851,
+        "exit_code": 0
+      },
+      {
+        "name": "ZK",
+        "tier": "FAST",
+        "elapsed_ms": 62.039,
+        "exit_code": 0
+      },
+      {
+        "name": "FHC",
+        "tier": "FAST",
+        "elapsed_ms": 59.912,
+        "exit_code": 0
+      },
+      {
+        "name": "MPC",
+        "tier": "FAST",
+        "elapsed_ms": 67.074,
+        "exit_code": 0
+      },
+      {
+        "name": "HOST",
+        "tier": "MED",
+        "elapsed_ms": 297.897,
+        "exit_code": 0
+      },
+      {
+        "name": "HOST-NAT",
+        "tier": "MED",
+        "elapsed_ms": 265.406,
+        "exit_code": 0
+      },
+      {
+        "name": "DENOMINATORS",
+        "tier": "MED",
+        "elapsed_ms": 55.22,
+        "exit_code": 0
+      },
+      {
+        "name": "HOUSE",
+        "tier": "MED",
+        "elapsed_ms": 517.116,
+        "exit_code": 0
+      },
+      {
+        "name": "PIN",
+        "tier": "FAST",
+        "elapsed_ms": 82.914,
+        "exit_code": 0
+      },
+      {
+        "name": "POSITIVITY",
+        "tier": "SUITE",
+        "elapsed_ms": 303.212,
+        "exit_code": 0
+      },
+      {
+        "name": "M1-CORPUS",
+        "tier": "SLOW",
+        "elapsed_ms": 306.472,
+        "exit_code": 0
+      },
+      {
+        "name": "M1-SUITE",
+        "tier": "SUITE",
+        "elapsed_ms": 8371.254,
+        "exit_code": 0
+      },
+      {
+        "name": "AGREEMENT",
+        "tier": "SUITE",
+        "elapsed_ms": 69982.636,
+        "exit_code": 0
+      },
+      {
+        "name": "REACTOR",
+        "tier": "MED",
+        "elapsed_ms": 30021.972,
+        "exit_code": 124
+      },
+      {
+        "name": "RUNTIME",
+        "tier": "MED",
+        "elapsed_ms": 16466.641,
+        "exit_code": 0
+      }
+    ],
+    "gates-after": [
+      {
+        "name": "BUILD",
+        "tier": "SLOW",
+        "elapsed_ms": 291.903,
+        "exit_code": 0
+      },
+      {
+        "name": "CARRY",
+        "tier": "MED",
+        "elapsed_ms": 675.813,
+        "exit_code": 0
+      },
+      {
+        "name": "R0-COUNT",
+        "tier": "FAST",
+        "elapsed_ms": 68.461,
+        "exit_code": 0
+      },
+      {
+        "name": "R0-AUDIT",
+        "tier": "FAST",
+        "elapsed_ms": 27.121,
+        "exit_code": 0
+      },
+      {
+        "name": "SUITE-KERNEL",
+        "tier": "SUITE",
+        "elapsed_ms": 291.206,
+        "exit_code": 0
+      },
+      {
+        "name": "SUITE-WASM",
+        "tier": "SUITE",
+        "elapsed_ms": 3789.184,
+        "exit_code": 0
+      },
+      {
+        "name": "ENCODER-SUBSET",
+        "tier": "FAST",
+        "elapsed_ms": 65.674,
+        "exit_code": 0
+      },
+      {
+        "name": "AXIOMS",
+        "tier": "MED",
+        "elapsed_ms": 25.507,
+        "exit_code": 0
+      },
+      {
+        "name": "M0-E2E",
+        "tier": "SLOW",
+        "elapsed_ms": 390.494,
+        "exit_code": 0
+      },
+      {
+        "name": "M0-TIME",
+        "tier": "SLOW",
+        "elapsed_ms": 2188.64,
+        "exit_code": 0
+      },
+      {
+        "name": "M0-RATIO",
+        "tier": "SLOW",
+        "elapsed_ms": 205.976,
+        "exit_code": 0
+      },
+      {
+        "name": "TRUSTED-LINES",
+        "tier": "FAST",
+        "elapsed_ms": 23.746,
+        "exit_code": 0
+      },
+      {
+        "name": "CIRCUIT",
+        "tier": "FAST",
+        "elapsed_ms": 87.092,
+        "exit_code": 0
+      },
+      {
+        "name": "ZK",
+        "tier": "FAST",
+        "elapsed_ms": 58.252,
+        "exit_code": 0
+      },
+      {
+        "name": "FHC",
+        "tier": "FAST",
+        "elapsed_ms": 54.618,
+        "exit_code": 0
+      },
+      {
+        "name": "MPC",
+        "tier": "FAST",
+        "elapsed_ms": 56.268,
+        "exit_code": 0
+      },
+      {
+        "name": "HOST",
+        "tier": "MED",
+        "elapsed_ms": 253.504,
+        "exit_code": 0
+      },
+      {
+        "name": "HOST-NAT",
+        "tier": "MED",
+        "elapsed_ms": 238.76,
+        "exit_code": 0
+      },
+      {
+        "name": "DENOMINATORS",
+        "tier": "MED",
+        "elapsed_ms": 43.498,
+        "exit_code": 0
+      },
+      {
+        "name": "HOUSE",
+        "tier": "MED",
+        "elapsed_ms": 422.155,
+        "exit_code": 0
+      },
+      {
+        "name": "PIN",
+        "tier": "FAST",
+        "elapsed_ms": 63.532,
+        "exit_code": 0
+      },
+      {
+        "name": "POSITIVITY",
+        "tier": "SUITE",
+        "elapsed_ms": 262.671,
+        "exit_code": 0
+      },
+      {
+        "name": "M1-CORPUS",
+        "tier": "SLOW",
+        "elapsed_ms": 284.211,
+        "exit_code": 0
+      },
+      {
+        "name": "M1-SUITE",
+        "tier": "SUITE",
+        "elapsed_ms": 4352.66,
+        "exit_code": 0
+      },
+      {
+        "name": "AGREEMENT",
+        "tier": "SUITE",
+        "elapsed_ms": 24092.474,
+        "exit_code": 0
+      },
+      {
+        "name": "REACTOR",
+        "tier": "MED",
+        "elapsed_ms": 18121.015,
+        "exit_code": 0
+      },
+      {
+        "name": "RUNTIME",
+        "tier": "MED",
+        "elapsed_ms": 6630.078,
+        "exit_code": 0
+      }
+    ]
+  },
+  "observations": {
+    "gates-before": [
+      "FAIL M0-TIME median_ms=240.220 bound_ms=150 load1=45.666 samples=3x5",
+      "MEASURE M0-RATIO kanon_ms=18.306 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=1.437115 bound=2.000 load1=45.666",
+      "PASS M1-CORPUS elapsed_ms=232.418 bound_ms=713 lines=1000 main=814 load1=46.493",
+      "PASS AGREEMENT cases=7445 unary=5445 full-range=2000",
+      "MEASURE M0-RATIO tier=SLOW elapsed_ms=294.966 exit=0"
+    ],
+    "gates-after": [
+      "PASS M0-TIME median_ms=106.063 bound_ms=150 load1=12.512 samples=3x5",
+      "MEASURE M0-RATIO kanon_ms=15.678 kanon_lines=1000 tot_ms=103.662 tot_lines=8138 ratio=1.230804 bound=2.000 load1=12.512",
+      "PASS M1-CORPUS elapsed_ms=214.371 bound_ms=713 lines=1000 main=814 load1=12.512",
+      "PASS AGREEMENT cases=7445 unary=5445 full-range=2000",
+      "MEASURE M0-RATIO tier=SLOW elapsed_ms=205.976 exit=0"
+    ]
+  },
+  "profile": {
+    "source": "/Users/oobi/Documents/gpt3/veil-reactor-profile.json",
+    "sha256": "e668d1d22786223c6d7bf387a15e290bb8ed804bf403c6e8fa6a967371e389a5",
+    "elapsed_ms": 33096.748834000005,
+    "all_children": 523,
+    "runtime_cli_children": 459,
+    "runtime_cli_elapsed_ms": 30725.571419999982
+  },
+  "lean_evidence": {
+    "new_build": false,
+    "matching_meta_sources": 56,
+    "retained_capture_hashes_match": true,
+    "source_mismatches": [
+      {
+        "manifest": "sources.json",
+        "path": "README.md"
+      }
+    ]
+  },
+  "scope": {
+    "compiler_and_runtime_changed": false,
+    "batched_cli_cases": 84,
+    "max_live_batch_children": 4,
+    "watchdogs_changed": false,
+    "performance_bounds_changed": false,
+    "helper_tests_added_to_runtime_gate": true
+  },
+  "m2_entry": {
+    "technical_battery_green": true,
+    "increment_committed": false,
+    "m1_exit_ratified": false,
+    "m2_implementation_started": false
+  },
+  "post_gate_changes": [
+    "README.md",
+    "dev/M1-BUILD-LOG.md",
+    "dev/M2-READINESS.md",
+    "dev/validation/2026-09-17-m2-readiness/"
+  ]
+}

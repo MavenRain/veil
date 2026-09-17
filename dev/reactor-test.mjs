@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, realpathSync, rmSy
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runCliBatch } from './cli-batch.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const compiler = resolve(process.argv[2] ?? join(root, '_build/default/bin/kanon.exe'));
@@ -13,6 +14,12 @@ const run = args => spawnSync(compiler, args, { encoding: 'utf8' });
 const runModule = (args, cwd = scratch) => spawnSync(process.execPath,
   [join(root, 'runtime/run.mjs'), ...args],
   { encoding: 'utf8', cwd, timeout: 20000 });
+// Batch cases whose only observations are their outputs and the final filesystem state.
+const runModuleCases = async (cases, args) => {
+  const results = await runCliBatch(process.execPath,
+    cases.map(value => [join(root, 'runtime/run.mjs'), ...args(value)]), { cwd: scratch });
+  return cases.map((value, index) => [value, results[index]]);
+};
 const exports = ['empty', 'prepend', 'byteHead', 'byteTail',
   'byteLength', 'initialState', 'stateCount', 'stateBytes', 'updateState',
   'increment', 'literalBytes', 'literalEmpty'];
@@ -1608,19 +1615,19 @@ try {
   }
   verify(() => assert.deepEqual(readFileSync(chownFile), chownContent));
   const chownStable = statSync(chownFile, { bigint: true });
-  for (const args of [[], [chownFile], [chownFile, chownIds[0]], [chownFile, ...chownIds, 'surplus']]) {
-    const failed = runModule([fileChown, ...args]);
+  for (const [args, failed] of await runModuleCases(
+    [[], [chownFile], [chownFile, chownIds[0]], [chownFile, ...chownIds, 'surplus']],
+    args => [fileChown, ...args])) {
     verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
     verify(() => assert.equal(failed.stdout, `IO: OS request 45 expects 3 arguments, got ${args.length}`));
     verify(() => assert.equal(failed.stderr, ''));
   }
-  for (const value of ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']) {
-    for (const ids of [[value, chownIds[1]], [chownIds[0], value]]) {
-      const failed = runModule([fileChown, chownFile, ...ids]);
-      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
-      verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
-      verify(() => assert.equal(failed.stderr, ''));
-    }
+  const invalidChownIds = ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']
+    .flatMap(value => [[value, chownIds[1]], [chownIds[0], value]]);
+  for (const [, failed] of await runModuleCases(invalidChownIds, ids => [fileChown, chownFile, ...ids])) {
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
+    verify(() => assert.equal(failed.stderr, ''));
   }
   const chownAfterFailures = statSync(chownFile, { bigint: true });
   for (const key of ['ino', 'size', 'mode', 'uid', 'gid', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
@@ -1721,19 +1728,19 @@ try {
     }
     verify(() => assert.equal(existsSync(join(scratch, 'lchown-missing')), false));
   }
-  for (const args of [[], [lchownFile], [lchownFile, lchownIds[0]], [lchownFile, ...lchownIds, 'surplus']]) {
-    const failed = runModule([fileLchown, ...args]);
+  for (const [args, failed] of await runModuleCases(
+    [[], [lchownFile], [lchownFile, lchownIds[0]], [lchownFile, ...lchownIds, 'surplus']],
+    args => [fileLchown, ...args])) {
     verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
     verify(() => assert.equal(failed.stdout, `IO: OS request 46 expects 3 arguments, got ${args.length}`));
     verify(() => assert.equal(failed.stderr, ''));
   }
-  for (const value of ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']) {
-    for (const ids of [[value, lchownIds[1]], [lchownIds[0], value]]) {
-      const failed = runModule([fileLchown, lchownFile, ...ids]);
-      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
-      verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
-      verify(() => assert.equal(failed.stderr, ''));
-    }
+  const invalidLchownIds = ['-1', '-0', '+1', '01', '1\n', '1.5', '1e2', '4294967295', '4294967296']
+    .flatMap(value => [[value, lchownIds[1]], [lchownIds[0], value]]);
+  for (const [, failed] of await runModuleCases(invalidLchownIds, ids => [fileLchown, lchownFile, ...ids])) {
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, 'IO: invalid OS owner ID argument'));
+    verify(() => assert.equal(failed.stderr, ''));
   }
   const lchownAfterFailures = statSync(lchownFile, { bigint: true });
   for (const key of ['ino', 'size', 'mode', 'uid', 'gid', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
@@ -2100,19 +2107,19 @@ try {
     }
     verify(() => assert.equal(existsSync(join(scratch, 'lutimes-missing')), false));
   }
-  for (const args of [[], [lutimesFile], [lutimesFile, '1000'], [lutimesFile, '1000', '2000', 'surplus']]) {
-    const failed = runModule([fileLutimes, ...args]);
+  for (const [args, failed] of await runModuleCases(
+    [[], [lutimesFile], [lutimesFile, '1000'], [lutimesFile, '1000', '2000', 'surplus']],
+    args => [fileLutimes, ...args])) {
     verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
     verify(() => assert.equal(failed.stdout, `IO: OS request 47 expects 3 arguments, got ${args.length}`));
     verify(() => assert.equal(failed.stderr, ''));
   }
-  for (const value of ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']) {
-    for (const times of [[value, '2000'], ['1000', value]]) {
-      const failed = runModule([fileLutimes, lutimesFile, ...times]);
-      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
-      verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
-      verify(() => assert.equal(failed.stderr, ''));
-    }
+  const invalidLutimes = ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']
+    .flatMap(value => [[value, '2000'], ['1000', value]]);
+  for (const [, failed] of await runModuleCases(invalidLutimes, times => [fileLutimes, lutimesFile, ...times])) {
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
+    verify(() => assert.equal(failed.stderr, ''));
   }
   const lutimesAfter = statSync(lutimesFile, { bigint: true });
   for (const key of ['dev', 'ino', 'size', 'mode', 'uid', 'gid', 'nlink', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
@@ -2193,19 +2200,17 @@ try {
   verify(() => assert.deepEqual(readFileSync(timesFile), timesContent));
   const timesStable = statSync(timesFile, { bigint: true });
   const invalidTimes = [[], [timesFile], [timesFile, '1000'], [timesFile, '1000', '2000', 'surplus']];
-  for (const args of invalidTimes) {
-    const failed = runModule([fileTimes, ...args]);
+  for (const [args, failed] of await runModuleCases(invalidTimes, args => [fileTimes, ...args])) {
     verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
     verify(() => assert.equal(failed.stdout, `IO: OS request 44 expects 3 arguments, got ${args.length}`));
     verify(() => assert.equal(failed.stderr, ''));
   }
-  for (const value of ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']) {
-    for (const times of [[value, '2000'], ['1000', value]]) {
-      const failed = runModule([fileTimes, timesFile, ...times]);
-      verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
-      verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
-      verify(() => assert.equal(failed.stderr, ''));
-    }
+  const invalidTimeValues = ['-0', '+1', '01', '1\n', '1.5', '1e2', '8640000000000001', '-8640000000000001']
+    .flatMap(value => [[value, '2000'], ['1000', value]]);
+  for (const [, failed] of await runModuleCases(invalidTimeValues, times => [fileTimes, timesFile, ...times])) {
+    verify(() => assert.equal(failed.status, 1, failed.error ?? failed.stderr));
+    verify(() => assert.equal(failed.stdout, 'IO: invalid OS timestamp argument'));
+    verify(() => assert.equal(failed.stderr, ''));
   }
   const timesAfterFailures = statSync(timesFile, { bigint: true });
   for (const key of ['ino', 'size', 'mode', 'atimeNs', 'mtimeNs', 'ctimeNs']) {
