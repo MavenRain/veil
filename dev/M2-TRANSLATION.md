@@ -1,16 +1,17 @@
-# M2 monomorphic translation prototype
+# M2 monomorphic data and proof translation
 
 `dev/m2-translate.py` lowers a bounded subset of the pinned Lean declaration
 export to Veil source. The checked-in record covers all 44 snapshot names.
 It re-checks `Nat`, `Nat.zero` and `Nat.succ` together as one recursive family,
-and records a translation-gap reason for each of the other 41 declarations.
+and `True` and `True.intro` as a proposition family. It records a
+translation-gap reason for each of the other 39 declarations.
 No unsupported declaration is replaced by an axiom.
 
 These are prototype results. The 51,980-name [parity baseline](M2-PARITY.md)
 and its gate remain unchanged, with zero credited translations. This slice
 does not establish general semantic preservation, prenex polymorphism,
-Prop parity, proof translation, or the M2 exit thresholds. A sample re-check
-is not a full-inventory parity result.
+general Prop parity, general proof translation, or the M2 exit thresholds.
+A sample re-check is not a full-inventory parity result.
 
 ## Reproduce
 
@@ -23,9 +24,9 @@ python3 -I dev/m2-translate.py verify
 python3 -I dev/m2-translate.py verify --live
 ```
 
-Offline verification needs Python. Live verification and the three live
+Offline verification needs Python. Live verification and the six live
 regression tests need the built `_build/default/bin/kanon.exe` executable.
-The tests without `--live` skip those three integrations. To capture a fresh
+The tests without `--live` skip those six integrations. To capture a fresh
 record, choose an output directory that does not exist:
 
 ```sh
@@ -59,32 +60,49 @@ translated reference. Binder visibility becomes explicit in Veil.
 
 The current subset contains:
 
-- Closed positive sorts, with closed `succ`, `max` and `imax` evaluation.
+- Closed sorts, with closed `succ`, `max` and `imax` evaluation. Lean sort
+  zero lowers to `Prop`; positive sort `n` lowers to `Type (n - 1)`.
 - Monomorphic constants, variables, application, lambdas, dependent arrows
   and typed lets. Binders directly over sorts are refused pending erasure
   translation. Remaining binders use Veil's unrestricted quantity. The
   translator restricts no application head, and Veil refuses a beta-redex,
   so an application with a lambda head becomes a translation gap.
 - Safe, nonrecursive, transparent definitions with supported dependencies.
-- Single, safe, unparameterized, unindexed inductive families in a positive
-  sort, with at least one constructor. Fields have monomorphic constant
+- Nonrecursive theorem bodies with supported dependencies. An additional
+  generated definition checks each theorem's type against `Prop` in Veil.
+  Guard names use a separate injective namespace. Both the guard and proof
+  erase; a data-valued declaration marked as a theorem fails the kernel check.
+- Single, safe, unparameterized, unindexed inductive families in a closed
+  sort, including empty families. Fields have monomorphic constant
   types and each constructor returns its own family. These lower to `mu`.
 - Natural literals from 0 through 64, as applications of the translated
   `Nat.succ` and `Nat.zero`, using the translated family itself.
 
-The pinned sample exercises the natural family. Synthetic regression inputs
-add definition bodies, binder shadowing, application, lets and literals.
+The pinned sample exercises the natural and truth families. Synthetic
+regression inputs add definition and theorem bodies, empty proposition and
+data families, binder shadowing, application, lets and literals.
 A real Veil conversion check compares a computed two with two successor
 constructors; changing that expected index to zero must fail. These synthetic
 inputs are not represented as declarations exported from Lean's inventory.
+The proof tests check that direct proofs, implication proofs and proof lets
+erase, that a function's proof argument disappears, and that its runtime
+result still computes. A false proof and a theorem with a data type are
+rejected. Removing the latter's proposition guard admits it as an ordinary
+data definition, exercising the guard's effect.
 
-Polymorphism, Prop, axioms, theorems, opaque declarations, recursors,
+Polymorphism, binders over sorts, axioms, opaque declarations, recursors,
 quotients, projections, strings, unsupported inductives and recursive
 definitions remain explicit translation gaps. A supported declaration whose
 dependency is unsupported also becomes a gap, naming that dependency.
 Kernel, erasure or axiom-check failures of generated candidates are reported
 as translation gaps requiring investigation, not automatically as kernel
 bugs or ledger-row parity gaps.
+
+Theorem bodies lower to checked Veil definitions, using its existing proof
+erasure and conversion rules. This does not establish general proof
+irrelevance, large-elimination parity, or preservation of Lean's opacity
+and reduction rules. Unsupported dependencies remain gaps even when they
+occur only in proofs.
 
 The implementation bounds expression and dependency traversal depth to 128,
 sort levels to 255, generated sources to 256 KiB each, and expression-cache
@@ -94,7 +112,8 @@ bounds the snapshot. These limits are prototype scope, not M2 exclusions.
 ## Evidence and verification
 
 Each artifact includes its full supported dependency closure, in dependency
-order. The natural family's three declarations share one artifact. Veil runs
+order. The natural family's three declarations share one artifact, and the
+truth family's two declarations share another. Veil runs
 `check --print`, `check --erased` and `axioms` on that exact file, with a
 30-second timeout per invocation. A rechecked result requires exit 0 and
 empty stderr for all three commands, and an empty axiom report. Family-only
@@ -117,7 +136,7 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [validation record](validation/2026-09-17-m2-translation/README.md)
+See the [validation record](validation/2026-09-17-m2-prop/README.md)
 for the scoped checks. Compiler and runtime sources are unchanged. The next
-language work remains prenex universes and Prop, followed by the remaining
-proof-grade forms and full-inventory differential results.
+language work remains prenex universes and general Prop parity, followed by
+the remaining proof-grade forms and full-inventory differential results.

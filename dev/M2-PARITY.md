@@ -114,8 +114,8 @@ definition and proof bodies, structural data, and dependency closures from
 Lean's private-data environment. Its 44-declaration sample is translator
 input and does not change the denominator, baseline or gate result.
 
-The [monomorphic translation prototype](M2-TRANSLATION.md) now records three
-rechecked snapshot declarations and 41 explicit translation gaps. Its sample
+The [monomorphic translation prototype](M2-TRANSLATION.md) now records five
+rechecked snapshot declarations and 39 explicit translation gaps. Its sample
 record is separate from this full-inventory baseline and credits zero parity
 successes. It does not change the baseline's historical unattempted status.
 

@@ -81,8 +81,10 @@ It preserves types, bodies and structural dependencies for a pinned selection
 from the inventory. The 44-declaration sample is ready for translator work;
 the exporter record itself holds no translations or Veil kernel re-checks.
 
-The following [monomorphic prototype](M2-TRANSLATION.md) translates the
-natural family and its two constructors and retains successful kernel,
-erasure and empty-axiom checks. Every other snapshot name has an explicit
-translation-gap reason. These sample results credit zero full-inventory
-parity successes. Prenex universes, Prop and proof translation remain open.
+The following [monomorphic prototype](M2-TRANSLATION.md) now translates the
+natural and truth families and their constructors, retaining five successful
+kernel, erasure and empty-axiom checks at the declaration level. The other
+39 snapshot names have explicit translation-gap reasons. Bounded closed
+proof bodies and empty families are covered by synthetic regression inputs.
+These sample results credit zero full-inventory parity successes. Prenex
+universes, general Prop parity and general proof translation remain open.

@@ -1,5 +1,38 @@
 # M2 build log
 
+## Closed proposition and proof translation, 2026-09-17
+
+Extended the monomorphic translator with closed `Prop` sorts, empty
+inductive families and nonrecursive theorem bodies. Each theorem receives
+a separate kernel-checked `Prop` guard before its body is checked. No axiom
+is inserted. Unsupported polymorphism, sort binders, opaque declarations,
+recursors and dependencies still produce explicit gaps.
+
+The pinned 44-declaration sample now rechecks `True` and `True.intro` as well
+as the three natural-family names. Five names recheck, 39 have explicit
+translation gaps, and full-inventory parity credit remains zero. The
+synthetic proof tests cover direct proofs, implication, proof lets and a
+runtime function whose proof argument erases while its result still computes.
+Negative checks reject false proofs, a changed computation result and a
+data-valued theorem. Removing the theorem guard admits the latter only as
+an ordinary definition. Failure accounting now tests each of the two sample
+artifacts independently for checker, erasure, stderr and axiom failures.
+
+Validation in `/Users/oobi/Documents/gpt3/veil-m2-prop`, based on
+`bd610e6451a94f6931238e55da552d5a35e0487d`: all 33 translation tests passed,
+including six live integrations. The declaration suite passed 30 tests and
+skipped its two optional Lean integrations. Sample recording, offline and
+live verification, HOUSE and TRUSTED-LINES passed. The incomplete parity
+gate retains its expected exit 1. The existing checker was reused after
+matching its source and binary hashes to the committed translation record;
+no new compiler build is claimed.
+
+The [validation record](validation/2026-09-17-m2-prop/README.md) retains the
+seven final captures and verifies their source bindings. Compiler, runtime,
+Lean and exporter sources are unchanged. General Prop parity, proof
+preservation, prenex universes and the remaining M2 exit criteria stay open.
+The full M1 timing ladder was not rerun, and the user's M1 stamp stays open.
+
 ## Monomorphic translation prototype, 2026-09-17
 
 Added `dev/m2-translate.py`, a structural translator from the pinned Lean

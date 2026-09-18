@@ -37,6 +37,21 @@ def identity(name="identity"):
                             ["lam", "same", "implicit", 0, 1]], 2, 3, ["Nat"])
 
 
+def theorem(name, nodes, ty, body, dependencies):
+    row = definition(name, nodes, ty, body, dependencies)
+    row["kind"] = "theorem"
+    row["details"] = {"mutual": [name]}
+    return row
+
+
+def empty_family(name, level):
+    return {"name": name, "kind": "inductive", "module": "Init.Prelude", "levels": [],
+            "private": False, "type": 0, "value": None, "nodes": [["sort", level]],
+            "details": {"parameters": 0, "indices": 0, "mutual": [name], "constructors": [],
+                        "nested": 0, "recursive": False, "unsafe": False, "reflexive": False},
+            "dependencies": [name]}
+
+
 class TranslationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -65,11 +80,13 @@ class TranslationTests(unittest.TestCase):
         rows, artifacts, provenance = self.pinned_inputs
         self.assertEqual(len(rows), 44)
         self.assertEqual(provenance["inventory_declarations"], 51980)
-        self.assertEqual([r["name"] for r in rows if r["artifact"]], ["Nat", "Nat.succ", "Nat.zero"])
-        self.assertEqual(len(artifacts), 1)
-        self.assertEqual(len({r["artifact"] for r in rows if r["artifact"]}), 1)
+        self.assertEqual([r["name"] for r in rows if r["artifact"]],
+                         ["Nat", "Nat.succ", "Nat.zero", "True", "True.intro"])
+        self.assertEqual(len(artifacts), 2)
+        self.assertEqual(len({r["artifact"] for r in rows if r["artifact"]}), 2)
         self.assertTrue(all(r["reason"] for r in rows if not r["artifact"]))
-        self.assertEqual(next(iter(artifacts.values()))["declarations"], ["Nat", "Nat.succ", "Nat.zero"])
+        self.assertEqual(sorted(unit["declarations"] for unit in artifacts.values()),
+                         [["Nat", "Nat.succ", "Nat.zero"], ["True", "True.intro"]])
 
     def test_order_independent_and_injective_names(self):
         expected = translate.Translator(self.value).plan()
@@ -88,10 +105,10 @@ class TranslationTests(unittest.TestCase):
         with self.assertRaisesRegex(translate.Gap, "prenex"):
             translate.closed_level(["param", "u"])
 
-    def test_polymorphic_prop_quotient_axiom_and_recursor_gaps(self):
-        for name, reason in (("id", "prenex"), ("True", "Prop"),
+    def test_polymorphic_quotient_axiom_and_recursor_gaps(self):
+        for name, reason in (("id", "prenex"), ("Iff", "unparameterized"),
                              ("Quot", "prenex"), ("propext", "axiom"),
-                             ("Nat.rec", "prenex"), ("Nat.add_zero", "theorem")):
+                             ("Nat.rec", "prenex"), ("Nat.add_zero", "universe instantiation")):
             with self.subTest(name=name):
                 self.rejects(name, reason)
         self.row("Quot")["levels"] = []
@@ -109,8 +126,7 @@ class TranslationTests(unittest.TestCase):
         for field, value, reason in (("parameters", 1, "unparameterized"),
                                      ("indices", 1, "unindexed"), ("nested", 1, "families"),
                                      ("mutual", ["Nat", "True"], "single"),
-                                     ("unsafe", True, "unsafe"), ("reflexive", True, "reflexive"),
-                                     ("constructors", [], "empty families")):
+                                     ("unsafe", True, "unsafe"), ("reflexive", True, "reflexive")):
             with self.subTest(field=field):
                 self.value = copy.deepcopy(self.original)
                 self.row("Nat")["details"][field] = value
@@ -156,9 +172,9 @@ class TranslationTests(unittest.TestCase):
         row = definition("useId", [["const", "id", [["succ", ["zero"]]]]], 0, 0, ["id"])
         self.value["declarations"].append(row)
         self.rejects("useId", "universe instantiation")
-        row = definition("badDependency", [["const", "True", []]], 0, 0, ["True"])
+        row = definition("badDependency", [["const", "Iff", []]], 0, 0, ["Iff"])
         self.synthetic(row)
-        self.rejects("badDependency", "dependency True: Prop")
+        self.rejects("badDependency", "dependency Iff: only single")
 
     def test_dependency_depth_bound_refuses_a_long_chain(self):
         # Each definition depends on the next one, so the closure is deeper than
@@ -218,17 +234,68 @@ class TranslationTests(unittest.TestCase):
     def test_committed_sample_artifacts_match_this_translator(self):
         sample = ROOT / "dev/m2-translation"
         report = translate.decoded((sample / "results.json").read_bytes())
-        self.assertEqual(report["summary"], {"snapshot_declarations": 44, "rechecked": 3,
-                                            "translation_gaps": 41, "parity_credited": 0})
+        self.assertEqual(report["summary"], {"snapshot_declarations": 44, "rechecked": 5,
+                                            "translation_gaps": 39, "parity_credited": 0})
         _, artifacts, _ = self.pinned_inputs
         self.assertEqual(set(report["artifacts"]), set(artifacts))
         for path, unit in artifacts.items():
             self.assertEqual((sample / path).read_bytes(), unit["source"].encode("utf-8"))
 
     def test_type_binder_refusal(self):
-        nodes = [["sort", ["succ", ["zero"]]], ["bvar", 0], ["lam", "A", "explicit", 0, 1]]
-        with self.assertRaisesRegex(translate.Gap, "erasure translation"):
-            translate.Expressions({"nodes": nodes}).render(2)
+        for level in (["zero"], ["succ", ["zero"]]):
+            nodes = [["sort", level], ["bvar", 0], ["lam", "A", "explicit", 0, 1]]
+            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
+                translate.Expressions({"nodes": nodes}).render(2)
+
+    def test_prop_sort_preserves_closed_levels(self):
+        zero, one = ["zero"], ["succ", ["zero"]]
+        for level, expected in ((zero, "Prop"), (one, "(Type 0)"),
+                                (["succ", one], "(Type 1)"),
+                                (["imax", ["succ", one], zero], "Prop"),
+                                (["max", one, zero], "(Type 0)")):
+            with self.subTest(level=level):
+                self.assertEqual(translate.Expressions({"nodes": [["sort", level]]}).render(0), expected)
+
+    def test_empty_prop_and_data_families(self):
+        for level, expected in ((["zero"], "Prop"), (["succ", ["zero"]], "(Type 0)")):
+            with self.subTest(level=level):
+                self.value = copy.deepcopy(self.original)
+                unit = self.synthetic(empty_family("Empty", level)).compile("Empty")
+                self.assertEqual(unit["source"], f"mu {translate.symbol('Empty')} : {expected} with\n")
+                self.assertEqual(unit["members"], ["Empty"])
+
+    def test_theorem_guard_names_do_not_capture_translated_names(self):
+        names = ["proof", "p70726f6f66", "Prop", "b0", "α"]
+        rows = [theorem(name, [["const", "True", []], ["const", "True.intro", []]],
+                        0, 1, ["True", "True.intro"]) for name in names]
+        translator = self.synthetic(*rows)
+        guards = {"p" + name.encode("utf-8").hex() for name in names}
+        self.assertEqual(len(guards), len(names))
+        self.assertTrue(guards.isdisjoint({translate.symbol(name) for name in names}))
+        for name in names:
+            source = translator.compile(name)["source"]
+            self.assertIn(f"def p{name.encode('utf-8').hex()} : Prop := {translate.symbol('True')}", source)
+
+    def test_theorem_recursion_mutual_and_opaque_dependencies_remain_gaps(self):
+        loop = theorem("loopProof", [["const", "True", []], ["const", "loopProof", []]],
+                       0, 1, ["True"])
+        self.synthetic(loop)
+        self.rejects("loopProof", "recursive definitions or theorems")
+        other = theorem("mutualProof", [["const", "True", []], ["const", "True.intro", []]],
+                        0, 1, ["True", "True.intro"])
+        other["details"]["mutual"].append("loopProof")
+        other["dependencies"].append("loopProof")
+        other["dependencies"].sort()
+        self.synthetic(other)
+        self.rejects("mutualProof", "mutual definitions or theorems")
+        opaque = theorem("opaqueProof", [["const", "True", []], ["const", "True.intro", []]],
+                         0, 1, ["True", "True.intro"])
+        opaque["kind"] = "opaque"
+        opaque["details"]["unsafe"] = False
+        dependent = theorem("useOpaque", [["const", "True", []], ["const", "opaqueProof", []]],
+                            0, 1, ["True", "opaqueProof"])
+        self.synthetic(opaque, dependent)
+        self.rejects("useOpaque", "dependency opaqueProof: opaque")
 
     def test_cache_limit_and_cli_integrity_error(self):
         expression = translate.Expressions({"nodes": [["const", "Nat", []]]})
@@ -316,12 +383,12 @@ class TranslationTests(unittest.TestCase):
 
     def test_failed_check_erasure_or_axiom_disclosure_cannot_succeed(self):
         labels = [name for name, _ in translate.CHECKS]
-        for label in (*labels, "check-stderr"):
-            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+        variants = [(path, label) for path in self.pinned_inputs[1] for label in (*labels, "check-stderr")]
+        for artifact, label in variants:
+            with self.subTest(artifact=artifact, label=label), tempfile.TemporaryDirectory() as temporary:
                 directory = Path(temporary)
                 report = self.stage_mock_record(directory)
-                artifact = next(iter(report["artifacts"]))
-                captures = {artifact: report["artifacts"][artifact]["checks"]}
+                captures = {path: unit["checks"] for path, unit in report["artifacts"].items()}
                 if label == "axioms":
                     (directory / f"{artifact}.axioms.stdout").write_bytes(b"addedAxiom\n")
                 elif label == "check-stderr":
@@ -335,8 +402,12 @@ class TranslationTests(unittest.TestCase):
                     captures[artifact][index]["exit_code"] = 1
                 rows, artifacts, provenance = self.pinned_inputs
                 result = translate.assemble(directory, rows, artifacts, provenance, "a" * 64, captures)
-                self.assertEqual(result["summary"]["rechecked"], 0)
-                self.assertEqual(result["summary"]["translation_gaps"], 44)
+                expected = {"Nat", "Nat.zero", "Nat.succ", "True", "True.intro"}
+                expected -= set(report["artifacts"][artifact]["declarations"])
+                self.assertEqual({row["name"] for row in result["results"] if row["status"] == "rechecked"},
+                                 expected)
+                self.assertEqual(result["summary"]["rechecked"], len(expected))
+                self.assertEqual(result["summary"]["translation_gaps"], 44 - len(expected))
                 self.assertEqual(result["summary"]["parity_credited"], 0)
 
     def test_infrastructure_failure_is_not_a_translation_gap(self):
@@ -361,9 +432,86 @@ class TranslationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary) / "record"
             report = translate.record(directory, SNAPSHOT, INVENTORY, CHECKER)
-            self.assertEqual(report["summary"], {"snapshot_declarations": 44, "rechecked": 3,
-                                                "translation_gaps": 41, "parity_credited": 0})
+            self.assertEqual(report["summary"], {"snapshot_declarations": 44, "rechecked": 5,
+                                                "translation_gaps": 39, "parity_credited": 0})
             self.assertEqual(translate.verify(directory, SNAPSHOT, INVENTORY, checker=CHECKER), report)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_closed_proofs_erase_while_proof_consumers_compute(self):
+        proof = theorem("truthProof", [["const", "True", []], ["const", "True.intro", []]],
+                        0, 1, ["True", "True.intro"])
+        proof_id = theorem("proofIdentity", [["const", "True", []], ["bvar", 0],
+                                             ["forall", "p", "explicit", 0, 0],
+                                             ["lam", "p", "explicit", 0, 1]], 2, 3, ["True"])
+        proof_let = theorem("proofLet", [["const", "True", []], ["const", "truthProof", []],
+                                        ["bvar", 0], ["let", "p", 0, 1, 2, False]],
+                            0, 3, ["True", "truthProof"])
+        consume = definition("consumeProof", [["const", "True", []], ["const", "Nat", []],
+                                              ["nat", "2"], ["forall", "p", "explicit", 0, 1],
+                                              ["lam", "p", "explicit", 0, 2]], 3, 4, ["True", "Nat"])
+        result = definition("proofResult", [["const", "Nat", []], ["const", "consumeProof", []],
+                                            ["const", "proofIdentity", []], ["const", "proofLet", []],
+                                            ["app", 2, 3], ["app", 1, 4]],
+                            0, 5, ["Nat", "consumeProof", "proofIdentity", "proofLet"])
+        source = self.synthetic(proof, proof_id, proof_let, consume, result).compile("proofResult")["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness ({succ} ({succ} {zero}))\n"
+                   f"def computed : Witness {translate.symbol('proofResult')} := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "proofs.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertTrue(all(check["exit_code"] == 0 for check in checks),
+                            (directory / "proofs.kan.check.stderr").read_text())
+            erased = (directory / "proofs.kan.erased.stdout").read_text()
+            for name in ("truthProof", "proofIdentity", "proofLet"):
+                self.assertIn(f"erased {translate.symbol(name)}\n", erased)
+                self.assertIn(f"erased p{name.encode('utf-8').hex()}\n", erased)
+            self.assertIn(f"fun {translate.symbol('consumeProof')} () :", erased)
+            self.assertIn(f"KTail (KGlobal {translate.symbol('consumeProof')}) []", erased)
+            self.assertEqual((directory / "proofs.kan.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness ({succ} ({succ} {zero}))",
+                                           f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_theorem_guard_rejects_data_but_ordinary_definitions_pass(self):
+        row = theorem("notAProof", [["const", "Nat", []], ["const", "Nat.zero", []]],
+                      0, 1, ["Nat", "Nat.zero"])
+        source = self.synthetic(row).compile("notAProof")["source"]
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "guard.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+            self.assertIn("expected universe is 0", (directory / "guard.kan.check.stderr").read_text())
+            # Removing the theorem-only guard admits this as an ordinary data
+            # definition, so the negative leg exercises the guard itself.
+            guard = f"def p{row['name'].encode('utf-8').hex()} : Prop := {translate.symbol('Nat')}\n"
+            self.assertEqual(source.count(guard), 1)
+            path.write_text(source.replace(guard, ""))
+            self.assertTrue(all(check["exit_code"] == 0
+                                for check in translate.check_artifact(CHECKER, directory, path.name)))
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_empty_families_check_and_a_false_proof_is_rejected(self):
+        empty_prop = empty_family("EmptyProp", ["zero"])
+        empty_data = empty_family("EmptyData", ["succ", ["zero"]])
+        bad_proof = theorem("falseProof", [["const", "EmptyProp", []], ["const", "True.intro", []]],
+                            0, 1, ["EmptyProp", "True.intro"])
+        translator = self.synthetic(empty_prop, empty_data, bad_proof)
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "empty.kan"
+            for name in ("EmptyProp", "EmptyData"):
+                path.write_text(translator.compile(name)["source"])
+                self.assertTrue(all(check["exit_code"] == 0
+                                    for check in translate.check_artifact(CHECKER, directory, path.name)))
+            path.write_text(translator.compile("falseProof")["source"])
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_generated_lambdas_application_let_and_literal_compute(self):

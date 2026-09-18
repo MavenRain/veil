@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Translate a bounded monomorphic Lean subset and retain Veil re-check evidence."""
+"""Translate bounded monomorphic Lean data and proofs with Veil re-check evidence."""
 
 import argparse
 from collections import Counter
@@ -76,8 +76,7 @@ class Expressions:
             result = f"b{depth - node[1] - 1}"
         elif tag == "sort":
             level = closed_level(node[1])
-            admit(level > 0, "Prop translation is not implemented")
-            result = f"(Type {level - 1})"
+            result = "Prop" if level == 0 else f"(Type {level - 1})"
         elif tag == "const":
             admit(not node[2], "constant universe instantiation is not implemented")
             result = symbol(node[1])
@@ -136,7 +135,6 @@ class Translator:
                       "only single, unparameterized, unindexed families are implemented")
                 admit(not details["unsafe"] and not details["reflexive"],
                       "unsafe or reflexive family is not implemented")
-                admit(bool(details["constructors"]), "empty families are not implemented")
                 members = [name, *details["constructors"]]
                 family_type = row["nodes"][row["type"]]
                 admit(family_type[0] == "sort", "family type must be a closed sort")
@@ -158,16 +156,24 @@ class Translator:
                           and fields == ctor["details"]["fields"],
                           "constructor must return its unindexed family")
                     body += f"| {symbol(constructor)} : {Expressions(ctor).render(ctor['type'])}\n"
-            elif row["kind"] == "definition":
-                admit(details["safety"] == "safe", "unsafe or partial definition is not implemented")
-                admit(details["hints"] != ["opaque"], "opaque definitions are not implemented")
-                admit(details["mutual"] in ([], [name]), "mutual definitions are not implemented")
+            elif row["kind"] in ("definition", "theorem"):
+                if row["kind"] == "definition":
+                    admit(details["safety"] == "safe", "unsafe or partial definition is not implemented")
+                    admit(details["hints"] != ["opaque"], "opaque definitions are not implemented")
+                admit(details["mutual"] in ([], [name]), "mutual definitions or theorems are not implemented")
                 admit(not any(node[0] == "const" and node[1] == name for node in row["nodes"]),
-                      "recursive definitions need recursor translation")
+                      "recursive definitions or theorems need recursor translation")
                 members = [name]
                 expr = Expressions(row)
-                body = (f"def {symbol(name)} : {expr.render(row['type'])} := "
-                        f"{expr.render(row['value'])}\n")
+                ty = expr.render(row["type"])
+                body = ""
+                if row["kind"] == "theorem":
+                    # The kernel checks that the advertised theorem type really
+                    # inhabits Prop. Guard names cannot collide with translated
+                    # globals (v...) or local binders (b...). Both definitions
+                    # erase; no opaque body or proof is replaced by an axiom.
+                    body = f"def p{name.encode('utf-8').hex()} : Prop := {ty}\n"
+                body += f"def {symbol(name)} : {ty} := {expr.render(row['value'])}\n"
             else:
                 raise Gap(f"{row['kind']} declarations are not implemented")
             dependencies = sorted(set().union(*(set(self.rows[n]["dependencies"])
