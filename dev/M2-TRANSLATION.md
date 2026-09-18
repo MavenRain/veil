@@ -24,9 +24,9 @@ python3 -I dev/m2-translate.py verify
 python3 -I dev/m2-translate.py verify --live
 ```
 
-Offline verification needs Python. Live verification and the fourteen live
+Offline verification needs Python. Live verification and the nineteen live
 regression tests need the built `_build/default/bin/kanon.exe` executable.
-The tests without `--live` skip those fourteen integrations. To capture a fresh
+The tests without `--live` skip those nineteen integrations. To capture a fresh
 record, choose an output directory that does not exist:
 
 ```sh
@@ -68,7 +68,8 @@ The current subset contains:
   proposition argument. Remaining binders use unrestricted quantity. Direct
   lambda application chains, including functions exposed through lets,
   lower to nested typed lets so Veil can check them without inferring a bare
-  lambda's type.
+  lambda's type. This includes applications consuming type or proposition
+  parameters and lets binding type or proposition values.
 - Safe, nonrecursive, transparent definitions with supported dependencies.
 - Nonrecursive theorem bodies with supported dependencies. An additional
   generated definition checks each theorem's type against `Prop` in Veil.
@@ -115,12 +116,28 @@ including an invalid type argument that the function ignores. Computation
 witnesses reject changed results, and the proof cases retain empty axiom
 reports. These tests add no names to the exported snapshot.
 
-Only syntactic sort domains receive zero quantity. The translator does not
-unfold type aliases to infer a binder's quantity. Type-valued lets and direct
-applications that consume a type or proposition lambda binder remain explicit
-gaps: their typed-let lowering needs separate treatment of erased values.
-The already supported direct applications consume ordinary data or proof
-parameters. Named applications use the checked function's declared quantity.
+For a typed let, the kernel normalizes its declared type. When that type is
+a universe, it checks the value in erased mode and gives the local zero
+quantity. This admits references to enclosing erased type parameters while
+still checking the value's type, including unused values. Type-level reads
+of a linear value do not consume it; runtime reads must still use it exactly
+once. Erasure drops the type binding and keeps ordinary data bindings.
+Live regressions cover direct and let-headed type applications, partial
+applications, shadowed type aliases, higher closed sorts, proposition lets
+and normalized universe aliases. Invalid values fail checking and erasure,
+and changed computation witnesses fail conversion.
+
+Only syntactic sort domains of lambda and arrow binders receive zero quantity
+from the translator. It does not unfold type aliases to infer their quantity.
+A declaration whose type and value give different quantities to one binder,
+because one side names the sort and the other names an alias of it, becomes
+an explicit gap.
+Named applications use the checked function's declared quantity.
+
+Veil refuses an erased binder that is read in a runtime position. The kernel
+tests `test/neg/n02-quantity.kan`, `test/neg/grouped-erased-read.kan` and
+`test/neg/zk-wrong-quantity.kan` pin that refusal with their expected
+messages. This erasure relies on that kernel rule.
 
 Universe polymorphism, axioms, opaque declarations, recursors,
 quotients, projections, strings, unsupported inductives and recursive
@@ -137,9 +154,12 @@ and reduction rules. Unsupported dependencies remain gaps even when they
 occur only in proofs.
 
 The implementation bounds expression and dependency traversal depth to 128,
-sort levels to 255, generated sources to 256 KiB each, and expression-cache
-expansion to 4,096 entries and 4 MiB. The existing exporter additionally
-bounds the snapshot. These limits are prototype scope, not M2 exclusions.
+generated sources to 256 KiB each, and expression-cache expansion to 4,096
+entries and 4 MiB. The same depth bound limits a closed sort level, because
+each level constructor spends one unit of that fuel: the largest translated
+level is 127, which renders as `(Type 126)`. The existing exporter
+additionally bounds the snapshot. These limits are prototype scope, not M2
+exclusions.
 
 ## Evidence and verification
 
@@ -168,7 +188,7 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [validation record](validation/2026-09-18-m2-type-binders/README.md)
-for the scoped checks. Compiler and runtime sources are unchanged. The next
+See the [validation record](validation/2026-09-18-m2-type-lets/README.md)
+for the rebuild, language suites and scoped checks. The next
 language work remains prenex universes and general Prop parity, followed by
 the remaining proof-grade forms and full-inventory differential results.

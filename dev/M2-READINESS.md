@@ -91,5 +91,8 @@ to typed lets. Synthetic checks cover binding, argument and let-value types,
 computation and proof erasure. Closed-sort type and proposition binders use
 zero quantities. Named generic functions and proofs retain dependent scopes,
 checked type arguments and erased runtime signatures at fixed universe levels.
+Type-valued lets and direct applications of type or proposition lambdas now
+retain checked values and dependent scopes. The kernel checks type-valued let
+definitions in erased mode, including through normalized universe aliases.
 These sample results credit zero full-inventory parity successes. Prenex
 universes, general Prop parity and general proof translation remain open.

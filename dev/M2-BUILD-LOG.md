@@ -1,5 +1,41 @@
 # M2 build log
 
+## Type-valued let translation and checking, 2026-09-18
+
+Base: `42768bc236be720d158df9129478edc87b1e51f5`.
+
+The translator now lowers type-valued lets and direct applications consuming
+type or proposition lambda parameters through the existing typed-let path.
+Every value retains its declared type check, including unused arguments.
+The kernel normalizes a let's declared type and checks universe-valued
+bindings in erased mode with zero quantity. This allows a type value to
+refer to an enclosing erased parameter, including through a universe alias.
+Ordinary runtime bindings retain their existing resource accounting.
+
+All 62 translation tests pass with `--live`, including nineteen integrations.
+Five new live cases cover full and partial type applications, let-headed
+applications, dependent scopes, shadowing, higher sorts, proposition lets,
+proof erasure and normalized universe aliases. They inspect erased bindings
+and function signatures and require empty axiom reports. Invalid unused
+values, invalid universe levels and changed computation witnesses fail.
+Resource checks reject unused or duplicated linear values and runtime reads
+of erased locals. Three existing offline cases now cover admitted sort
+bindings and retained universe and expression limits.
+
+The checker was rebuilt and the kernel, Wasm and M1 functional suites pass.
+Declaration regressions, HOUSE and the trusted-line bound pass. The kernel
+uses 5248 of 5250 lines. The retained parity gate exits 1 as expected for
+the incomplete 51,980-name baseline. No full timing run or fresh Lean export
+is claimed by this increment.
+
+The refreshed 44-name sample still has five rechecked names and 39 explicit
+gaps. Its generated sources and checker captures match the previous record;
+provenance binds the changed kernel and translator and rebuilt executable.
+These results credit no full-inventory translations. Prenex universes,
+general Prop parity and the remaining M2 exit criteria stay open.
+
+Evidence: [type-valued let validation](validation/2026-09-18-m2-type-lets/README.md).
+
 ## Closed-sort binder translation, 2026-09-18
 
 Lambda and dependent-arrow binders over explicit closed sorts now lower to
@@ -31,6 +67,31 @@ was reused after matching its source and binary hashes to the prior record.
 Compiler, runtime, Lean and exporter sources are unchanged. This slice claims
 no new compiler build, Lean export or full M1 timing run. Prenex universes,
 general Prop parity and the user's M1 exit ratification remain open.
+
+### Review 2026-09-18 (M2 closed-sort binders)
+
+Five items were kept and all five are fixed.
+
+- A-1 medium, dev/m2-translate.py:245: the compiler compares the quantity
+  marks of the type telescope and of the value telescope, and refuses a
+  declaration that erases one binder on one side only. A new offline test
+  pins both directions. The sample is re-recorded, and its 14 capture
+  streams and all 44 result rows stay byte-identical.
+- A-2 medium, dev/m2-translate-test.py:473: a new offline test pins two
+  stacked closed-sort binders with their full rendered type and value. A
+  copy that erases the outer binder only now fails the offline suite.
+- B-2 low, dev/M2-TRANSLATION.md:128: the document names the three kernel
+  tests that refuse an erased binder read in a runtime position.
+- C-1 low, dev/m2-translate.py:306: the recorded scope key holds
+  `closed-universe-prototype`, the name that the documents use.
+- B-3 low, dev/m2-translate.py:50: the unreachable 255 level cap is
+  deleted, because the traversal fuel bounds a closed level to 127. The
+  document states that effective bound.
+
+The offline suite now runs 57 tests with fourteen skips at exit 0. The
+`translation-tests` capture predates these tests and keeps its `Ran 55
+tests` row. The record README holds the predate note. A re-capture is not
+part of this review.
 
 ## Let-headed application translation, 2026-09-18
 

@@ -267,19 +267,21 @@ and ensure (c : ctx) (got : Value.t) (expected : Value.t) : (unit, Error.t) resu
          (Printf.sprintf "the term has type %s and the expected type is %s"
             (pp_value c got) (pp_value c expected)))
 
-(** Eager definitions count once. An implicit alias carrying a linear
-    resource is affine: its own reads may be zero or one, never duplicated. *)
+(** Type-valued lets erase; eager runtime definitions count once. An alias
+    carrying a linear resource is affine: zero or one reads, never duplicated. *)
 and let_body (c : ctx) (mode : Quantity.t) (x : string) (ty : Term.t) (def : Term.t)
     (body : ctx -> (Value.t * Quantity.usage, Error.t) result) :
     (Value.t * Quantity.usage, Error.t) result =
   let* _l = infer_univ c ty in
   let* tyv = Eval.eval c.globals c.env ty in
-  let* def_uses = check_uses c (Quantity.runtime mode) def tyv in
+  let* tyw = Eval.whnf c.globals tyv in
+  let def_mode = if Option.is_some (Value.as_univ tyw) then Quantity.Zero else Quantity.runtime mode in
+  let* def_uses = check_uses c def_mode def tyv in
   let* defv = Eval.eval c.globals c.env def in
   let linear = List.exists (fun (ix, (_name, q, _ty)) ->
     Quantity.equal q Quantity.One && Quantity.used (c.size - ix - 1) def_uses)
     (List.mapi (fun ix local -> ix, local) c.locals) in
-  let q = if Quantity.equal mode Quantity.Zero then Quantity.Zero
+  let q = if Quantity.equal def_mode Quantity.Zero then Quantity.Zero
           else if linear then Quantity.One else Quantity.Many in
   let c' = define x q tyv defv c in
   let* result, uses = body c' in

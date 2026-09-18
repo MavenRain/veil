@@ -49,8 +49,30 @@ def closed_level(value, fuel=MAX_DEPTH):
         result = 0 if tag == "imax" and right == 0 else max(left, right)
     else:
         raise Gap("universe parameters need prenex polymorphism")
-    admit(result <= 255, "universe exceeds translator limit")
+    # The fuel above bounds the result. One level constructor spends one unit,
+    # so the largest closed level is MAX_DEPTH - 1 and no second cap can fire.
     return result
+
+
+def binder_quantities(nodes, index, tag):
+    """Erasure marks of the leading binder telescope, outermost binder first."""
+    marks = []
+    while nodes[index][0] == tag:
+        node = nodes[index]
+        marks.append(nodes[node[3]][0] == "sort")
+        index = node[4]
+    return marks
+
+
+def quantities_agree(nodes, type_index, value_index):
+    # A binder takes its quantity from the tag of its own domain node, and a
+    # declaration renders its type and its value from two independent subtrees.
+    # Equal marks over the shared telescope keep both renders of one binder in
+    # step, so no declaration erases a parameter on one side only.
+    marks = binder_quantities(nodes, type_index, "forall")
+    values = binder_quantities(nodes, value_index, "lam")
+    shared = min(len(marks), len(values))
+    return marks[:shared] == values[:shared]
 
 
 class Expressions:
@@ -83,11 +105,9 @@ class Expressions:
                 index, fuel = node[1], fuel - 1
                 continue
             if node[0] == "lam":
-                admit(self.nodes[node[3]][0] != "sort", "type-valued binders need erasure translation")
                 domain = self.render(node[3], local_depth, fuel - 1)
                 value = arguments.pop()
             elif node[0] == "let":
-                admit(self.nodes[node[2]][0] != "sort", "type-valued binders need erasure translation")
                 domain = self.render(node[2], local_depth, fuel - 1)
                 value = self.render(node[3], local_depth, fuel - 1)
             else:
@@ -100,6 +120,7 @@ class Expressions:
         for local_depth, domain, argument in reversed(bindings):
             # Keep both original lets and consumed lambda parameters, including
             # unused ones, so their values still receive a kernel type check.
+            # Veil erases type and proposition values from these typed lets.
             result = f"(let b{local_depth} : {domain} := {argument} in {result})"
         return result
 
@@ -136,7 +157,6 @@ class Expressions:
             body = child(node[4], 1)
             result = f"(fun {binder} => {body})" if tag == "lam" else f"({binder} -> {body})"
         elif tag == "let":
-            admit(self.nodes[node[2]][0] != "sort", "type-valued binders need erasure translation")
             result = (f"(let b{depth} : {child(node[2])} := {child(node[3])} "
                       f"in {child(node[4], 1)})")
         elif tag == "nat":
@@ -215,6 +235,12 @@ class Translator:
                 members = [name]
                 expr = Expressions(row)
                 ty = expr.render(row["type"])
+                value = expr.render(row["value"])
+                # The type telescope and the value telescope are separate
+                # subtrees. A binder that is erased in one and kept in the
+                # other gives contradictory source that the kernel refuses.
+                admit(quantities_agree(row["nodes"], row["type"], row["value"]),
+                      "binder quantity differs between type and value")
                 body = ""
                 if row["kind"] == "theorem":
                     # The kernel checks that the advertised theorem type really
@@ -222,7 +248,7 @@ class Translator:
                     # globals (v...) or local binders (b...). Both definitions
                     # erase; no opaque body or proof is replaced by an axiom.
                     body = f"def p{name.encode('utf-8').hex()} : Prop := {ty}\n"
-                body += f"def {symbol(name)} : {ty} := {expr.render(row['value'])}\n"
+                body += f"def {symbol(name)} : {ty} := {value}\n"
             else:
                 raise Gap(f"{row['kind']} declarations are not implemented")
             dependencies = sorted(set().union(*(set(self.rows[n]["dependencies"])
@@ -275,7 +301,7 @@ def inputs(snapshot_dir, inventory_dir, root):
     snapshot, pin = declarations.verify(snapshot_dir, inventory_dir, root)
     inventory, _, _ = parity.verify(inventory_dir, root)
     rows, artifacts = Translator(snapshot).plan()
-    return rows, artifacts, {"schema": 1, "scope": "monomorphic-prototype",
+    return rows, artifacts, {"schema": 1, "scope": "closed-universe-prototype",
                             "inventory_sha256": pin["inventory_sha256"],
                             "inventory_declarations": len(inventory["declarations"]),
                             "snapshot_sha256": {name: digest((snapshot_dir / name).read_bytes())

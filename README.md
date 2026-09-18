@@ -191,7 +191,9 @@ bodies with kernel-checked proposition guards, direct lambda applications
 and lambda applications exposed through typed lets, preserving binding and
 argument checks. Closed-sort type and proposition binders now erase through
 zero quantities, supporting named generic functions and proofs at fixed
-universe levels. It credits no full-inventory parity successes.
+universe levels. Type-valued lets and direct type-lambda applications retain
+their checks and erase, including references to enclosing erased type parameters.
+It credits no full-inventory parity successes.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive
 indexed and mutual `mu` families, dependent matching, structural

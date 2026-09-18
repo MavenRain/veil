@@ -46,6 +46,21 @@ def generic_identity(name="genericIdentity", level=None):
                              ["lam", "same", "implicit", 0, 5]], 4, 6, [])
 
 
+def select_first(name="selectFirst"):
+    # Two stacked closed-sort binders over two data binders. The value keeps
+    # the first data argument, so both type binders stay in dependent scope.
+    return definition(name, [
+        ["sort", ["succ", ["zero"]]], ["bvar", 1], ["bvar", 3],
+        ["forall", "same", "explicit", 1, 2],
+        ["forall", "same", "explicit", 1, 3],
+        ["forall", "same", "implicit", 0, 4],
+        ["forall", "same", "implicit", 0, 5],
+        ["lam", "same", "explicit", 1, 1],
+        ["lam", "same", "explicit", 1, 7],
+        ["lam", "same", "implicit", 0, 8],
+        ["lam", "same", "implicit", 0, 9]], 6, 10, [])
+
+
 def theorem(name, nodes, ty, body, dependencies):
     row = definition(name, nodes, ty, body, dependencies)
     row["kind"] = "theorem"
@@ -239,12 +254,14 @@ class TranslationTests(unittest.TestCase):
         nat = translate.symbol("Nat")
         self.assertIn(f"(let b0 : {nat} := {nat} in b0)", source)
 
-    def test_lambda_application_refuses_sort_binders_and_deep_spines(self):
+    def test_lambda_application_keeps_sort_checks_and_refuses_deep_spines(self):
         for level in (["zero"], ["succ", ["zero"]]):
             nodes = [["sort", level], ["bvar", 0], ["lam", "A", "explicit", 0, 1],
                      ["app", 2, 0]]
-            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
-                translate.Expressions({"nodes": nodes}).render(3)
+            with self.subTest(level=level):
+                sort = "Prop" if level == ["zero"] else "(Type 0)"
+                self.assertEqual(translate.Expressions({"nodes": nodes}).render(3),
+                                 f"(let b0 : {sort} := {sort} in b0)")
         nodes = [["const", "Nat", []], ["bvar", 0], ["lam", "x", "explicit", 0, 1]]
         for _ in range(translate.MAX_DEPTH):
             nodes.append(["app", len(nodes) - 1, 0])
@@ -374,16 +391,16 @@ class TranslationTests(unittest.TestCase):
                          f"(let b0 : {nat} := {one} in "
                          f"((({nat} {first}) {second}) {third}))")
 
-    def test_let_type_sort_binders_are_refused(self):
-        # A let whose declared type is a sort needs erasure translation, in
-        # the application spine and in the plain rendering. A let whose type
-        # is an ordinary constant stays admitted.
-        refused = [["sort", ["zero"]], ["const", "Nat", []], ["bvar", 0],
-                   ["let", "t", 0, 1, 2, False], ["app", 3, 1]]
-        for index in (4, 3):
-            with self.subTest(index=index), self.assertRaisesRegex(
-                    translate.Gap, "erasure translation"):
-                translate.Expressions({"nodes": refused}).render(index)
+    def test_let_type_sort_binders_keep_their_values_for_checking(self):
+        # Even ill-typed sort values remain in both lowering paths so that
+        # the checker, including the erasure command, rejects the candidate.
+        nodes = [["sort", ["zero"]], ["const", "Nat", []], ["bvar", 0],
+                 ["let", "t", 0, 1, 2, False], ["app", 3, 1]]
+        nat = translate.symbol("Nat")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(4),
+                         f"(let b0 : Prop := {nat} in (b0 {nat}))")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(3),
+                         f"(let b0 : Prop := {nat} in b0)")
         admitted = [["const", "Nat", []], ["const", "one", []], ["bvar", 0],
                     ["let", "t", 0, 1, 2, False], ["app", 3, 1]]
         nat, one = (translate.symbol(n) for n in ("Nat", "one"))
@@ -404,9 +421,13 @@ class TranslationTests(unittest.TestCase):
         with mock.patch.object(translate, "MAX_SOURCE", 50):
             with self.assertRaisesRegex(translate.Gap, "source limit"):
                 translate.Expressions({"nodes": nodes}).render(4, depth=1)
-        for level in (["zero"], ["succ", ["zero"]]):
+        deep = ["zero"]
+        for _ in range(translate.MAX_DEPTH):
+            deep = ["succ", deep]
+        for level, reason in ((["param", "u"], "prenex polymorphism"),
+                              (deep, "universe depth")):
             nodes[0] = ["sort", level]
-            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
+            with self.subTest(reason=reason), self.assertRaisesRegex(translate.Gap, reason):
                 translate.Expressions({"nodes": nodes}).render(4, depth=1)
 
     def test_committed_sample_artifacts_match_this_translator(self):
@@ -454,6 +475,34 @@ class TranslationTests(unittest.TestCase):
                 source = self.synthetic(row).compile(row["name"])["source"]
                 self.assertIn("(0 b0 : (Type 0))", source)
                 self.assertIn("(b1 : b0)", source)
+
+    def test_nested_closed_sort_binders_erase_at_every_depth(self):
+        row = select_first()
+        expression = translate.Expressions(row)
+        self.assertEqual(expression.render(row["type"]),
+                         "((0 b0 : (Type 0)) -> ((0 b1 : (Type 0)) -> "
+                         "((b2 : b0) -> ((b3 : b1) -> b0))))")
+        self.assertEqual(expression.render(row["value"]),
+                         "(fun (0 b0 : (Type 0)) => (fun (0 b1 : (Type 0)) => "
+                         "(fun (b2 : b0) => (fun (b3 : b1) => b2))))")
+        source = self.synthetic(row).compile(row["name"])["source"]
+        self.assertIn("(0 b1 : (Type 0))", source)
+
+    def test_type_and_value_binder_quantities_must_agree(self):
+        nodes = [["const", "Nat", []], ["sort", ["succ", ["zero"]]],
+                 ["bvar", 0], ["bvar", 1],
+                 ["forall", "same", "explicit", 2, 3],
+                 ["forall", "same", "implicit", 1, 4],
+                 ["lam", "same", "explicit", 2, 2],
+                 ["lam", "same", "implicit", 1, 6]]
+        for side, index in (("value", 7), ("type", 5)):
+            # One side names the sort and the other names a constant alias of
+            # it, so the syntactic quantity rule marks one binder only.
+            row = definition(f"alias{side}Binder", copy.deepcopy(nodes), 5, 7, ["Nat"])
+            row["nodes"][index][3] = 0
+            with self.subTest(side=side):
+                with self.assertRaisesRegex(translate.Gap, "binder quantity differs"):
+                    self.synthetic(row).compile(row["name"])
 
     def test_prop_sort_preserves_closed_levels(self):
         zero, one = ["zero"], ["succ", ["zero"]]
@@ -724,16 +773,7 @@ class TranslationTests(unittest.TestCase):
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_closed_sort_data_binders_compute_and_erase(self):
         generic = generic_identity()
-        select = definition("selectFirst", [
-            ["sort", ["succ", ["zero"]]], ["bvar", 1], ["bvar", 3],
-            ["forall", "same", "explicit", 1, 2],
-            ["forall", "same", "explicit", 1, 3],
-            ["forall", "same", "implicit", 0, 4],
-            ["forall", "same", "implicit", 0, 5],
-            ["lam", "same", "explicit", 1, 1],
-            ["lam", "same", "explicit", 1, 7],
-            ["lam", "same", "implicit", 0, 8],
-            ["lam", "same", "implicit", 0, 9]], 6, 10, [])
+        select = select_first()
         forwarded = definition("forwarded", [
             ["sort", ["succ", ["zero"]]], ["bvar", 0], ["bvar", 1],
             ["forall", "same", "explicit", 1, 2],
@@ -847,6 +887,213 @@ class TranslationTests(unittest.TestCase):
                     path.write_text(source + bad)
                     checks = translate.check_artifact(CHECKER, directory, path.name)
                     self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_direct_type_applications_and_type_lets_compute(self):
+        identity_nodes = [["sort", ["succ", ["zero"]]], ["bvar", 0],
+                          ["lam", "same", "explicit", 1, 1],
+                          ["lam", "same", "implicit", 0, 2]]
+        direct = definition("directType", identity_nodes + [
+            ["const", "Nat", []], ["nat", "2"], ["app", 3, 4], ["app", 6, 5]],
+            4, 7, ["Nat"])
+        plain = definition("typeLet", [
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []], ["nat", "2"],
+            ["bvar", 0], ["let", "same", 3, 2, 3, False],
+            ["let", "same", 0, 1, 4, False]], 1, 5, ["Nat"])
+        headed = definition("typeLetHead", [
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []], ["nat", "2"],
+            ["bvar", 0], ["lam", "same", "explicit", 3, 3],
+            ["let", "same", 0, 1, 4, False], ["app", 5, 2]], 1, 6, ["Nat"])
+        partial = definition("typePartial", identity_nodes + [
+            ["const", "Nat", []], ["forall", "x", "explicit", 4, 4], ["app", 3, 4]],
+            5, 6, ["Nat"])
+        translator = self.synthetic(direct, plain, headed, partial)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "type-lets.kan"
+            for name, lets in (("directType", 1), ("typeLet", 1), ("typeLetHead", 1),
+                               ("typePartial", 0)):
+                with self.subTest(name=name):
+                    value = translate.symbol(name)
+                    if name == "typePartial":
+                        value = f"({value} {two})"
+                    source = translator.compile(name)["source"]
+                    source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                               f"| two : Witness {two}\n"
+                               f"def computed : Witness {value} := two\n")
+                    path.write_text(source)
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                                     (directory / f"{path.name}.check.stderr").read_text())
+                    erased = (directory / f"{path.name}.erased.stdout").read_text()
+                    self.assertEqual(erased.count("KLet"), lets, erased)
+                    self.assertEqual((directory / f"{path.name}.axioms.stdout").read_bytes(), b"")
+                    path.write_text(source.replace(f"| two : Witness {two}",
+                                                   f"| two : Witness {zero}"))
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_type_lets_preserve_outer_scope_and_higher_sorts(self):
+        direct = generic_identity("forwardType")
+        direct["nodes"] += [["app", 6, 2], ["app", 7, 1],
+                            ["lam", "same", "explicit", 1, 8],
+                            ["lam", "same", "implicit", 0, 9]]
+        direct["value"] = 10
+        alias = definition("aliasForward", [
+            ["sort", ["succ", ["zero"]]], ["bvar", 0], ["bvar", 1],
+            ["forall", "same", "explicit", 1, 2], ["forall", "same", "implicit", 0, 3],
+            ["let", "same", 1, 2, 1, False], ["let", "same", 0, 2, 5, False],
+            ["lam", "same", "explicit", 1, 6], ["lam", "same", "implicit", 0, 7]],
+            4, 8, [])
+        high = definition("directHigh", [
+            ["sort", ["succ", ["succ", ["zero"]]]], ["bvar", 0],
+            ["lam", "same", "explicit", 1, 1], ["lam", "same", "implicit", 0, 2],
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []],
+            ["app", 3, 4], ["app", 6, 5]], 4, 7, ["Nat"])
+        translator = self.synthetic(direct, alias, high)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source = translator.compile("Nat")["source"]
+        source += "".join(translator.compile(name)["body"] for name in
+                          ("forwardType", "aliasForward", "directHigh"))
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def typed : {translate.symbol('directHigh')} := {zero}\n")
+        for name in ("forwardType", "aliasForward"):
+            source += f"def {name}Check : Witness ({translate.symbol(name)} {nat} {two}) := two\n"
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "type-scopes.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / f"{path.name}.check.stderr").read_text())
+            erased = (directory / f"{path.name}.erased.stdout").read_text()
+            for name in ("forwardType", "aliasForward"):
+                self.assertIn(f"fun {translate.symbol(name)} (union any) : union any :=", erased)
+            self.assertIn(f"erased {translate.symbol('directHigh')}\n", erased)
+            self.assertEqual(erased.count("KLet"), 2, erased)
+            self.assertEqual((directory / f"{path.name}.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_type_let_propositions_and_direct_proofs_erase(self):
+        direct = theorem("directProof", [
+            ["sort", ["zero"]], ["bvar", 0], ["lam", "same", "explicit", 1, 1],
+            ["lam", "same", "implicit", 0, 2],
+            ["const", "True", []], ["const", "True.intro", []],
+            ["app", 3, 4], ["app", 6, 5]], 4, 7, ["True", "True.intro"])
+        plain = theorem("propLet", [
+            ["sort", ["zero"]], ["const", "True", []], ["const", "True.intro", []],
+            ["bvar", 0], ["let", "same", 3, 2, 3, False],
+            ["let", "same", 0, 1, 4, False]], 1, 5, ["True", "True.intro"])
+        headed = theorem("propLetHead", [
+            ["sort", ["zero"]], ["const", "True", []], ["const", "True.intro", []],
+            ["bvar", 0], ["lam", "same", "explicit", 3, 3],
+            ["let", "same", 0, 1, 4, False], ["app", 5, 2]], 1, 6, ["True", "True.intro"])
+        translator = self.synthetic(direct, plain, headed)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source = translator.compile("Nat")["source"] + translator.compile("True")["source"]
+        source += "".join(translator.compile(name)["body"] for name in
+                          ("directProof", "propLet", "propLetHead"))
+        source += (f"def result : {nat} := let p : {translate.symbol('True')} := "
+                   f"{translate.symbol('propLetHead')} in {two}\n"
+                   f"mu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\ndef computed : Witness result := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "prop-lets.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / f"{path.name}.check.stderr").read_text())
+            erased = (directory / f"{path.name}.erased.stdout").read_text()
+            self.assertNotIn("KLet", erased)
+            for name in ("directProof", "propLet", "propLetHead"):
+                self.assertIn(f"erased {translate.symbol(name)}\n", erased)
+                self.assertIn(f"erased p{name.encode('utf-8').hex()}\n", erased)
+            self.assertEqual((directory / f"{path.name}.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_type_lets_check_even_unused_arguments_and_values(self):
+        for level, good, bad in ((["succ", ["zero"]], ["const", "Nat", []], ["nat", "0"]),
+                                  (["zero"], ["const", "True", []], ["const", "Nat", []]),
+                                  (["succ", ["succ", ["zero"]]],
+                                   ["sort", ["succ", ["zero"]]],
+                                   ["sort", ["succ", ["succ", ["zero"]]]])):
+            for form in ("let", "lambda", "head"):
+                for valid, value in ((True, good), (False, bad)):
+                    with self.subTest(level=level, form=form, valid=valid):
+                        nodes = [["sort", level], value, ["const", "Nat", []], ["nat", "2"]]
+                        if form == "let":
+                            nodes += [["let", "same", 0, 1, 3, False]]
+                        elif form == "lambda":
+                            nodes += [["lam", "same", "explicit", 0, 3], ["app", 4, 1]]
+                        else:
+                            nodes += [["bvar", 0], ["lam", "x", "explicit", 2, 4],
+                                      ["let", "same", 0, 1, 5, False], ["app", 6, 3]]
+                        row = definition("checkedType", nodes, 2, len(nodes) - 1,
+                                         ["Nat", *(["True"] if value == ["const", "True", []] else [])])
+                        snapshot = copy.deepcopy(self.original)
+                        translate.declarations.declaration(row, snapshot["modules"])
+                        snapshot["declarations"].append(row)
+                        source = translate.Translator(snapshot).compile("checkedType")["source"]
+                        with tempfile.TemporaryDirectory() as temporary:
+                            directory = Path(temporary)
+                            path = directory / "unused-type.kan"
+                            path.write_text(source)
+                            checks = translate.check_artifact(CHECKER, directory, path.name)
+                            self.assertEqual([check["exit_code"] for check in checks[:2]],
+                                             [0, 0] if valid else [1, 1],
+                                             (directory / f"{path.name}.check.stderr").read_text())
+                            if valid:
+                                self.assertEqual(checks[2]["exit_code"], 0)
+                                self.assertEqual((directory / f"{path.name}.axioms.stdout").read_bytes(), b"")
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_type_let_kernel_quantities_and_normalized_domains(self):
+        nat = translate.symbol("Nat")
+        zero = translate.symbol("Nat.zero")
+        prefix = translate.Translator(self.value).compile("Nat")["source"]
+        prefix += (f"def Family : (n : {nat}) -> Type 0 := fun (n : {nat}) => {nat}\n"
+                   "def UniverseAlias : Type 1 := Type 0\n")
+        cases = (
+            ("def alias : (0 A : Type 0) -> (x : A) -> A := "
+             "fun (0 A : Type 0) => fun (x : A) => "
+             "let B : UniverseAlias := A in let y : B := x in y\n", True),
+            (f"def once : (1 x : {nat}) -> {nat} := fun (1 x : {nat}) => "
+             "let A : Type 0 := Family x in let y : A := x in y\n", True),
+            (f"def lost : (1 x : {nat}) -> {nat} := fun (1 x : {nat}) => "
+             f"let A : Type 0 := Family x in {zero}\n", False),
+            (f"def twice : (1 x : {nat}) -> {nat} := fun (1 x : {nat}) => "
+             "let A : Type 0 := Family x in let y : A := x in x\n", False),
+            (f"def erasedRead : (0 x : {nat}) -> {nat} := fun (0 x : {nat}) => "
+             f"let y : {nat} := x in y\n", False),
+            (f"def runtimeType : (A : Type 0) -> {nat} := fun (A : Type 0) => {zero}\n"
+             f"def erasedType : {nat} := let A : Type 0 := {nat} in runtimeType A\n", False),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "type-let-quantities.kan"
+            for body, valid in cases:
+                with self.subTest(body=body):
+                    path.write_text(prefix + body)
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks[:2]],
+                                     [0, 0] if valid else [1, 1],
+                                     (directory / f"{path.name}.check.stderr").read_text())
+                    if valid:
+                        self.assertEqual(checks[2]["exit_code"], 0)
+                        self.assertEqual((directory / f"{path.name}.axioms.stdout").read_bytes(), b"")
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_lambda_applications_compute_without_capturing_variables(self):

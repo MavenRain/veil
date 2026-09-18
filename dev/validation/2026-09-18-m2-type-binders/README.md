@@ -22,6 +22,13 @@ refusal test is replaced by positive coverage. Existing tests continue to
 reject type-valued lets and applications consuming type lambdas.
 These synthetic declarations carry no full-inventory parity credit.
 
+Predate note: the `translation-tests` capture predates the review fixes of
+2026-09-18 and keeps its `Ran 55 tests` row. The suite now holds 57 tests.
+One new case pins two stacked closed-sort binders with their full rendered
+type and value. One new case pins the refusal of a declaration that gives
+one binder different quantities in its type and in its value. A re-capture
+is not part of this review.
+
 The seven retained captures are:
 
 - `translation-tests`: all 55 tests pass, with no skips.
