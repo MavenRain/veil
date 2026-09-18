@@ -79,4 +79,10 @@ remain unimplemented by this slice.  The user's M1 exit stamp remains open.
 The next tooling increment adds the [declaration exporter](M2-DECLARATIONS.md).
 It preserves types, bodies and structural dependencies for a pinned selection
 from the inventory. The 44-declaration sample is ready for translator work;
-it records no successful translations or Veil kernel re-checks.
+the exporter record itself holds no translations or Veil kernel re-checks.
+
+The following [monomorphic prototype](M2-TRANSLATION.md) translates the
+natural family and its two constructors and retains successful kernel,
+erasure and empty-axiom checks. Every other snapshot name has an explicit
+translation-gap reason. These sample results credit zero full-inventory
+parity successes. Prenex universes, Prop and proof translation remain open.

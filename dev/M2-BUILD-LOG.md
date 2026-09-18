@@ -1,5 +1,80 @@
 # M2 build log
 
+## Monomorphic translation prototype, 2026-09-17
+
+Added `dev/m2-translate.py`, a structural translator from the pinned Lean
+declaration export to Veil source for a bounded monomorphic subset. It
+lowers simple inductive families to `mu`, preserves dependency order and
+de Bruijn binding, and supports safe nonrecursive definitions, lambdas,
+applications, lets and small natural literals. Unsupported forms and
+dependencies produce explicit translation gaps without inserted axioms.
+The [translation contract](M2-TRANSLATION.md) states the limits and trust
+boundary.
+
+The sample retains all 44 snapshot names. `Nat`, `Nat.zero` and `Nat.succ`
+share one generated artifact and pass kernel, erasure and empty-axiom checks.
+The other 41 names have explicit gap reasons. The record binds each original
+declaration, generated source, compiler and translator sources, executable
+hash, commands, statuses and full output captures. Offline verification
+re-translates the pinned inputs; live verification re-runs the three checks.
+The 51,980-name parity baseline stays at zero credited successes and its gate
+still exits 1 for the valid, incomplete baseline.
+
+Validation in `/Users/oobi/Documents/gpt3/veil-m2-translation`, based on
+`a7534cedeac82d396de8e23058ee6bc990560f65`:
+
+- Build passed with 0 errors and 0 warnings.
+- All 22 translation regression tests passed, including three live tests.
+  The computation check rejects an altered expected result; integrity checks
+  reject unrelated source even after its hash is changed, missing captures,
+  changed commands, statuses, counts, file sets and provenance.
+- The existing declaration suite passed 30 tests and skipped its two
+  optional Lean integrations. Exporter and Lean sources are unchanged.
+- Record creation, its offline verification and live reproduction passed.
+- HOUSE and TRUSTED-LINES passed. Trusted counts remain kernel 5246/5250
+  and encoder 246/600.
+
+The [validation record](validation/2026-09-17-m2-translation/README.md)
+retains eight captures and checks their hashes and source bindings. This is
+scoped development-tool validation. The full M1 timing ladder and Lean
+export were not rerun. Compiler and runtime sources are unchanged. Prenex
+universes, Prop, proof translation, full-inventory parity and M2 exit remain
+open. No user ratification or commit is written by this slice.
+
+### Review 2026-09-17 (M2 monomorphic translation)
+
+An independent review read the staged slice and kept seven findings. Its
+check stage raised one more. The fixes are test, record-checker and document
+changes. The translator and the sample record are unchanged, so no re-record
+was necessary.
+
+- A-1, medium, dev/m2-translate-test.py:262. A fourth case gives exit 0 on
+  all three checker commands, with a warning on stderr. It asserts that the
+  result is not rechecked.
+- D-1, medium, dev/validation/2026-09-17-m2-translation/verify.py:51. The
+  record checker accepts an optional `review` key, hashes every file that
+  the key names, and admits those files in the record directory.
+- B-1, low, dev/M2-TRANSLATION.md:63. The contract states that the
+  translator restricts no application head, and that a lambda head gives a
+  beta-redex which Veil refuses. One test pins that output.
+- A-COV, low, dev/m2-translate-test.py:141. Four tests reach the
+  dependency-depth bound, the accumulated byte budget, constructor
+  polymorphism and safety, and the committed sample bytes.
+- C-2, low, dev/M2-READINESS.md:82. The sentence is scoped to the exporter
+  record, which holds no translations or Veil kernel re-checks.
+- C-1, low, dev/validation/2026-09-17-m2-translation/README.md:47. The skip
+  reason names the mechanism: the declaration suite ran without `--live`.
+- D-3, low, dev/validation/2026-09-17-m2-translation/verify.py:38. The
+  source union binds the five `test/*.ml` files that the house legs scan.
+- ND-1, low, dev/validation/2026-09-17-m2-translation/README.md:49. The
+  record states that the translation-tests capture predates the four tests
+  the review added.
+
+The translation suite now holds 26 tests, 3 of them live. Five mutants that
+the review found are now refused: the empty-stderr conjunct, the
+dependency-depth admit, the byte budget, the constructor safety admit and
+the `mu` keyword. The captured streams of the original runs are unchanged.
+
 ## Declaration bodies and dependency closure, 2026-09-17
 
 Starting point: `7abe6a51d717bcb64d8fde2900610fc88cb9e7da`, the committed

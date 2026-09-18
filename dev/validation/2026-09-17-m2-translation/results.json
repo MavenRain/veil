@@ -1,0 +1,195 @@
+{
+  "base": "a7534cedeac82d396de8e23058ee6bc990560f65",
+  "checks": {
+    "build": {
+      "argv": [
+        "zsh",
+        "dev/dunecho.sh",
+        "build"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "2978a4616557a21b46d359889e934b0d49bead6c861adf983db76a8cfa8484c0",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "9e007d7a4010fcc271a69a2546c4c166962b8c019f48235eca93e8512b6a997b"
+      }
+    },
+    "declaration-tests": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-declarations-test.py"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "cdb390c99875909aada3bda1ce66751c2bcbdd169c607b0c5fbf56a8b7418951",
+        "stderr": "8e5079f5eb7ebedfa05e1b6f3ec0196fd3bdf65e0f7ff8e5babab6c3754ee71a",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "1e280b7cf6a498c6a445e97754a8099199a82e19e967b8c483e6dab85bd724fd",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "3eb290294b18d2cb4eac5f56a6d06cfa0f63f5e21d696388ece50e00957f4001"
+      }
+    },
+    "live": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-translate.py",
+        "verify",
+        "--live"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "d6904482acaefc4ab9dbd0f07d64f759bbf23f83be9dbc3f262e6dcf5d35c0e4",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "aa0e44238cc808e9106c4a3c56ff854783c1854e430986af305dd63f0e60b000"
+      }
+    },
+    "parity-gate": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity.py",
+        "gate"
+      ],
+      "expected_exit_code": 1,
+      "sha256": {
+        "json": "c156db36d615fc8cff3dd29114d6dc94195e9e94cad62583af8a74edb7abe852",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "14aac83700c153459cc0a1c26234cfd71fea7106a7fe386c8061b0ed08dd432e"
+      }
+    },
+    "record": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-translate.py",
+        "record",
+        "--output",
+        "dev/m2-translation"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "bb3e68c8e043ad8406e55a53ea850ecd286c2815d748bbe2fd7dee88aec10114",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "aa0e44238cc808e9106c4a3c56ff854783c1854e430986af305dd63f0e60b000"
+      }
+    },
+    "translation-tests": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-translate-test.py",
+        "--live"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "6eb78806432bb9c859b5fd82e283447315f573bbdf5e14821f887c0e4117df32",
+        "stderr": "c574a96e003f2d0d76ec3ecdcaacbc3eb52d44424bd150f23b643352f38e812b",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "trusted-lines": {
+      "argv": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "0b304f3e82126a849568224ed7a3680d9487e31cccd92fb559dd24ffb8ebba77",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284"
+      }
+    }
+  },
+  "sources": {
+    "README.md": "7607180ab7d55d6938196a98a920a2fde447e8b887ee9d40be3c1a57005b1916",
+    "bin/dune": "05cbdb18189fc7d13fae4a6ada0c767015712701cbe91a04877d0898a58d3aed",
+    "bin/host.ml": "59bfbafe3b8cc8c4e4fc6eb7e9b9292d49c256635ac183679ca59676ed9a804d",
+    "bin/kanon.ml": "61c4e5c119f67f5f903c9d678f0b10ef4a96a9b7ebe11d29317a9303b6dbe9fb",
+    "dev/M2-BUILD-LOG.md": "905bc92fe709eeb74394ad60da355e8e092ec030c7dbd458a64ceb5d4d4d9351",
+    "dev/M2-DECLARATIONS.md": "afeb9be043a8ff7c0f66f725a96f7fb9cd563d57cda0dc0b0014b1ccdd012539",
+    "dev/M2-PARITY.md": "ea17c32fd34177781b0d477e495fda78bbc902fba0a2c5adf1b5d82e5916c30a",
+    "dev/M2-READINESS.md": "2a4b577a8c057d2b49cd7f45430d50cb6fb054097eb0e87840fb7ab236235e57",
+    "dev/M2-TRANSLATION.md": "b078aaef8a431ac4b08e43a1dfb4d874bdc351dc7db8e4d76c66626696390222",
+    "dev/dunecho.sh": "106d90b38385bdd93a652d423b24bf258553317b063d1a9055a15b7df446e585",
+    "dev/house-catchalls.py": "34a766b306276b831159eb288f817f4dfc4ac8c12bc083462f387e55ef7eec30",
+    "dev/house.sh": "173b7f8abeb3821d0bd4d11b3d27b8a1316ffc4385b81f9f8fc5d1c92fbf40ce",
+    "dev/m2-declarations-test.py": "4790a6c35f98c7421df857868ecc91c90c05b29608a40a9becff26cde14d16b6",
+    "dev/m2-declarations.py": "ae52db557c50a009580f28e40fe2c07a6751be16daeb1b4b203d2f233b011f48",
+    "dev/m2-declarations/declarations.json": "f9cd342f97ee0cb82bdbe7841295c3ca92bca06ef03b848a2c2c84e89285a652",
+    "dev/m2-declarations/pin.json": "53e7be54ee2eb0240aed21c7a982ca86dc00ab032028028377b8e39db855657e",
+    "dev/m2-init/baseline.json": "abf2f7e15caabcddd717381adeb2b1f7d02403156a0fc4ce88f80196a80afc32",
+    "dev/m2-init/inventory.jsonl": "80dd1223088490394b6177e7b5fb8aa9e43b57799b9c8fa70504a2d4eb6e0cf4",
+    "dev/m2-init/pin.json": "829a3e712ae0f7159ab3a4f9e0748f9bc0c477c63f95989794598afc007c008e",
+    "dev/m2-parity.py": "5792b173e92d616b2fdd418c9574e05f6dcc7fdd2d7761529207a83c9c689014",
+    "dev/m2-translate-test.py": "9863d6a026a417302ea91666d4e2e2931187a2b5723b0ad6f6718edc5403e19c",
+    "dev/m2-translate.py": "80fa757d20be29e5eb237528bad71974728b601a1f647a3e4c6c978ee15bad01",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan": "11407b2a4be5888336e9f005fdc7c06e56ffa1be967eb19af3bb42bf60c67ab3",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.axioms.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.axioms.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.check.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.check.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.erased.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/3d1917aa425fd7059394e1413a9cf36a1304374e10ea4b88200fd2d34ce749d4.kan.erased.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev/m2-translation/results.json": "a8dce0caaa875d8d6561c580f8bba9cd8704cd002f40b7bad4cd7e336dd10e4b",
+    "dev/trusted-lines.sh": "5f80f23b52599af464efc32405ed1eb59b2da51c3e9dd94b400ce3d28cee1ee2",
+    "dev/validation/2026-09-17-m2-translation/README.md": "86f655fb8e2a94e6771492c6e95b8f305c49b1e01cec77a7fe04244fc9d3e151",
+    "dev/validation/2026-09-17-m2-translation/verify.py": "34855c6478b60836e0bbf60fe46d2e6fc994571650a91743a3425943d106e766",
+    "dune": "a52a26b962f1c151063f898b64225c3c032c0658ef3c8e609b1de25b54db16b8",
+    "dune-project": "81967628f56a79c688464ca1e7867526d561f5ddf38cad37c686cc8aaf9d17a8",
+    "lib/bignum.ml": "7159dd7e75fa08a5fc272cba76a8ec6214c7d190151dabf7db1a13bf5ecddd72",
+    "lib/budget.ml": "7d8b2afc86883415c892d6fea0e56c2115e4d859b6b6daa21c611b4e9517f028",
+    "lib/budget.mli": "b830149c9eb6d9362786d2e92c2dc8322f4d31f7b4cfc960ac6e1681d385578f",
+    "lib/check.ml": "140f19079a571649d233b7e02632ec4fe9a2616d6f81571096db46fe1419f50e",
+    "lib/circuit.ml": "a37775c6913320af217859f4f66a11e350252ee5e5e2dc9f4e1c722daec6dc34",
+    "lib/circuit.mli": "00942d97ac8db5007883add6f30e1aa4e3c14a1433ff2831e2ada5802353a01e",
+    "lib/conv.ml": "e73e707bcdac54808d8f8a1d9e9a174062edf0afd970972dee2c6d024f6bbe39",
+    "lib/dune": "0e60f3ebdbbf7182dba98dd70eb2d494bd83d6e2934dd1f344f98e4b0e392ec0",
+    "lib/erase.ml": "d67e08c22164d8dd027cde02d9c045d6c57e068ebc6cca2447ef0f0959d641e7",
+    "lib/error.ml": "44c9c263479575ec04db5056404a5940d6bb5514a5b9e1ec6215385c6eccb5b6",
+    "lib/eterm.ml": "028ff6e790f9c391463b961f7a3eac12e105d484285cfde1597e52c5b9ac69c7",
+    "lib/eval.ml": "155ddf7578d4ad68352505064616bed6afa7a260a88f3ddf1722b95fa6a6bd18",
+    "lib/global.ml": "2e5d2d932dfddcb329bcfdf237df87a70f2d79820470dc236e337ec6d275c329",
+    "lib/level.ml": "344bb9819870d8c459154ac8109ba1d69a4ee4312670f3887c6ed30d3dbca448",
+    "lib/level.mli": "c143b2b97e417724a81f8e83548b946d3339917488758b4d5fbf9da9e72e6811",
+    "lib/literal.ml": "80554b1d98c8dde3b474023a01ac57cc4abcaba2a5f20b707041cc5f0361b617",
+    "lib/order.ml": "d2cc3258fde25b61ba33093eaf19112c319329dc5b46ba029b3f042c14388e94",
+    "lib/positivity.ml": "97cb5fc9484ecaec360b4be1ac42f0668ae767aad25efc10ddbc1d4143185471",
+    "lib/pp.ml": "2f25f118192f020e8208aafeb7debb6f065159ef29189b5a95d7e62af101c51d",
+    "lib/prim.ml": "5224df4f75e499b8fb962fad2a256b31086fcc9de5ab2f353eb90f61a8408aaa",
+    "lib/quantity.ml": "bf3f633c40a0dbb362cf85ca41b798ae0c9e1d4eca7e09f9b6f482bab2bfbb8b",
+    "lib/rules.ml": "724c43330ac0c9e37100f1305760cf6006a5b97bad3e6ed23f952c7a97155d41",
+    "lib/shape.ml": "81aab4214cdd4113eb9ff5cd4e772a46ca765c93927651653032dbc923ad6a0e",
+    "lib/spec_count.ml": "9a4cb97373ddbabb6156b04f92cc41803ee1b714391ccb669cf38e60d36437e6",
+    "lib/term.ml": "2de6729958bfbc3af10ed2e9c51d6591ab40fa16bd19b7acea1fbf37adf60690",
+    "lib/totality.ml": "046c608584ac21d465d46b05119a89dca5488a15113359eea30ed318a3f7c028",
+    "lib/value.ml": "997f4634df60744c49555e896c1de8d60e51a1086e731e547b48450def9c68c7",
+    "meta/ExportDeclarations.lean": "1ed329e61b0df39f7bca4d02d3b5aa7be4798decf9a14636001ffc92b256481d",
+    "surface/dune": "c45bcc3721c5711848423635d08c3d5e41691bb32adda95efa0be17b7f3a3be4",
+    "surface/elab.ml": "e28aa3f42ae666ac2f45eae63131ab265b1fef705f793fa115fc9a4765111a75",
+    "surface/lexer.ml": "211933cd8bd2c884150acbdf16332f0b247c3a6566da92a232af7ba868f4e1c2",
+    "surface/parser.ml": "c933a7d97c348f73d44a481d6a4b8ba3fb7948655b3e996f6288d7d93ea63e45",
+    "surface/syntax.ml": "5955824e98dc17ecc2f5ca830c29b1741f86938ab53bdc711b2b8c499d36583d",
+    "surface/token.ml": "88cb55a453b4face279bdf84847ac26617e1976b94b3287cac42e0e36acc1b59",
+    "test/circuit_bounds.ml": "49e4620e103eaf0a2ce05c067c907534868a40de6b1c787e6e69734fcba0f32b",
+    "test/main.ml": "4e67d80074ecd288f44716c4237d2f37a16e99716c5fce73f89d118c9358c71d",
+    "test/sl_surface.ml": "f0ab669a0ad100933e00d29dcfb1c78c89b3d80184b057d1fa3b85b258e1c18b",
+    "test/sys_io.ml": "29b173a99d518a8265418034e6366b6ce8009e1962f27c788d7ebdda2bc24b8e",
+    "test/wasm.ml": "6d42e0e74e2c5b7872dd0b23740ad366b95093f92dc78fd51a0684c8aa8e6af5",
+    "wasm/dune": "79e576ba25647517bcaebe48e013c135d2c9d97377b62fa55da3d8e04f6e0a04",
+    "wasm/emit.ml": "3f3d81284b76a9bb0eb5c8531d765cc8cd403f4c57a17112b64a3335c8e54d67",
+    "wasm/gc_encode.ml": "a9a047fc914c0247fbf62033c5a976a606c299d88841e07a755b6c536e7fe7dc",
+    "wasm/link.ml": "dd8d7796fe1d2fe0fc0fa6af5e0ba7404d996ae2017448a1087581325ebc3713"
+  },
+  "workspace": "/Users/oobi/Documents/gpt3/veil-m2-translation"
+}

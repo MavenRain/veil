@@ -7,8 +7,8 @@ after following their dependencies. It includes the proof of `Nat.add_zero`.
 It reports the actual axiom declarations `Classical.choice`, `Quot.sound` and
 `propext` in that closure.
 
-These are translator inputs. No declaration has yet been translated to Veil
-or re-checked by its kernel. The [parity inventory](M2-PARITY.md) still has
+These are translator inputs. The exporter itself performs no translation or
+kernel re-check. The [parity inventory](M2-PARITY.md) still has
 51,980 declarations, zero attempted translations and an open parity gate.
 The sample's size does not change that denominator. The axiom list describes
 this dependency closure, including structural and mutual-declaration edges;
@@ -116,4 +116,7 @@ against a trusted record or running live reproduction. Live verification is
 required to establish or replace a snapshot. The [validation record](validation/2026-09-17-m2-declarations/README.md)
 retains the scoped checks. Existing compiler, runtime and M1 gate sources are
 unchanged. The translator, Veil re-check evidence and M2 language features
-remain the next implementation work.
+remain beyond this exporter. The follow-up
+[monomorphic prototype](M2-TRANSLATION.md) now re-checks the natural family
+and its two constructors, with an explicit gap for every other snapshot
+declaration and no full-inventory parity credit.
