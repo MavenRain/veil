@@ -24,9 +24,9 @@ python3 -I dev/m2-translate.py verify
 python3 -I dev/m2-translate.py verify --live
 ```
 
-Offline verification needs Python. Live verification and the nine live
+Offline verification needs Python. Live verification and the eleven live
 regression tests need the built `_build/default/bin/kanon.exe` executable.
-The tests without `--live` skip those nine integrations. To capture a fresh
+The tests without `--live` skip those eleven integrations. To capture a fresh
 record, choose an output directory that does not exist:
 
 ```sh
@@ -65,8 +65,9 @@ The current subset contains:
 - Monomorphic constants, variables, application, lambdas, dependent arrows
   and typed lets. Binders directly over sorts are refused pending erasure
   translation. Remaining binders use Veil's unrestricted quantity. Direct
-  lambda application chains lower to nested typed lets so Veil can check
-  them without inferring a bare lambda's type.
+  lambda application chains, including functions exposed through lets,
+  lower to nested typed lets so Veil can check them without inferring a bare
+  lambda's type.
 - Safe, nonrecursive, transparent definitions with supported dependencies.
 - Nonrecursive theorem bodies with supported dependencies. An additional
   generated definition checks each theorem's type against `Prop` in Veil.
@@ -90,15 +91,19 @@ result still computes. A false proof and a theorem with a data type are
 rejected. Removing the latter's proposition guard admits it as an ordinary
 data definition, exercising the guard's effect.
 
-For a direct lambda application, each supplied argument retains its caller
-scope, and each consumed parameter becomes a fresh typed let. Later parameter
-types retain references to earlier parameters. Typed lets preserve argument
-checks even when the body ignores a parameter, and proof lets erase through
-Veil's existing rules. Regression checks cover nested, partial and higher-order
-applications, shadowed names, dependent parameter syntax, proof erasure and
-incorrect arguments and results. This lowering performs no general unfolding
-or normalization: an application whose function becomes a lambda only after
-evaluating another expression may still fail Veil's inference checks.
+For a lambda application, each supplied argument retains its caller scope,
+and each consumed parameter becomes a fresh typed let. Lets on the function
+side move around the application while retaining their types and values.
+Applications exposed inside a binding supply their arguments before pending
+outer arguments. Later parameter types retain references to earlier bindings.
+Typed lets preserve checks even when the body ignores a parameter or a local
+binding, and proof lets erase through Veil's existing rules. Regression checks
+cover nested, partial and higher-order applications, shadowed names, dependent
+parameter syntax, proof erasure and incorrect arguments, let values and results.
+This lowering follows only explicit application, lambda and let nodes. It
+does not unfold constants, substitute local values or perform general
+normalization. Functions exposed only by those further reductions may still
+fail Veil's inference checks.
 
 Polymorphism, binders over sorts, axioms, opaque declarations, recursors,
 quotients, projections, strings, unsupported inductives and recursive
@@ -146,7 +151,7 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [validation record](validation/2026-09-17-m2-beta/README.md)
+See the [validation record](validation/2026-09-18-m2-let/README.md)
 for the scoped checks. Compiler and runtime sources are unchanged. The next
 language work remains prenex universes and general Prop parity, followed by
 the remaining proof-grade forms and full-inventory differential results.

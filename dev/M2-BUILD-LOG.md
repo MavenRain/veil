@@ -1,5 +1,62 @@
 # M2 build log
 
+## Let-headed application translation, 2026-09-18
+
+Extended the monomorphic translator to lower applications exposed through
+explicit lambda and let nodes. Original let bindings retain their types and
+values, supplied arguments keep their caller scope, and inner applications
+supply arguments before pending outer ones. Unused bindings still receive
+kernel type checks. Proof bindings erase through the existing rules.
+
+Seven new live computation cases cover nested and mixed applications,
+shadowed names, partial and higher-order functions, and dependent domains.
+Changed result witnesses fail conversion. A proof case checks erasure and
+runtime computation, plus rejected unused let values and lambda arguments.
+Six offline cases pin lowering and retain depth, size and sort restrictions.
+
+Validation in `/Users/oobi/Documents/gpt3/veil-m2-let`, based on
+`d32b81208d4c9283e38f3d940f790939ab9d2e61`: all 48 translation tests pass,
+including eleven live integrations. The declaration suite passes 30 tests and
+skips two optional Lean integrations. Sample recording, offline and live
+verification, HOUSE and TRUSTED-LINES pass. The incomplete parity gate keeps
+its expected exit 1. The checker was reused after its source and binary hashes
+matched the previous record. The
+[validation record](validation/2026-09-18-m2-let/README.md) retains the seven
+captures and their source bindings.
+
+The sample retains five rechecked names and 39 explicit gaps, with zero
+full-inventory parity credit. Compiler, runtime, Lean and exporter sources
+are unchanged. General normalization, prenex universes and general Prop
+parity remain open. This increment does not rerun the full M1 timing ladder
+or supply the user's M1 exit ratification.
+
+### Review 2026-09-18 (M2 let-headed application)
+
+Seven items were kept: six are fixed and one is carried for a user ruling.
+
+- A-1 medium, dev/m2-translate.py:89: the let branches now refuse a declared
+  type that is a sort, in the application spine and in the plain render.
+  A new offline test pins both directions. The sample provenance is
+  re-recorded and its 14 artifact streams stay byte-identical.
+- A-2 medium, dev/m2-translate-test.py:331: a new offline test pins the
+  order of three surplus arguments after a let head.
+- A-3 medium, dev/m2-translate-test.py:312: the dependent domain test now
+  pins a let type that names the binding before it.
+- C-6 low, README.md:190: the sentence names direct lambda applications
+  again, together with the applications exposed through typed lets.
+- C-1 low, validation/2026-09-18-m2-let/README.md:25: the uncaptured
+  pre-change sentence is deleted here and in this log.
+- D-1 low, validation/2026-09-18-m2-let/verify.py:60: the checker refuses
+  an invalid review block and keeps its one-line verdict.
+- CARRY A-2 of the 2026-09-17 m2-beta review, dev/m2-translate.py:108: the
+  render memo keys on the node index and the depth, with no fuel part.
+  The item waits for a user ruling.
+
+The offline suite now runs 50 tests with eleven skips at exit 0. The
+`translation-tests` capture predates these tests and keeps its `Ran 48 tests`
+row. The record README holds the predate note. A re-capture is not part of
+this review.
+
 ## Direct lambda application translation, 2026-09-17
 
 Extended the monomorphic translator to lower direct lambda application chains

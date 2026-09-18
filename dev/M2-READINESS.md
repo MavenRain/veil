@@ -86,7 +86,8 @@ natural and truth families and their constructors, retaining five successful
 kernel, erasure and empty-axiom checks at the declaration level. The other
 39 snapshot names have explicit translation-gap reasons. Bounded closed
 proof bodies and empty families are covered by synthetic regression inputs.
-Direct lambda applications now lower to typed lets, with synthetic checks for
-binding, argument types, computation and proof erasure.
+Lambda applications, including those exposed through nested lets, now lower
+to typed lets. Synthetic checks cover binding, argument and let-value types,
+computation and proof erasure.
 These sample results credit zero full-inventory parity successes. Prenex
 universes, general Prop parity and general proof translation remain open.

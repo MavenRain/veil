@@ -309,6 +309,97 @@ class TranslationTests(unittest.TestCase):
         self.assertEqual(translate.Expressions({"nodes": nodes}).render(4, 0, 4),
                          f"(({nat} {nat}) (({nat} {nat}) {nat}))")
 
+    def test_let_application_preserves_caller_scope_and_dependent_domains(self):
+        nodes = [["const", "Nat", []], ["const", "Family", []], ["bvar", 0],
+                 ["app", 1, 2], ["nat", "0"], ["lam", "same", "explicit", 3, 2],
+                 ["let", "same", 0, 4, 5, False], ["app", 6, 2]]
+        nat, family, zero = (translate.symbol(n) for n in ("Nat", "Family", "Nat.zero"))
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(7, depth=1),
+                         f"(let b1 : {nat} := {zero} in "
+                         f"(let b2 : ({family} b1) := b0 in b2))")
+        # The declared type of a let renders one level below the caller, so
+        # it names the binding that precedes it.
+        nested = [["const", "Nat", []], ["const", "Family", []],
+                  ["const", "one", []], ["const", "arg", []], ["bvar", 0],
+                  ["app", 1, 4], ["bvar", 0], ["bvar", 0],
+                  ["let", "w", 5, 6, 7, False],
+                  ["let", "z", 0, 2, 8, False], ["app", 9, 3]]
+        one, argument = (translate.symbol(n) for n in ("one", "arg"))
+        self.assertEqual(translate.Expressions({"nodes": nested}).render(10),
+                         f"(let b0 : {nat} := {one} in "
+                         f"(let b1 : ({family} b0) := b0 in (b1 {argument})))")
+
+    def test_let_application_consumes_inner_arguments_before_outer_arguments(self):
+        # The inner argument sees the let binder. The outer one sees only the caller.
+        nodes = [["const", "Nat", []], ["bvar", 0], ["bvar", 1], ["nat", "0"],
+                 ["lam", "same", "explicit", 0, 1], ["lam", "same", "explicit", 0, 4],
+                 ["app", 5, 1], ["let", "same", 0, 3, 6, False], ["app", 7, 1]]
+        nat, zero = (translate.symbol(n) for n in ("Nat", "Nat.zero"))
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(8, depth=1),
+                         f"(let b1 : {nat} := {zero} in (let b2 : {nat} := b1 in "
+                         f"(let b3 : {nat} := b0 in b3)))")
+
+    def test_let_application_keeps_partial_and_surplus_applications(self):
+        nat, one, two, three = (translate.symbol(n) for n in ("Nat", "one", "two", "three"))
+        nodes = [["const", "Nat", []], ["const", "one", []], ["const", "two", []],
+                 ["const", "three", []], ["bvar", 1], ["lam", "y", "explicit", 0, 4],
+                 ["lam", "x", "explicit", 0, 5], ["let", "n", 0, 1, 6, False],
+                 ["app", 7, 2], ["app", 8, 3], ["app", 9, 1]]
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(8),
+                         f"(let b0 : {nat} := {one} in (let b1 : {nat} := {two} in "
+                         f"(fun (b2 : {nat}) => b1)))")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(10),
+                         f"(let b0 : {nat} := {one} in (let b1 : {nat} := {two} in "
+                         f"(let b2 : {nat} := {three} in (b1 {one}))))")
+
+    def test_let_application_orders_three_surplus_arguments(self):
+        # The spine stops on a head that consumes no argument. The three
+        # surplus arguments keep their application order.
+        nodes = [["const", "Nat", []], ["const", "one", []], ["const", "a", []],
+                 ["const", "b", []], ["const", "c", []],
+                 ["let", "z", 0, 1, 0, False],
+                 ["app", 5, 2], ["app", 6, 3], ["app", 7, 4]]
+        nat, one = (translate.symbol(n) for n in ("Nat", "one"))
+        first, second, third = (translate.symbol(n) for n in ("a", "b", "c"))
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(8),
+                         f"(let b0 : {nat} := {one} in "
+                         f"((({nat} {first}) {second}) {third}))")
+
+    def test_let_type_sort_binders_are_refused(self):
+        # A let whose declared type is a sort needs erasure translation, in
+        # the application spine and in the plain rendering. A let whose type
+        # is an ordinary constant stays admitted.
+        refused = [["sort", ["zero"]], ["const", "Nat", []], ["bvar", 0],
+                   ["let", "t", 0, 1, 2, False], ["app", 3, 1]]
+        for index in (4, 3):
+            with self.subTest(index=index), self.assertRaisesRegex(
+                    translate.Gap, "erasure translation"):
+                translate.Expressions({"nodes": refused}).render(index)
+        admitted = [["const", "Nat", []], ["const", "one", []], ["bvar", 0],
+                    ["let", "t", 0, 1, 2, False], ["app", 3, 1]]
+        nat, one = (translate.symbol(n) for n in ("Nat", "one"))
+        self.assertEqual(translate.Expressions({"nodes": admitted}).render(4),
+                         f"(let b0 : {nat} := {one} in (b0 {one}))")
+        self.assertEqual(translate.Expressions({"nodes": admitted}).render(3),
+                         f"(let b0 : {nat} := {one} in b0)")
+
+    def test_let_application_retains_depth_source_and_sort_limits(self):
+        nodes = [["const", "Nat", []], ["bvar", 0], ["lam", "x", "explicit", 0, 1],
+                 ["let", "x", 0, 1, 2, False], ["app", 3, 1]]
+        expression = translate.Expressions({"nodes": nodes})
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            expression.render(4, depth=1, fuel=3)
+        nat = translate.symbol("Nat")
+        self.assertEqual(expression.render(4, depth=1, fuel=4),
+                         f"(let b1 : {nat} := b0 in (let b2 : {nat} := b0 in b2))")
+        with mock.patch.object(translate, "MAX_SOURCE", 50):
+            with self.assertRaisesRegex(translate.Gap, "source limit"):
+                translate.Expressions({"nodes": nodes}).render(4, depth=1)
+        for level in (["zero"], ["succ", ["zero"]]):
+            nodes[0] = ["sort", level]
+            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
+                translate.Expressions({"nodes": nodes}).render(4, depth=1)
+
     def test_committed_sample_artifacts_match_this_translator(self):
         sample = ROOT / "dev/m2-translation"
         report = translate.decoded((sample / "results.json").read_bytes())
@@ -642,6 +733,121 @@ class TranslationTests(unittest.TestCase):
                 self.assertIn("KLet", (directory / "beta.kan.erased.stdout").read_text())
                 path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
                 self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_let_applications_compute_without_capturing_variables(self):
+        direct = definition("letDirect", [["const", "Nat", []], ["bvar", 0], ["nat", "0"],
+                                          ["nat", "2"], ["lam", "same", "explicit", 0, 1],
+                                          ["let", "same", 0, 2, 4, False], ["app", 5, 3]],
+                            0, 6, ["Nat"])
+        capture = definition("letCapture", [["const", "Nat", []], ["bvar", 0], ["nat", "0"],
+                                            ["forall", "same", "explicit", 0, 0],
+                                            ["lam", "same", "explicit", 0, 1],
+                                            ["let", "same", 0, 2, 4, False], ["app", 5, 1],
+                                            ["lam", "same", "explicit", 0, 6]],
+                             3, 7, ["Nat"])
+        mixed = definition("letMixed", [["const", "Nat", []], ["bvar", 0], ["nat", "0"],
+                                        ["nat", "2"], ["lam", "same", "explicit", 0, 1],
+                                        ["lam", "same", "explicit", 0, 4], ["app", 5, 1],
+                                        ["let", "same", 0, 2, 6, False], ["app", 7, 3]],
+                           0, 8, ["Nat"])
+        partial = definition("letPartial", [["const", "Nat", []], ["bvar", 1], ["nat", "2"],
+                                            ["forall", "x", "explicit", 0, 0],
+                                            ["lam", "same", "explicit", 0, 1],
+                                            ["let", "same", 0, 2, 4, False],
+                                            ["lam", "same", "explicit", 0, 5], ["app", 6, 2]],
+                             3, 7, ["Nat"])
+        nested = definition("letNested", [["const", "Nat", []], ["bvar", 1], ["nat", "0"],
+                                          ["nat", "2"], ["lam", "same", "explicit", 0, 1],
+                                          ["let", "same", 0, 3, 4, False],
+                                          ["let", "same", 0, 2, 5, False], ["app", 6, 2]],
+                            0, 7, ["Nat"])
+        higher = definition("letHigher", [["const", "Nat", []], ["bvar", 0], ["nat", "2"],
+                                          ["forall", "x", "explicit", 0, 0],
+                                          ["lam", "x", "explicit", 0, 1],
+                                          ["lam", "f", "explicit", 3, 1],
+                                          ["let", "n", 0, 2, 5, False],
+                                          ["app", 6, 4], ["app", 7, 2]],
+                            0, 8, ["Nat"])
+        family = definition("letFamily", [["const", "Nat", []], ["sort", ["succ", ["zero"]]],
+                                          ["forall", "n", "explicit", 0, 1],
+                                          ["lam", "n", "explicit", 0, 0]], 2, 3, ["Nat"])
+        dependent = definition("letDependent", [["const", "Nat", []], ["const", "letFamily", []],
+                                                ["bvar", 0], ["app", 1, 2], ["nat", "2"],
+                                                ["lam", "x", "explicit", 3, 2],
+                                                ["let", "n", 0, 4, 5, False], ["app", 6, 4]],
+                               0, 7, ["Nat", "letFamily"])
+        translator = self.synthetic(direct, capture, mixed, partial, nested, higher, family, dependent)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        for row, argument in ((direct, ""), (capture, two), (mixed, ""),
+                              (partial, zero), (nested, ""), (higher, ""), (dependent, "")):
+            with self.subTest(name=row["name"]), tempfile.TemporaryDirectory() as temporary:
+                name = translate.symbol(row["name"])
+                result = f"({name} {argument})" if argument else name
+                source = translator.compile(row["name"])["source"]
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| two : Witness {two}\n"
+                           f"def computed : Witness {result} := two\n")
+                directory = Path(temporary)
+                path = directory / "let.kan"
+                path.write_text(source)
+                checks = translate.check_artifact(CHECKER, directory, path.name)
+                self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                                 (directory / "let.kan.check.stderr").read_text())
+                for label, _ in translate.CHECKS:
+                    self.assertEqual((directory / f"let.kan.{label}.stderr").read_bytes(), b"")
+                self.assertEqual((directory / "let.kan.axioms.stdout").read_bytes(), b"")
+                self.assertIn("KLet", (directory / "let.kan.erased.stdout").read_text())
+                path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+                self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_let_proofs_erase_and_unused_bindings_remain_checked(self):
+        proof = theorem("letProof", [["const", "True", []], ["const", "True.intro", []],
+                                     ["bvar", 1], ["lam", "p", "explicit", 0, 2],
+                                     ["let", "p", 0, 1, 3, False], ["app", 4, 1]],
+                        0, 5, ["True", "True.intro"])
+        consume = definition("letConsume", [["const", "Nat", []], ["const", "True", []],
+                                            ["const", "letProof", []], ["nat", "2"],
+                                            ["lam", "p", "explicit", 1, 3],
+                                            ["let", "p", 1, 2, 4, False], ["app", 5, 2]],
+                             0, 6, ["Nat", "True", "letProof"])
+        translator = self.synthetic(proof, consume)
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "proof-let.kan"
+            source = translator.compile("letConsume")["source"]
+            nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+            two = f"({succ} ({succ} {zero}))"
+            source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                       f"| two : Witness {two}\n"
+                       f"def computed : Witness {translate.symbol('letConsume')} := two\n")
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "proof-let.kan.check.stderr").read_text())
+            erased = (directory / "proof-let.kan.erased.stdout").read_text()
+            self.assertIn(f"erased {translate.symbol('letProof')}\n", erased)
+            self.assertNotIn("KLet", erased)
+            self.assertEqual((directory / "proof-let.kan.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+            for bad_let in (True, False):
+                with self.subTest(bad_let=bad_let):
+                    row = definition("letUnused", [["const", "Nat", []], ["const", "True.intro", []],
+                                                   ["nat", "2"], ["lam", "x", "explicit", 0, 2],
+                                                   ["let", "x", 0, 1 if bad_let else 2, 3, False],
+                                                   ["app", 4, 2 if bad_let else 1]],
+                                     0, 5, ["Nat", "True.intro"])
+                    self.value = copy.deepcopy(self.original)
+                    bad = self.synthetic(row).compile("letUnused")["source"]
+                    path.write_text(bad)
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+                    path.write_text(bad.replace(f":= {translate.symbol('True.intro')} in", f":= {zero} in"))
+                    self.assertTrue(all(check["exit_code"] == 0
+                                        for check in translate.check_artifact(CHECKER, directory, path.name)))
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_lambda_application_preserves_dependent_domains(self):
