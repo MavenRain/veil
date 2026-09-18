@@ -1,4 +1,4 @@
-# M2 monomorphic data and proof translation
+# M2 closed-universe data and proof translation
 
 `dev/m2-translate.py` lowers a bounded subset of the pinned Lean declaration
 export to Veil source. The checked-in record covers all 44 snapshot names.
@@ -24,9 +24,9 @@ python3 -I dev/m2-translate.py verify
 python3 -I dev/m2-translate.py verify --live
 ```
 
-Offline verification needs Python. Live verification and the eleven live
+Offline verification needs Python. Live verification and the fourteen live
 regression tests need the built `_build/default/bin/kanon.exe` executable.
-The tests without `--live` skip those eleven integrations. To capture a fresh
+The tests without `--live` skip those fourteen integrations. To capture a fresh
 record, choose an output directory that does not exist:
 
 ```sh
@@ -63,8 +63,9 @@ The current subset contains:
 - Closed sorts, with closed `succ`, `max` and `imax` evaluation. Lean sort
   zero lowers to `Prop`; positive sort `n` lowers to `Type (n - 1)`.
 - Monomorphic constants, variables, application, lambdas, dependent arrows
-  and typed lets. Binders directly over sorts are refused pending erasure
-  translation. Remaining binders use Veil's unrestricted quantity. Direct
+  and typed lets. Lambda and arrow binders directly over closed sorts use
+  Veil's zero quantity, preserving their scope while erasing the type or
+  proposition argument. Remaining binders use unrestricted quantity. Direct
   lambda application chains, including functions exposed through lets,
   lower to nested typed lets so Veil can check them without inferring a bare
   lambda's type.
@@ -105,7 +106,23 @@ does not unfold constants, substitute local values or perform general
 normalization. Functions exposed only by those further reductions may still
 fail Veil's inference checks.
 
-Polymorphism, binders over sorts, axioms, opaque declarations, recursors,
+Closed-sort binders support named generic functions, partial applications,
+forwarding a type argument from an enclosing binder, and proposition-generic
+proofs. Synthetic kernel checks cover shadowed type names, later dependent
+domains, higher closed universes and erased function signatures. Incorrect
+type arguments, data arguments and universe levels fail checking and erasure,
+including an invalid type argument that the function ignores. Computation
+witnesses reject changed results, and the proof cases retain empty axiom
+reports. These tests add no names to the exported snapshot.
+
+Only syntactic sort domains receive zero quantity. The translator does not
+unfold type aliases to infer a binder's quantity. Type-valued lets and direct
+applications that consume a type or proposition lambda binder remain explicit
+gaps: their typed-let lowering needs separate treatment of erased values.
+The already supported direct applications consume ordinary data or proof
+parameters. Named applications use the checked function's declared quantity.
+
+Universe polymorphism, axioms, opaque declarations, recursors,
 quotients, projections, strings, unsupported inductives and recursive
 definitions remain explicit translation gaps. A supported declaration whose
 dependency is unsupported also becomes a gap, naming that dependency.
@@ -151,7 +168,7 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [validation record](validation/2026-09-18-m2-let/README.md)
+See the [validation record](validation/2026-09-18-m2-type-binders/README.md)
 for the scoped checks. Compiler and runtime sources are unchanged. The next
 language work remains prenex universes and general Prop parity, followed by
 the remaining proof-grade forms and full-inventory differential results.

@@ -1,5 +1,37 @@
 # M2 build log
 
+## Closed-sort binder translation, 2026-09-18
+
+Lambda and dependent-arrow binders over explicit closed sorts now lower to
+zero-quantity Veil binders. Named generic definitions and proposition-generic
+proofs retain dependent scopes while their type arguments disappear at runtime.
+The kernel still checks every supplied argument, including unused ones.
+
+Three live tests cover generic identity, type-argument forwarding, partial
+application, two shadowed type binders, higher closed universes and generic
+proofs. Erased signatures retain only the data parameters. Changed computation
+witnesses fail conversion; incorrect universes, type arguments and data
+arguments fail both checking and erasure. Three offline tests cover binder
+visibility, scope, closed sort evaluation and the existing resource limits.
+The previous plain type-binder refusal test is replaced by positive coverage;
+type-valued lets and applications consuming type lambdas remain refused.
+
+Validation in `/Users/oobi/Documents/gpt3/veil-m2-type-binders`, based on
+`68b6f54013232005926d64fbfa2599e8524030d3`: all 55 translation tests pass,
+including fourteen live integrations. The declaration suite passes 30 tests
+and skips two optional Lean integrations. Fresh sample recording, offline and
+live verification, HOUSE and TRUSTED-LINES pass. The incomplete parity gate
+retains its expected exit 1. The
+[validation record](validation/2026-09-18-m2-type-binders/README.md) retains
+the seven captures and source hashes.
+
+The sample sources and checker captures remain byte-identical, with five
+rechecked names, 39 gaps and zero full-inventory parity credit. The checker
+was reused after matching its source and binary hashes to the prior record.
+Compiler, runtime, Lean and exporter sources are unchanged. This slice claims
+no new compiler build, Lean export or full M1 timing run. Prenex universes,
+general Prop parity and the user's M1 exit ratification remain open.
+
 ## Let-headed application translation, 2026-09-18
 
 Extended the monomorphic translator to lower applications exposed through

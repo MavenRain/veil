@@ -37,6 +37,15 @@ def identity(name="identity"):
                             ["lam", "same", "implicit", 0, 1]], 2, 3, ["Nat"])
 
 
+def generic_identity(name="genericIdentity", level=None):
+    level = ["succ", ["zero"]] if level is None else level
+    return definition(name, [["sort", level], ["bvar", 0], ["bvar", 1],
+                             ["forall", "same", "explicit", 1, 2],
+                             ["forall", "same", "implicit", 0, 3],
+                             ["lam", "same", "explicit", 1, 1],
+                             ["lam", "same", "implicit", 0, 5]], 4, 6, [])
+
+
 def theorem(name, nodes, ty, body, dependencies):
     row = definition(name, nodes, ty, body, dependencies)
     row["kind"] = "theorem"
@@ -410,11 +419,41 @@ class TranslationTests(unittest.TestCase):
         for path, unit in artifacts.items():
             self.assertEqual((sample / path).read_bytes(), unit["source"].encode("utf-8"))
 
-    def test_type_binder_refusal(self):
-        for level in (["zero"], ["succ", ["zero"]]):
-            nodes = [["sort", level], ["bvar", 0], ["lam", "A", "explicit", 0, 1]]
-            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
-                translate.Expressions({"nodes": nodes}).render(2)
+    def test_closed_sort_binders_erase_and_keep_dependent_scopes(self):
+        zero, one = ["zero"], ["succ", ["zero"]]
+        for level, domain in ((zero, "Prop"), (one, "(Type 0)"),
+                              (["succ", one], "(Type 1)"),
+                              (["imax", one, zero], "Prop")):
+            row = generic_identity(level=level)
+            with self.subTest(level=level):
+                source = self.synthetic(row).compile(row["name"])["source"]
+                self.assertIn(f"((0 b0 : {domain}) -> ((b1 : b0) -> b0))", source)
+                self.assertIn(f"(fun (0 b0 : {domain}) => (fun (b1 : b0) => b1))", source)
+
+    def test_closed_sort_binders_keep_universe_and_expression_limits(self):
+        deep = ["zero"]
+        for _ in range(translate.MAX_DEPTH):
+            deep = ["succ", deep]
+        for level, reason in ((["param", "u"], "prenex polymorphism"),
+                              (deep, "universe depth")):
+            row = generic_identity(level=level)
+            with self.assertRaisesRegex(translate.Gap, reason):
+                translate.Expressions(row).render(row["value"])
+        row = generic_identity()
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            translate.Expressions(row).render(row["value"], fuel=2)
+        with mock.patch.object(translate, "MAX_SOURCE", 20):
+            with self.assertRaisesRegex(translate.Gap, "source limit"):
+                translate.Expressions(row).render(row["value"])
+
+    def test_closed_sort_binder_visibility_does_not_change_quantity(self):
+        for visibility in ("explicit", "implicit", "strict_implicit", "instance"):
+            row = generic_identity()
+            row["nodes"][4][2] = row["nodes"][6][2] = visibility
+            with self.subTest(visibility=visibility):
+                source = self.synthetic(row).compile(row["name"])["source"]
+                self.assertIn("(0 b0 : (Type 0))", source)
+                self.assertIn("(b1 : b0)", source)
 
     def test_prop_sort_preserves_closed_levels(self):
         zero, one = ["zero"], ["succ", ["zero"]]
@@ -681,6 +720,133 @@ class TranslationTests(unittest.TestCase):
                                     for check in translate.check_artifact(CHECKER, directory, path.name)))
             path.write_text(translator.compile("falseProof")["source"])
             self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_closed_sort_data_binders_compute_and_erase(self):
+        generic = generic_identity()
+        select = definition("selectFirst", [
+            ["sort", ["succ", ["zero"]]], ["bvar", 1], ["bvar", 3],
+            ["forall", "same", "explicit", 1, 2],
+            ["forall", "same", "explicit", 1, 3],
+            ["forall", "same", "implicit", 0, 4],
+            ["forall", "same", "implicit", 0, 5],
+            ["lam", "same", "explicit", 1, 1],
+            ["lam", "same", "explicit", 1, 7],
+            ["lam", "same", "implicit", 0, 8],
+            ["lam", "same", "implicit", 0, 9]], 6, 10, [])
+        forwarded = definition("forwarded", [
+            ["sort", ["succ", ["zero"]]], ["bvar", 0], ["bvar", 1],
+            ["forall", "same", "explicit", 1, 2],
+            ["forall", "same", "implicit", 0, 3],
+            ["const", "genericIdentity", []], ["app", 5, 2], ["app", 6, 1],
+            ["lam", "same", "explicit", 1, 7], ["lam", "same", "implicit", 0, 8]],
+            4, 9, ["genericIdentity"])
+        partial = definition("partialGeneric", [
+            ["const", "Nat", []], ["forall", "x", "explicit", 0, 0],
+            ["const", "forwarded", []], ["app", 2, 0]], 1, 3, ["Nat", "forwarded"])
+        result = definition("genericResult", [
+            ["const", "Nat", []], ["const", "partialGeneric", []], ["nat", "2"],
+            ["app", 1, 2], ["forall", "x", "explicit", 0, 0], ["const", "partialGeneric", []],
+            ["const", "selectFirst", []], ["app", 6, 0], ["app", 7, 4],
+            ["app", 8, 3], ["app", 9, 5]],
+            0, 10, ["Nat", "partialGeneric", "selectFirst"])
+        translator = self.synthetic(generic, select, forwarded, partial, result)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source = translator.compile("genericResult")["source"]
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def computed : Witness {translate.symbol('genericResult')} := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "generic.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "generic.kan.check.stderr").read_text())
+            erased = (directory / "generic.kan.erased.stdout").read_text()
+            self.assertIn(f"fun {translate.symbol('genericIdentity')} (union any) : union any := KVar 0\n",
+                          erased)
+            self.assertIn(f"fun {translate.symbol('selectFirst')} (union any, union any) : union any := KVar 1\n",
+                          erased)
+            self.assertEqual((directory / "generic.kan.axioms.stdout").read_bytes(), b"")
+            for label, _ in translate.CHECKS:
+                self.assertEqual((directory / f"generic.kan.{label}.stderr").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_closed_sort_proposition_binders_preserve_proofs(self):
+        proof = generic_identity("genericProof", ["zero"])
+        proof["kind"], proof["details"] = "theorem", {"mutual": ["genericProof"]}
+        applied = theorem("appliedProof", [
+            ["const", "True", []], ["const", "True.intro", []],
+            ["const", "genericProof", []], ["app", 2, 0], ["app", 3, 1]],
+            0, 4, ["True", "True.intro", "genericProof"])
+        consumer = definition("proofResult", [
+            ["const", "Nat", []], ["const", "True", []], ["const", "appliedProof", []],
+            ["nat", "2"], ["lam", "p", "explicit", 1, 3], ["app", 4, 2]],
+            0, 5, ["Nat", "True", "appliedProof"])
+        translator = self.synthetic(proof, applied, consumer)
+        source = translator.compile("proofResult")["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def computed : Witness {translate.symbol('proofResult')} := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "generic-proof.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "generic-proof.kan.check.stderr").read_text())
+            erased = (directory / "generic-proof.kan.erased.stdout").read_text()
+            for name in ("genericProof", "appliedProof"):
+                self.assertIn(f"erased {translate.symbol(name)}\n", erased)
+                self.assertIn(f"erased p{name.encode('utf-8').hex()}\n", erased)
+            self.assertNotIn("KLet", erased)
+            self.assertEqual((directory / "generic-proof.kan.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_closed_sort_binders_check_universes_and_unused_arguments(self):
+        high = generic_identity("highIdentity", ["succ", ["succ", ["zero"]]])
+        unused = definition("unusedType", [
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []], ["nat", "2"],
+            ["forall", "A", "explicit", 0, 1], ["lam", "A", "explicit", 0, 2]],
+            3, 4, ["Nat"])
+        self.synthetic(generic_identity(), high, unused)
+        translator = translate.Translator(self.value)
+        nat, zero = (translate.symbol(n) for n in ("Nat", "Nat.zero"))
+        generic, high_name, unused_name = (translate.symbol(n) for n in
+                                           ("genericIdentity", "highIdentity", "unusedType"))
+        cases = (
+            ("highIdentity", f"def alias : Type 0 := {high_name} (Type 0) {nat}\n"
+                             f"def typed : alias := {zero}\n",
+             f"def alias : Type 0 := {high_name} (Type 1) {nat}\n"),
+            ("genericIdentity", f"def good : {nat} := {generic} {nat} {zero}\n",
+             f"def bad : {nat} := {generic} {zero} {zero}\n"),
+            ("genericIdentity", f"def good : {nat} := {generic} {nat} {zero}\n",
+             f"def bad : {nat} := {generic} {nat} {nat}\n"),
+            ("unusedType", f"def good : {nat} := {unused_name} {nat}\n",
+             f"def bad : {nat} := {unused_name} {zero}\n"),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "generic-types.kan"
+            for name, good, bad in cases:
+                with self.subTest(name=name, bad=bad):
+                    source = translator.compile("Nat")["source"] + translator.compile(name)["body"]
+                    path.write_text(source + good)
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                                     (directory / "generic-types.kan.check.stderr").read_text())
+                    self.assertEqual((directory / "generic-types.kan.axioms.stdout").read_bytes(), b"")
+                    path.write_text(source + bad)
+                    checks = translate.check_artifact(CHECKER, directory, path.name)
+                    self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_lambda_applications_compute_without_capturing_variables(self):

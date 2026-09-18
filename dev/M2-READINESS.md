@@ -81,13 +81,15 @@ It preserves types, bodies and structural dependencies for a pinned selection
 from the inventory. The 44-declaration sample is ready for translator work;
 the exporter record itself holds no translations or Veil kernel re-checks.
 
-The following [monomorphic prototype](M2-TRANSLATION.md) now translates the
+The following [closed-universe prototype](M2-TRANSLATION.md) now translates the
 natural and truth families and their constructors, retaining five successful
 kernel, erasure and empty-axiom checks at the declaration level. The other
 39 snapshot names have explicit translation-gap reasons. Bounded closed
 proof bodies and empty families are covered by synthetic regression inputs.
 Lambda applications, including those exposed through nested lets, now lower
 to typed lets. Synthetic checks cover binding, argument and let-value types,
-computation and proof erasure.
+computation and proof erasure. Closed-sort type and proposition binders use
+zero quantities. Named generic functions and proofs retain dependent scopes,
+checked type arguments and erased runtime signatures at fixed universe levels.
 These sample results credit zero full-inventory parity successes. Prenex
 universes, general Prop parity and general proof translation remain open.

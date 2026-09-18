@@ -184,12 +184,14 @@ Its integrity and live reproduction checks pass; translation coverage is 0
 percent and the M2 parity gate remains open.
 The [declaration exporter](dev/M2-DECLARATIONS.md) now provides pinned types,
 proof bodies and dependency closures as translator input.
-The [monomorphic translation prototype](dev/M2-TRANSLATION.md) re-checks the
+The [closed-universe translation prototype](dev/M2-TRANSLATION.md) re-checks the
 natural and truth families and their constructors, with explicit gaps for
 the other 39 snapshot declarations. It also lowers bounded closed proof
 bodies with kernel-checked proposition guards, direct lambda applications
 and lambda applications exposed through typed lets, preserving binding and
-argument checks. It credits no full-inventory parity successes.
+argument checks. Closed-sort type and proposition binders now erase through
+zero quantities, supporting named generic functions and proofs at fixed
+universe levels. It credits no full-inventory parity successes.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive
 indexed and mutual `mu` families, dependent matching, structural

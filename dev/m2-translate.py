@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Translate bounded monomorphic Lean data and proofs with Veil re-check evidence."""
+"""Translate bounded closed-universe Lean data and proofs with Veil re-check evidence."""
 
 import argparse
 from collections import Counter
@@ -129,8 +129,10 @@ class Expressions:
             if result is None:
                 result = f"({child(node[1])} {child(node[2])})"
         elif tag in ("lam", "forall"):
-            admit(self.nodes[node[3]][0] != "sort", "type-valued binders need erasure translation")
-            binder = f"(b{depth} : {child(node[3])})"
+            # A parameter ranging over types or propositions has no runtime
+            # value. Its occurrences in later domains keep their binder depth.
+            quantity = "0 " if self.nodes[node[3]][0] == "sort" else ""
+            binder = f"({quantity}b{depth} : {child(node[3])})"
             body = child(node[4], 1)
             result = f"(fun {binder} => {body})" if tag == "lam" else f"({binder} -> {body})"
         elif tag == "let":
