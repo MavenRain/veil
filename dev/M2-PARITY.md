@@ -109,6 +109,11 @@ translation-gap baseline. It rejects fabricated attempts, kernel re-checks,
 successes and threshold claims. The translator and its evidence-bearing
 result schema are the next implementation work.
 
+The [declaration exporter](M2-DECLARATIONS.md) now supplies pinned types,
+definition and proof bodies, structural data, and dependency closures from
+Lean's private-data environment. Its 44-declaration sample is translator
+input and does not change the denominator, baseline or gate result.
+
 M2 also requires the ratified axiom disclosure. It requires a 5,000-line
 end-to-end corpus against a same-session OCaml comparison. It requires a warm
 re-check within 120 ms after a one-definition edit. These remain open. This increment adds no kernel

@@ -75,3 +75,8 @@ It pins all 51,980 declarations from the exported Lean `Init` environment,
 retains every name in a 0-percent baseline, and verifies the pinned module
 artifacts against a fresh export.  The translator and M2 language features
 remain unimplemented by this slice.  The user's M1 exit stamp remains open.
+
+The next tooling increment adds the [declaration exporter](M2-DECLARATIONS.md).
+It preserves types, bodies and structural dependencies for a pinned selection
+from the inventory. The 44-declaration sample is ready for translator work;
+it records no successful translations or Veil kernel re-checks.

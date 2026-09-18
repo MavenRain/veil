@@ -1,5 +1,72 @@
 # M2 build log
 
+## Declaration bodies and dependency closure, 2026-09-17
+
+Starting point: `7abe6a51d717bcb64d8fde2900610fc88cb9e7da`, the committed
+parity inventory and gate specification. Added `meta/ExportDeclarations.lean`,
+`dev/m2-declarations.py`, expression-codec and snapshot regressions, the pinned
+sample and [schema documentation](M2-DECLARATIONS.md).
+
+The exporter reads private-level Init module data to recover original
+declaration kinds, types, definition and proof bodies, and structural data.
+The sample's eight requested declarations expand to 44 dependencies and roots.
+It contains the `Nat.add_zero` proof and reports three actual axiom declarations.
+All 631 private-level imported modules have base and optional sidecar artifact
+pins. The three modules added by private imports do not change the exported
+inventory's 628 modules or its 51,980-declaration denominator.
+
+Expression graphs retain universe arguments, binder annotations, exact
+natural literals, projection fields and recursor rules. Structural equality
+preserves binder information during sharing. Free variables, unresolved
+metavariables, incomplete closures and malformed snapshots are rejected.
+
+Validation: all 32 declaration tests pass, including a fresh inventory and
+declaration export plus elaborated expression-codec fixtures (the `#eval` of
+the appended fixture is interpreted by `lean`). All 21 existing
+parity tests pass. HOUSE passes, and TRUSTED-LINES remains
+`kernel=5246/5250 encoder=246/600`. The parity gate exits 1 as expected for
+the unchanged zero-translation baseline. The [validation record](validation/2026-09-17-m2-declarations/README.md)
+retains transcripts and source hashes.
+
+No compiler, runtime or M1 gate implementation changed. No full M1 battery or
+theorem-library rebuild is claimed. Translation, Veil kernel re-check evidence,
+the M2 language features and the user's M1 exit stamp remain open.
+
+### Review 2026-09-17 (M2 declaration export)
+
+Seven findings were applied. No finding is carried for a user ruling.
+
+- A-1 (medium), `dev/m2-declarations.py:320`: the suite now refuses a pin
+  with a changed declaration fingerprint, a changed closure count, or a
+  changed inventory, toolchain or version pin.
+- A-2 (medium), `dev/m2-declarations.py:311`: the suite now refuses a
+  reformatted snapshot, a changed pinned module olean hash, and an export
+  whose installed `Init` artifacts differ from the inventory pin. The export
+  case also shows that the exporter subprocess does not start.
+- A-4 (medium), `dev/m2-declarations.py:195`: the suite now refuses a
+  declaration kind that differs from the inventory kind, and a constructor
+  that its own inductive does not list.
+- B-1 (low), `dev/M2-BUILD-LOG.md:24`: the codec fixtures are elaborated.
+  `lean` interprets the `#eval` of the appended fixture. The skip message of
+  the suite uses the same verb.
+- B-2 (low), `dev/m2-declarations.py:270`: the exporter and the codec test
+  also clear `LEAN_SYSROOT`, so the loaded modules are the hashed modules.
+  The [schema documentation](M2-DECLARATIONS.md) names the three cleared
+  variables.
+- C-1 (low), `dev/validation/2026-09-17-m2-declarations/README.md:13`: the
+  record checker asserts the published numbers: 44 declarations with the
+  seven-kind histogram, the TRUSTED-LINES row and the `HOUSE OK` row.
+- D-1 (low), `dev/validation/2026-09-17-m2-declarations/verify.py:21`: the
+  record checker reads the record directory and refuses an unexpected file.
+  It also refuses a manifest whose command reports a failure code or a
+  signal.
+
+The suite passes 32 tests, with 2 tests skipped without `--live`. Eight
+mutants of the guarded rows were built in a full copy. Each mutant fails the
+suite. Five doctored records, each one with its capture hash rewritten, fail
+the record checker. `pin.json` holds the new `dev/m2-declarations.py` source
+hash.
+
 ## Init parity inventory, 2026-09-17
 
 Starting point: `0955e62c4a866bf25d867d24f737c120fe7ad46e`, the committed

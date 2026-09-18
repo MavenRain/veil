@@ -1,0 +1,125 @@
+{
+  "base": "7abe6a51d717bcb64d8fde2900610fc88cb9e7da",
+  "checks": {
+    "declarations": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-declarations-test.py",
+        "--live"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "3df850e60d9ff8eaa232f2569dfc03c673854c814796048b0a89398bb87dc7c5",
+        "stderr": "a59bd565391176eeea73c6007f582924d54edbb8177ef3866b8dc35ba469299d",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "house": {
+      "argv": [
+        "zsh",
+        "dev/house.sh"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "aecdaf34c4d338e1199d07744684fcdd905a15cf7d2f33025eb44f1889060167",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "cc09800a3858dd8a0513431a698e6e1d53ff9c60e4f8687eb61ccb5af52edea3"
+      }
+    },
+    "parity-gate": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity.py",
+        "gate"
+      ],
+      "expected_exit_code": 1,
+      "sha256": {
+        "json": "ee6dac7fd2c561314c99210d4f61ea035ab6f6c1b3a6d5fc92911e1045b384e4",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "14aac83700c153459cc0a1c26234cfd71fea7106a7fe386c8061b0ed08dd432e"
+      }
+    },
+    "parity-tests": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-parity-test.py"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "d96505c8d110e47f3935757df507818294bd79f6aebe04ee23e2011dc9c69044",
+        "stderr": "e50006949474e12b72ff3ae34363715aa1239c33eec671576f4a7b51a6c8764e",
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "snapshot": {
+      "argv": [
+        "python3",
+        "-I",
+        "dev/m2-declarations.py",
+        "snapshot",
+        "--output",
+        "/Users/oobi/Documents/gpt3/veil-declarations-final",
+        "--name",
+        "id",
+        "--name",
+        "Nat.add",
+        "--name",
+        "Nat.add_zero",
+        "--name",
+        "True.intro",
+        "--name",
+        "Eq.refl",
+        "--name",
+        "Classical.choice",
+        "--name",
+        "Quot.sound",
+        "--name",
+        "propext"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "bad6ded8a74f10cdff96c00ac0c742baa1468ef1513f14f779d89effa81bef71",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "48c0dee0a68e31edf280f51a2dd736aabf59348ba78523ecdbcb76eae2495d75"
+      }
+    },
+    "trusted-lines": {
+      "argv": [
+        "zsh",
+        "dev/trusted-lines.sh"
+      ],
+      "expected_exit_code": 0,
+      "sha256": {
+        "json": "ad2f3299f74c708507bf8564bf04e480abac6b4348fae0a4d337a7180a872aaf",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "ec755c00c0a60849663cb508eb2576eb5e8773be996ddca1b71ed02aa0011284"
+      }
+    }
+  },
+  "review": {
+    "gates-review.log": "8957c6b2977a1cb88e70f5393328b1679d74c5db0cf3ca57581cdddea8813633"
+  },
+  "sources": {
+    "README.md": "017b5b7bedafa423d1cbc87f3ba53686d6ef613b0cc116c223abb206987a6267",
+    "dev/M2-BUILD-LOG.md": "7491f1bb031105159bd578e6ab470f0d95051b302a2833c66ae39bb1c61e3e80",
+    "dev/M2-DECLARATIONS.md": "3c6aa92013ecb21cccfb960e90741949bd04e93483ff8b5c55db8be5a37dd1cf",
+    "dev/M2-PARITY.md": "f9d6cb42693c7d69eba9e4da7ae283937ecc997fd305b6347b2707a555d72fce",
+    "dev/M2-READINESS.md": "1b6a20d742224979b8d2258e05f2331b205b69da8414689a391c9e967f6c36de",
+    "dev/m2-declarations-test.py": "4790a6c35f98c7421df857868ecc91c90c05b29608a40a9becff26cde14d16b6",
+    "dev/m2-declarations.py": "ae52db557c50a009580f28e40fe2c07a6751be16daeb1b4b203d2f233b011f48",
+    "dev/m2-declarations/declarations.json": "f9cd342f97ee0cb82bdbe7841295c3ca92bca06ef03b848a2c2c84e89285a652",
+    "dev/m2-declarations/pin.json": "53e7be54ee2eb0240aed21c7a982ca86dc00ab032028028377b8e39db855657e",
+    "dev/m2-init/baseline.json": "abf2f7e15caabcddd717381adeb2b1f7d02403156a0fc4ce88f80196a80afc32",
+    "dev/m2-init/inventory.jsonl": "80dd1223088490394b6177e7b5fb8aa9e43b57799b9c8fa70504a2d4eb6e0cf4",
+    "dev/m2-init/pin.json": "829a3e712ae0f7159ab3a4f9e0748f9bc0c477c63f95989794598afc007c008e",
+    "dev/m2-parity-test.py": "1555cb790f7250ea82fb0fce65b160a296a5c6189518b9764dc02b289c6ead26",
+    "dev/m2-parity.py": "5792b173e92d616b2fdd418c9574e05f6dcc7fdd2d7761529207a83c9c689014",
+    "dev/validation/2026-09-17-m2-declarations/README.md": "a08296b76fa8c93a6abe8f3085ef45b30cd7c1104d6a1166bca996f580a5f97d",
+    "dev/validation/2026-09-17-m2-declarations/verify.py": "5f7f5cf3718d0a4624c9b9a98ef9d9dcaa7e5e706fd5302a7ed5cf1bf14feaeb",
+    "meta/ExportDeclarations.lean": "1ed329e61b0df39f7bca4d02d3b5aa7be4798decf9a14636001ffc92b256481d",
+    "meta/test/DeclarationExportCases.lean": "f126065ea131cd51061244222b3b75f4aa3e7558aaf2e4098ea27664709d640c"
+  }
+}

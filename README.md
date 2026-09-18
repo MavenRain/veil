@@ -182,6 +182,8 @@ The [M2 parity inventory](dev/M2-PARITY.md) now pins 51,980 exported Lean
 `Init` declarations and records every name as an unattempted translation gap.
 Its integrity and live reproduction checks pass; translation coverage is 0
 percent and the M2 parity gate remains open.
+The [declaration exporter](dev/M2-DECLARATIONS.md) now provides pinned types,
+proof bodies and dependency closures as input to the planned translator.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive
 indexed and mutual `mu` families, dependent matching, structural
