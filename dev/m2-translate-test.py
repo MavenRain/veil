@@ -221,15 +221,93 @@ class TranslationTests(unittest.TestCase):
             expression.render(len(nodes) - 1)
         self.assertGreater(expression.bytes, 16 * translate.MAX_SOURCE)
 
-    def test_application_with_a_lambda_head_renders_a_beta_redex(self):
-        # The translator restricts no application head, so a lambda head gives a
-        # beta-redex. Veil refuses that form, which makes the candidate a gap.
+    def test_lambda_application_keeps_the_argument_type_check(self):
+        # Even this ill-typed argument must survive lowering for Veil to reject.
         row = definition("redex", [["const", "Nat", []], ["bvar", 0],
-                                   ["lam", "x", "explicit", 0, 1],
-                                   ["app", 2, 0]], 0, 3, ["Nat"])
+                                    ["lam", "x", "explicit", 0, 1],
+                                    ["app", 2, 0]], 0, 3, ["Nat"])
         source = self.synthetic(row).compile("redex")["source"]
         nat = translate.symbol("Nat")
-        self.assertIn(f"((fun (b0 : {nat}) => b0) {nat})", source)
+        self.assertIn(f"(let b0 : {nat} := {nat} in b0)", source)
+
+    def test_lambda_application_refuses_sort_binders_and_deep_spines(self):
+        for level in (["zero"], ["succ", ["zero"]]):
+            nodes = [["sort", level], ["bvar", 0], ["lam", "A", "explicit", 0, 1],
+                     ["app", 2, 0]]
+            with self.subTest(level=level), self.assertRaisesRegex(translate.Gap, "erasure translation"):
+                translate.Expressions({"nodes": nodes}).render(3)
+        nodes = [["const", "Nat", []], ["bvar", 0], ["lam", "x", "explicit", 0, 1]]
+        for _ in range(translate.MAX_DEPTH):
+            nodes.append(["app", len(nodes) - 1, 0])
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            translate.Expressions({"nodes": nodes}).render(len(nodes) - 1)
+
+    def test_lambda_application_respects_body_depth_and_source_limits(self):
+        nodes = [["const", "Nat", []], ["bvar", 0], ["lam", "x", "explicit", 0, 1],
+                 ["app", 2, 1]]
+        # The caller's b0 is valid, but the lambda body still needs one more
+        # depth step. Scanning the application spine cannot reset its fuel.
+        expression = translate.Expressions({"nodes": nodes})
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            expression.render(3, depth=1, fuel=2)
+        self.assertEqual(expression.render(3, depth=1, fuel=3),
+                         f"(let b1 : {translate.symbol('Nat')} := b0 in b1)")
+        with mock.patch.object(translate, "MAX_SOURCE", 25):
+            with self.assertRaisesRegex(translate.Gap, "expression exceeds source limit"):
+                translate.Expressions({"nodes": nodes}).render(3, depth=1)
+
+    def test_lambda_application_lowers_a_two_binder_spine_and_surplus_argument(self):
+        # Two binders consume the first two arguments in order. The surplus
+        # argument applies to the body, inside the let chain.
+        nodes = [["const", "Nat", []], ["const", "Bool", []], ["const", "one", []],
+                 ["const", "two", []], ["const", "three", []], ["bvar", 1],
+                 ["lam", "y", "explicit", 1, 5], ["lam", "x", "explicit", 0, 6],
+                 ["app", 7, 2], ["app", 8, 3], ["app", 9, 4]]
+        nat, boolean = translate.symbol("Nat"), translate.symbol("Bool")
+        one, two = translate.symbol("one"), translate.symbol("two")
+        three = translate.symbol("three")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(10),
+                         f"(let b0 : {nat} := {one} in "
+                         f"(let b1 : {boolean} := {two} in (b0 {three})))")
+
+    def test_lambda_application_lowers_a_partial_application(self):
+        # Three binders and two arguments keep the third binder a lambda, and
+        # its body still names the first consumed binder.
+        nodes = [["const", "Nat", []], ["const", "Bool", []], ["const", "Unit", []],
+                 ["const", "one", []], ["const", "two", []], ["bvar", 2],
+                 ["lam", "z", "explicit", 2, 5], ["lam", "y", "explicit", 1, 6],
+                 ["lam", "x", "explicit", 0, 7], ["app", 8, 3], ["app", 9, 4]]
+        nat, boolean = translate.symbol("Nat"), translate.symbol("Bool")
+        unit, one, two = (translate.symbol("Unit"), translate.symbol("one"),
+                          translate.symbol("two"))
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(10),
+                         f"(let b0 : {nat} := {one} in (let b1 : {boolean} := {two} in "
+                         f"(fun (b2 : {unit}) => b0)))")
+
+    def test_lambda_application_renders_a_dependent_later_domain(self):
+        # The second domain depends on the first binder, so it renders at the
+        # depth of that binder, not at the caller's depth.
+        nodes = [["const", "Nat", []], ["const", "Fam", []], ["bvar", 0],
+                 ["app", 1, 2], ["const", "one", []], ["const", "two", []],
+                 ["bvar", 1], ["lam", "y", "explicit", 3, 6],
+                 ["lam", "x", "explicit", 0, 7], ["app", 8, 4], ["app", 9, 5]]
+        nat, family = translate.symbol("Nat"), translate.symbol("Fam")
+        one, two = translate.symbol("one"), translate.symbol("two")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(10),
+                         f"(let b0 : {nat} := {one} in "
+                         f"(let b1 : ({family} b0) := {two} in b0))")
+
+    def test_lambda_application_pins_the_spine_fuel_boundary(self):
+        # A shared two-argument spine holds the accept and refuse boundary of
+        # the spine scan. One less fuel unit must refuse, not reuse a cached
+        # result of a deeper scan.
+        nodes = [["const", "Nat", []], ["app", 0, 0], ["app", 1, 0], ["bvar", 2],
+                 ["app", 1, 2]]
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            translate.Expressions({"nodes": nodes}).render(4, 0, 3)
+        nat = translate.symbol("Nat")
+        self.assertEqual(translate.Expressions({"nodes": nodes}).render(4, 0, 4),
+                         f"(({nat} {nat}) (({nat} {nat}) {nat}))")
 
     def test_committed_sample_artifacts_match_this_translator(self):
         sample = ROOT / "dev/m2-translation"
@@ -512,6 +590,126 @@ class TranslationTests(unittest.TestCase):
                                     for check in translate.check_artifact(CHECKER, directory, path.name)))
             path.write_text(translator.compile("falseProof")["source"])
             self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_lambda_applications_compute_without_capturing_variables(self):
+        direct = definition("betaDirect", [["const", "Nat", []], ["bvar", 0], ["nat", "2"],
+                                            ["lam", "x", "explicit", 0, 1], ["app", 3, 2]],
+                            0, 4, ["Nat"])
+        capture = definition("betaCapture", [["const", "Nat", []], ["bvar", 0], ["nat", "0"],
+                                              ["forall", "x", "explicit", 0, 0],
+                                              ["lam", "same", "explicit", 0, 1],
+                                              ["lam", "same", "explicit", 0, 4],
+                                              ["app", 5, 2], ["app", 6, 1],
+                                              ["lam", "same", "explicit", 0, 7]],
+                             3, 8, ["Nat"])
+        partial = definition("betaPartial", [["const", "Nat", []], ["bvar", 1], ["nat", "2"],
+                                              ["forall", "x", "explicit", 0, 0],
+                                              ["lam", "same", "explicit", 0, 1],
+                                              ["lam", "same", "explicit", 0, 4], ["app", 5, 2]],
+                             3, 6, ["Nat"])
+        higher = definition("betaHigher", [["const", "Nat", []], ["bvar", 0], ["nat", "2"],
+                                            ["forall", "x", "explicit", 0, 0],
+                                            ["lam", "x", "explicit", 0, 1],
+                                            ["lam", "f", "explicit", 3, 1],
+                                            ["app", 5, 4], ["app", 6, 2]],
+                            0, 7, ["Nat"])
+        nested = definition("betaNested", [["const", "Nat", []], ["bvar", 0],
+                                            ["lam", "x", "explicit", 0, 1], ["nat", "2"],
+                                            ["app", 2, 3], ["app", 2, 1],
+                                            ["lam", "x", "explicit", 0, 5], ["app", 6, 4]],
+                            0, 7, ["Nat"])
+        translator = self.synthetic(direct, capture, partial, higher, nested)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        for row, argument in ((direct, ""), (capture, two), (partial, zero), (higher, ""), (nested, "")):
+            with self.subTest(name=row["name"]), tempfile.TemporaryDirectory() as temporary:
+                name = translate.symbol(row["name"])
+                result = f"({name} {argument})" if argument else name
+                source = translator.compile(row["name"])["source"]
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| two : Witness {two}\n"
+                           f"def computed : Witness {result} := two\n")
+                directory = Path(temporary)
+                path = directory / "beta.kan"
+                path.write_text(source)
+                checks = translate.check_artifact(CHECKER, directory, path.name)
+                self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                                 (directory / "beta.kan.check.stderr").read_text())
+                for label, _ in translate.CHECKS:
+                    self.assertEqual((directory / f"beta.kan.{label}.stderr").read_bytes(), b"")
+                self.assertEqual((directory / "beta.kan.axioms.stdout").read_bytes(), b"")
+                self.assertIn("KLet", (directory / "beta.kan.erased.stdout").read_text())
+                path.write_text(source.replace(f"| two : Witness {two}", f"| two : Witness {zero}"))
+                self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_lambda_application_preserves_dependent_domains(self):
+        family = definition("betaFamily", [["const", "Nat", []], ["sort", ["succ", ["zero"]]],
+                                            ["forall", "n", "explicit", 0, 1],
+                                            ["lam", "n", "explicit", 0, 0]], 2, 3, ["Nat"])
+        value = definition("betaDependent", [["const", "Nat", []], ["const", "betaFamily", []],
+                                               ["bvar", 0], ["app", 1, 2], ["nat", "2"],
+                                               ["lam", "x", "explicit", 3, 2],
+                                               ["lam", "n", "explicit", 0, 5],
+                                               ["app", 6, 4], ["app", 7, 4]],
+                           0, 8, ["Nat", "betaFamily"])
+        source = self.synthetic(family, value).compile("betaDependent")["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness ({succ} ({succ} {zero}))\n"
+                   f"def computed : Witness {translate.symbol('betaDependent')} := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "dependent.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "dependent.kan.check.stderr").read_text())
+            path.write_text(source.replace(f"| two : Witness ({succ} ({succ} {zero}))",
+                                           f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_lambda_proof_arguments_erase_and_unused_bad_arguments_fail(self):
+        proof = theorem("betaProof", [["const", "True", []], ["const", "True.intro", []],
+                                       ["bvar", 0], ["lam", "p", "explicit", 0, 2], ["app", 3, 1]],
+                        0, 4, ["True", "True.intro"])
+        consume = definition("betaConsume", [["const", "Nat", []], ["const", "True", []],
+                                              ["const", "betaProof", []], ["nat", "2"],
+                                              ["lam", "p", "explicit", 1, 3], ["app", 4, 2]],
+                             0, 5, ["Nat", "True", "betaProof"])
+        unused = definition("betaUnused", [["const", "Nat", []], ["const", "True.intro", []],
+                                            ["nat", "2"], ["lam", "x", "explicit", 0, 2],
+                                            ["app", 3, 1]], 0, 4, ["Nat", "True.intro"])
+        translator = self.synthetic(proof, consume, unused)
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        source = translator.compile("betaConsume")["source"]
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness ({succ} ({succ} {zero}))\n"
+                   f"def computed : Witness {translate.symbol('betaConsume')} := two\n")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "proof-beta.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "proof-beta.kan.check.stderr").read_text())
+            erased = (directory / "proof-beta.kan.erased.stdout").read_text()
+            self.assertIn(f"erased {translate.symbol('betaProof')}\n", erased)
+            self.assertNotIn("KLet", erased)
+            self.assertEqual((directory / "proof-beta.kan.axioms.stdout").read_bytes(), b"")
+            path.write_text(source.replace(f"| two : Witness ({succ} ({succ} {zero}))",
+                                           f"| two : Witness {zero}"))
+            self.assertEqual(translate.check_artifact(CHECKER, directory, path.name)[0]["exit_code"], 1)
+            # An unused argument is still checked by its generated typed let.
+            bad = translator.compile("betaUnused")["source"]
+            path.write_text(bad)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+            path.write_text(bad.replace(f":= {translate.symbol('True.intro')} in", f":= {zero} in"))
+            self.assertTrue(all(check["exit_code"] == 0
+                                for check in translate.check_artifact(CHECKER, directory, path.name)))
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_generated_lambdas_application_let_and_literal_compute(self):

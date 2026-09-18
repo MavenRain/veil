@@ -59,6 +59,37 @@ class Expressions:
         self.cache = {}
         self.bytes = 0
 
+    def lambda_application(self, index, depth, fuel):
+        arguments = []
+        while self.nodes[index][0] == "app":
+            admit(fuel > 1, "expression depth exceeds translator limit")
+            _, index, argument = self.nodes[index]
+            fuel -= 1
+            arguments.append((argument, fuel))
+        if self.nodes[index][0] != "lam":
+            return None
+        # Arguments retain the caller's scope. Newly introduced binders have
+        # greater depths, so they cannot capture an argument's free variables.
+        arguments = [self.render(arg, depth, remaining)
+                     for arg, remaining in reversed(arguments)]
+        bindings = []
+        while len(bindings) < len(arguments) and self.nodes[index][0] == "lam":
+            admit(fuel > 0, "expression depth exceeds translator limit")
+            node = self.nodes[index]
+            admit(self.nodes[node[3]][0] != "sort", "type-valued binders need erasure translation")
+            local_depth = depth + len(bindings)
+            domain = self.render(node[3], local_depth, fuel - 1)
+            bindings.append((local_depth, domain, arguments[len(bindings)]))
+            index, fuel = node[4], fuel - 1
+        result = self.render(index, depth + len(bindings), fuel)
+        for argument in arguments[len(bindings):]:
+            result = f"({result} {argument})"
+        for local_depth, domain, argument in reversed(bindings):
+            # Keep a typed let even for an unused binder. Substitution alone
+            # would discard the kernel check of an unused argument's type.
+            result = f"(let b{local_depth} : {domain} := {argument} in {result})"
+        return result
+
     def render(self, index, depth=0, fuel=MAX_DEPTH):
         admit(fuel > 0, "expression depth exceeds translator limit")
         key = (index, depth)
@@ -81,7 +112,9 @@ class Expressions:
             admit(not node[2], "constant universe instantiation is not implemented")
             result = symbol(node[1])
         elif tag == "app":
-            result = f"({child(node[1])} {child(node[2])})"
+            result = self.lambda_application(index, depth, fuel)
+            if result is None:
+                result = f"({child(node[1])} {child(node[2])})"
         elif tag in ("lam", "forall"):
             admit(self.nodes[node[3]][0] != "sort", "type-valued binders need erasure translation")
             binder = f"(b{depth} : {child(node[3])})"

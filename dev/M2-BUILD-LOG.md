@@ -1,5 +1,57 @@
 # M2 build log
 
+## Direct lambda application translation, 2026-09-17
+
+Extended the monomorphic translator to lower direct lambda application chains
+to nested typed lets. Arguments keep their caller scope, consumed parameters
+retain their domain checks, and proof arguments erase through the existing
+checker and erasure rules. Unused arguments are still checked. No evaluator,
+unfolding rule or axiom was added to the translator.
+
+The regression suite covers direct, nested, partial and higher-order
+applications, shadowed binders, dependent parameter syntax and proof erasure.
+Incorrect computed results fail conversion checks. An unused argument of the
+wrong type fails both checking and erasure; replacing it with a valid argument
+passes. Sort binders, excessive application depth and oversized generated
+expressions remain refused.
+
+Validation in `/Users/oobi/Documents/gpt3/veil-m2-beta`, based on
+`680d50b0ed1877308058abdc4cc1ab479d641064`: all 38 translation tests passed,
+including nine live integrations. The declaration suite passed 30 tests and
+skipped its two optional Lean integrations. Fresh sample recording, offline
+and live verification, HOUSE and TRUSTED-LINES passed. The incomplete parity
+gate retains its expected exit 1. The checker was reused after its binary and
+source hashes matched the committed translation record.
+
+The [validation record](validation/2026-09-17-m2-beta/README.md) retains the
+seven captures and their source bindings. The sample still has five rechecked
+names and 39 explicit gaps; full-inventory parity credit stays zero. Compiler,
+runtime, Lean and exporter sources are unchanged. General normalization,
+prenex universes and general Prop parity remain open. This increment does not
+rerun the full M1 timing ladder or provide the user's M1 exit ratification.
+
+### Review 2026-09-17 (M2 direct lambda application)
+
+Four items were kept and fixed. No item is carried for a user ruling.
+
+- D-2, medium, dev/validation/2026-09-17-m2-beta/verify.py:57: the record
+  checker reads an optional `review` key, hashes each named review file and
+  accepts those regular files in the record file set.
+- A-1, low, dev/m2-translate-test.py:224: three offline tests pin the exact
+  lowering of a two binder spine with a surplus argument, of a partial
+  application and of a dependent later domain.
+- A-3, low, dev/m2-translate-test.py:239: one offline test pins both sides of
+  the spine fuel boundary, the refusal at one less fuel unit and the exact
+  string at the boundary.
+- D-1, low, dev/validation/2026-09-17-m2-beta/verify.py:94: the checker
+  message names a recorded pin, and the record README states that the binary
+  fingerprint is a capture-time claim.
+
+The offline suite now runs 42 tests with nine skips at exit 0. The
+`translation-tests` capture predates these tests and keeps its `Ran 38 tests`
+row. The record README holds the predate note. A re-capture is not part of
+this review.
+
 ## Closed proposition and proof translation, 2026-09-17
 
 Extended the monomorphic translator with closed `Prop` sorts, empty
