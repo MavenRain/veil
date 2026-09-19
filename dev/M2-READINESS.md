@@ -94,5 +94,8 @@ checked type arguments and erased runtime signatures at fixed universe levels.
 Type-valued lets and direct applications of type or proposition lambdas now
 retain checked values and dependent scopes. The kernel checks type-valued let
 definitions in erased mode, including through normalized universe aliases.
+Lambda and arrow binders now recognize transparent constant alias chains
+ending in closed sorts. Mixed alias and literal domains keep consistent
+quantities, and data aliases retain their runtime parameters.
 These sample results credit zero full-inventory parity successes. Prenex
 universes, general Prop parity and general proof translation remain open.

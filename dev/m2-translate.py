@@ -54,32 +54,59 @@ def closed_level(value, fuel=MAX_DEPTH):
     return result
 
 
-def binder_quantities(nodes, index, tag):
+def binder_quantities(expr, index, tag):
     """Erasure marks of the leading binder telescope, outermost binder first."""
     marks = []
-    while nodes[index][0] == tag:
-        node = nodes[index]
-        marks.append(nodes[node[3]][0] == "sort")
+    while expr.nodes[index][0] == tag:
+        node = expr.nodes[index]
+        marks.append(expr.sort_domain(node[3]))
         index = node[4]
     return marks
 
 
-def quantities_agree(nodes, type_index, value_index):
-    # A binder takes its quantity from the tag of its own domain node, and a
-    # declaration renders its type and its value from two independent subtrees.
+def quantities_agree(expr, type_index, value_index):
+    # Resolve both domain subtrees by the same bounded alias rule. A declaration
+    # renders its type and its value from two independent subtrees.
     # Equal marks over the shared telescope keep both renders of one binder in
     # step, so no declaration erases a parameter on one side only.
-    marks = binder_quantities(nodes, type_index, "forall")
-    values = binder_quantities(nodes, value_index, "lam")
+    marks = binder_quantities(expr, type_index, "forall")
+    values = binder_quantities(expr, value_index, "lam")
     shared = min(len(marks), len(values))
     return marks[:shared] == values[:shared]
 
 
 class Expressions:
-    def __init__(self, row):
+    def __init__(self, row, rows=None):
         self.nodes = row["nodes"]
+        self.rows = {} if rows is None else rows
         self.cache = {}
         self.bytes = 0
+
+    def sort_domain(self, index):
+        """Recognize closed sorts through transparent constant alias chains."""
+        node = self.nodes[index]
+        seen = set()
+        for _ in range(MAX_DEPTH):
+            if node[0] == "sort":
+                closed_level(node[1])
+                return True
+            if node[0] != "const" or node[2]:
+                return False
+            name = node[1]
+            row = self.rows.get(name)
+            if row is None or row["kind"] != "definition" or row["levels"]:
+                return False
+            details = row["details"]
+            if (details["safety"] != "safe" or details["hints"] == ["opaque"]
+                    or details["mutual"] not in ([], [name])):
+                return False
+            admit(name not in seen, f"recursive constant alias: {name}")
+            seen.add(name)
+            node = row["nodes"][row["value"]]
+        # No sort appeared inside the inspection bound. Keep the domain a data
+        # binder, the rule for every chain that ends in an ordinary constant,
+        # so a long chain of data aliases still translates.
+        return False
 
     def application(self, index, depth, fuel):
         arguments = []
@@ -152,7 +179,7 @@ class Expressions:
         elif tag in ("lam", "forall"):
             # A parameter ranging over types or propositions has no runtime
             # value. Its occurrences in later domains keep their binder depth.
-            quantity = "0 " if self.nodes[node[3]][0] == "sort" else ""
+            quantity = "0 " if self.sort_domain(node[3]) else ""
             binder = f"({quantity}b{depth} : {child(node[3])})"
             body = child(node[4], 1)
             result = f"(fun {binder} => {body})" if tag == "lam" else f"({binder} -> {body})"
@@ -207,7 +234,7 @@ class Translator:
                 members = [name, *details["constructors"]]
                 family_type = row["nodes"][row["type"]]
                 admit(family_type[0] == "sort", "family type must be a closed sort")
-                body = f"mu {symbol(name)} : {Expressions(row).render(row['type'])} with\n"
+                body = f"mu {symbol(name)} : {Expressions(row, self.rows).render(row['type'])} with\n"
                 for constructor in details["constructors"]:
                     ctor = self.rows[constructor]
                     admit(not ctor["levels"] and not ctor["details"]["unsafe"],
@@ -224,7 +251,7 @@ class Translator:
                     admit(ctor["nodes"][index] == ["const", name, []]
                           and fields == ctor["details"]["fields"],
                           "constructor must return its unindexed family")
-                    body += f"| {symbol(constructor)} : {Expressions(ctor).render(ctor['type'])}\n"
+                    body += f"| {symbol(constructor)} : {Expressions(ctor, self.rows).render(ctor['type'])}\n"
             elif row["kind"] in ("definition", "theorem"):
                 if row["kind"] == "definition":
                     admit(details["safety"] == "safe", "unsafe or partial definition is not implemented")
@@ -233,13 +260,13 @@ class Translator:
                 admit(not any(node[0] == "const" and node[1] == name for node in row["nodes"]),
                       "recursive definitions or theorems need recursor translation")
                 members = [name]
-                expr = Expressions(row)
+                expr = Expressions(row, self.rows)
                 ty = expr.render(row["type"])
                 value = expr.render(row["value"])
                 # The type telescope and the value telescope are separate
                 # subtrees. A binder that is erased in one and kept in the
                 # other gives contradictory source that the kernel refuses.
-                admit(quantities_agree(row["nodes"], row["type"], row["value"]),
+                admit(quantities_agree(expr, row["type"], row["value"]),
                       "binder quantity differs between type and value")
                 body = ""
                 if row["kind"] == "theorem":

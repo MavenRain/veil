@@ -24,9 +24,9 @@ python3 -I dev/m2-translate.py verify
 python3 -I dev/m2-translate.py verify --live
 ```
 
-Offline verification needs Python. Live verification and the nineteen live
+Offline verification needs Python. Live verification and the twenty-three live
 regression tests need the built `_build/default/bin/kanon.exe` executable.
-The tests without `--live` skip those nineteen integrations. To capture a fresh
+The tests without `--live` skip those twenty-three integrations. To capture a fresh
 record, choose an output directory that does not exist:
 
 ```sh
@@ -63,7 +63,8 @@ The current subset contains:
 - Closed sorts, with closed `succ`, `max` and `imax` evaluation. Lean sort
   zero lowers to `Prop`; positive sort `n` lowers to `Type (n - 1)`.
 - Monomorphic constants, variables, application, lambdas, dependent arrows
-  and typed lets. Lambda and arrow binders directly over closed sorts use
+  and typed lets. Lambda and arrow binders over closed sorts, including
+  transparent constant alias chains ending in those sorts, use
   Veil's zero quantity, preserving their scope while erasing the type or
   proposition argument. Remaining binders use unrestricted quantity. Direct
   lambda application chains, including functions exposed through lets,
@@ -127,12 +128,21 @@ applications, shadowed type aliases, higher closed sorts, proposition lets
 and normalized universe aliases. Invalid values fail checking and erasure,
 and changed computation witnesses fail conversion.
 
-Only syntactic sort domains of lambda and arrow binders receive zero quantity
-from the translator. It does not unfold type aliases to infer their quantity.
-A declaration whose type and value give different quantities to one binder,
-because one side names the sort and the other names an alias of it, becomes
-an explicit gap.
-Named applications use the checked function's declared quantity.
+Lambda and arrow binders also receive zero quantity when their domain follows
+a chain of safe, monomorphic, transparent constant definitions to a closed
+sort. Both the declared type and the lambda use the same resolution rule,
+including when one names an alias and the other spells out the sort. Alias
+definitions and domain references remain in the generated source, so the
+kernel checks their types and bodies. Aliases of data families keep ordinary
+runtime binders. Named applications use the checked function's quantity.
+
+Alias resolution spends one step per inspected expression, including the
+terminal sort, with a limit of 128. Cycles and excess depth are explicit gaps.
+The resolver does not reduce applications or lets, substitute local values,
+or unfold unsafe, opaque, polymorphic or mutually defined aliases. Those
+declarations retain the existing dependency checks and gaps. A remaining
+quantity mismatch between type and value is an explicit gap. This bounded
+rule does not establish general type normalization or prenex polymorphism.
 
 Veil refuses an erased binder that is read in a runtime position. The kernel
 tests `test/neg/n02-quantity.kan`, `test/neg/grouped-erased-read.kan` and
@@ -188,7 +198,9 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [validation record](validation/2026-09-18-m2-type-lets/README.md)
-for the rebuild, language suites and scoped checks. The next
+See the [alias validation record](validation/2026-09-18-m2-sort-aliases/README.md)
+for the scoped regressions and checked compiler reuse, and the
+[type-let record](validation/2026-09-18-m2-type-lets/README.md) for the prior
+rebuild and language suites. The next
 language work remains prenex universes and general Prop parity, followed by
 the remaining proof-grade forms and full-inventory differential results.

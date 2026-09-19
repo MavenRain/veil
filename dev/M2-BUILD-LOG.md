@@ -1,5 +1,75 @@
 # M2 build log
 
+## Closed-sort alias binders, 2026-09-18
+
+Base: `228da98abb60c77fbf7133e5b68f717d9e35bc2d`.
+
+The translator now recognizes safe, monomorphic, transparent constant alias
+chains ending in closed sorts when choosing lambda and arrow quantities.
+The declared type and value use the same rule, so an alias on one side and
+the literal sort on the other preserve the same erased parameter. Generated
+source retains every alias definition and domain reference for kernel
+checking. Data aliases keep runtime arguments. Resolution detects cycles
+and allows at most 128 inspected expressions, including the terminal sort.
+
+All 71 translation tests pass with `--live`, including 23 integrations.
+Five new offline cases cover mixed domains, nested scopes, data aliases,
+cycles, depth, unsupported dependencies and the bounded reduction scope.
+Four new live cases exercise partial applications, two erased type binders,
+higher universes, proof erasure, invalid unused arguments and invalid alias
+definitions. Changed computation witnesses fail checking and erasure.
+Two controls kill syntactic-only resolution and incorrect data-alias erasure.
+
+Declaration regressions pass 30 tests and skip two optional Lean integrations.
+Fresh recording, live reproduction, HOUSE and TRUSTED-LINES pass. The checker
+binary and the 46 unchanged pinned translation/build inputs match the prior
+type-let record; of the 47 pinned inputs only dev/m2-translate.py changed.
+This increment reuses that compiler without a new build, fresh Lean export or
+full M1 timing run. The incomplete parity gate retains its expected exit 1.
+
+All 14 sample source and capture files remain byte-identical. Refreshed
+provenance still reports five rechecked names, 39 gaps and zero full-inventory
+parity credit. An inductive family type must still be a literal closed sort;
+only binder domains and constructor field types resolve aliases. Alias
+resolution through applications or local lets, prenex universes, general Prop
+parity and the remaining M2 exit criteria stay open.
+
+Evidence: [closed-sort alias validation](validation/2026-09-18-m2-sort-aliases/README.md).
+
+### Review 2026-09-18 (M2 closed-sort aliases)
+
+Seven items were kept and all seven are fixed.
+
+- B-2 medium, dev/m2-translate-test.py:626: the unsupported-alias test now
+  also calls `sort_domain` directly and asserts `False` for the opaque,
+  unsafe, universe-polymorphic and foreign-mutual alias rows, so a deleted
+  guard clause of the resolver fails the offline suite.
+- A-3 low, dev/m2-translate.py:106: a chain of constant aliases that reaches
+  the inspection bound without a sort stays a data binder and returns
+  `False`, the HEAD rule, instead of a translator gap. The cycle refusal
+  reads `recursive constant alias`. The sample is re-recorded; every capture
+  stream stays byte-identical and only the translator hash moves.
+- A-1 low, dev/m2-translate.py:254: an offline test compiles a family whose
+  constructor field type is a sort alias and pins the erased `(0 b0 :` field
+  text; a live test checks the same source through the checker.
+- A-4 low, dev/m2-translate.py:236: the build log and the record README
+  state that an inductive family type must still be a literal closed sort;
+  only binder domains and constructor field types resolve aliases.
+- C-1 low, dev/M2-BUILD-LOG.md:25: the section says that the 46 unchanged
+  pinned inputs match the type-let record and that only dev/m2-translate.py
+  changed, in place of a claim over all 47.
+- C-2 low, dev/validation/2026-09-18-m2-sort-aliases/README.md:48: the
+  README states that the controls script runs two control cases, one of
+  them live, and needs the built `_build/default/bin/kanon.exe`.
+- D-3 low, dev/validation/2026-09-18-m2-sort-aliases/controls.py:15: the
+  script exits with status 2 when it receives an argument, before it sets
+  the live argv, like its sibling `verify.py`.
+
+The offline suite still runs 71 tests with 23 skips at exit 0. The
+`translation-tests` capture predates the extended cases and keeps its
+`Ran 71 tests` row. The record README holds the predate note. A re-capture
+is not part of this review.
+
 ## Type-valued let translation and checking, 2026-09-18
 
 Base: `42768bc236be720d158df9129478edc87b1e51f5`.

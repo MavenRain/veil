@@ -193,6 +193,8 @@ argument checks. Closed-sort type and proposition binders now erase through
 zero quantities, supporting named generic functions and proofs at fixed
 universe levels. Type-valued lets and direct type-lambda applications retain
 their checks and erase, including references to enclosing erased type parameters.
+Binders over transparent constant aliases of closed sorts use the same erased
+quantities while retaining the alias definitions for kernel checking.
 It credits no full-inventory parity successes.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive

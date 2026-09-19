@@ -1,0 +1,266 @@
+..
+----------------------------------------------------------------------
+Ran 2 tests in 3.757s
+
+OK
+EEFEEFEEFEE
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['zero'], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['zero'], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['zero']], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['zero']], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 557, in test_sort_alias_binders_resolve_both_telescopes
+    unit = self.synthetic(base, alias, row).compile(row["name"])
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_data_binders_compute_and_erase (alias_regressions.TranslationTests.test_sort_alias_data_binders_compute_and_erase) (side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 283, in compile
+    unit = self.compile(dependency, (*stack, name))
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 283, in compile
+    unit = self.compile(dependency, (*stack, name))
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 285, in compile
+    raise Gap(f"dependency {dependency}: {error}") from error
+translate.Gap: dependency aliasIdentity: binder quantity differs between type and value
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 654, in test_sort_alias_data_binders_compute_and_erase
+    source = translator.compile("aliasResult")["source"]
+             ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 285, in compile
+    raise Gap(f"dependency {dependency}: {error}") from error
+translate.Gap: dependency aliasPartial: dependency aliasIdentity: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_alias_data_binders_compute_and_erase (alias_regressions.TranslationTests.test_sort_alias_data_binders_compute_and_erase) (side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 283, in compile
+    unit = self.compile(dependency, (*stack, name))
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 266, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 283, in compile
+    unit = self.compile(dependency, (*stack, name))
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 285, in compile
+    raise Gap(f"dependency {dependency}: {error}") from error
+translate.Gap: dependency aliasIdentity: binder quantity differs between type and value
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 654, in test_sort_alias_data_binders_compute_and_erase
+    source = translator.compile("aliasResult")["source"]
+             ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate.py", line 285, in compile
+    raise Gap(f"dependency {dependency}: {error}") from error
+translate.Gap: dependency aliasPartial: dependency aliasIdentity: binder quantity differs between type and value
+
+======================================================================
+FAIL: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['zero'], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 559, in test_sort_alias_binders_resolve_both_telescopes
+    self.assertEqual(unit["body"].count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['zero']], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 559, in test_sort_alias_binders_resolve_both_telescopes
+    self.assertEqual(unit["body"].count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_alias_binders_resolve_both_telescopes (alias_regressions.TranslationTests.test_sort_alias_binders_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 559, in test_sort_alias_binders_resolve_both_telescopes
+    self.assertEqual(unit["body"].count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.883s
+
+FAILED (failures=3, errors=8)
+.FFF
+======================================================================
+FAIL: test_sort_alias_data_binders_compute_and_erase (alias_regressions.TranslationTests.test_sort_alias_data_binders_compute_and_erase) (side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 660, in test_sort_alias_data_binders_compute_and_erase
+    erased = self.check_synthetic_source(source)["erased"]
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 137, in check_synthetic_source
+    self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     (directory / "aliases.kan.check.stderr").read_text())
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [1, 1, 1] != [0, 0, 0]
+
+First differing element 0:
+1
+0
+
+- [1, 1, 1]
++ [0, 0, 0] : quantity: the erased binder b0 is read in a runtime position
+
+
+======================================================================
+FAIL: test_sort_alias_data_binders_compute_and_erase (alias_regressions.TranslationTests.test_sort_alias_data_binders_compute_and_erase) (side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 660, in test_sort_alias_data_binders_compute_and_erase
+    erased = self.check_synthetic_source(source)["erased"]
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 137, in check_synthetic_source
+    self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     (directory / "aliases.kan.check.stderr").read_text())
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [1, 1, 1] != [0, 0, 0]
+
+First differing element 0:
+1
+0
+
+- [1, 1, 1]
++ [0, 0, 0] : quantity: the erased binder b0 is read in a runtime position
+
+
+======================================================================
+FAIL: test_sort_alias_data_binders_compute_and_erase (alias_regressions.TranslationTests.test_sort_alias_data_binders_compute_and_erase) (side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 660, in test_sort_alias_data_binders_compute_and_erase
+    erased = self.check_synthetic_source(source)["erased"]
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-aliases/dev/m2-translate-test.py", line 137, in check_synthetic_source
+    self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     (directory / "aliases.kan.check.stderr").read_text())
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [1, 1, 1] != [0, 0, 0]
+
+First differing element 0:
+1
+0
+
+- [1, 1, 1]
++ [0, 0, 0] : quantity: the erased binder b0 is read in a runtime position
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.485s
+
+FAILED (failures=3)

@@ -43,7 +43,30 @@ def generic_identity(name="genericIdentity", level=None):
                              ["forall", "same", "explicit", 1, 2],
                              ["forall", "same", "implicit", 0, 3],
                              ["lam", "same", "explicit", 1, 1],
-                             ["lam", "same", "implicit", 0, 5]], 4, 6, [])
+                              ["lam", "same", "implicit", 0, 5]], 4, 6, [])
+
+
+def sort_alias(name, level=None, target=None):
+    level = ["succ", ["zero"]] if level is None else level
+    value = ["sort", level] if target is None else ["const", target, []]
+    return definition(name, [["sort", ["succ", level]], value], 0, 1,
+                      [] if target is None else [target])
+
+
+def aliased_identity(name, alias, side="both", level=None):
+    level = ["succ", ["zero"]] if level is None else level
+    if side == "both":
+        row = generic_identity(name, level)
+        row["nodes"][0] = ["const", alias, []]
+        row["dependencies"] = sorted([name, alias])
+        return row
+    return definition(name, [
+        ["sort", level], ["const", alias, []], ["bvar", 0], ["bvar", 1],
+        ["forall", "same", "explicit", 2, 3],
+        ["forall", "same", "implicit", 1 if side in ("type", "both") else 0, 4],
+        ["lam", "same", "explicit", 2, 2],
+        ["lam", "same", "implicit", 1 if side in ("value", "both") else 0, 6]],
+        5, 7, [alias])
 
 
 def select_first(name="selectFirst"):
@@ -76,6 +99,23 @@ def empty_family(name, level):
             "dependencies": [name]}
 
 
+def alias_family(name, alias, level):
+    family = {"name": name, "kind": "inductive", "module": "Init.Prelude", "levels": [],
+              "private": False, "type": 0, "value": None, "nodes": [["sort", level]],
+              "details": {"parameters": 0, "indices": 0, "mutual": [name],
+                          "constructors": [f"{name}.mk"], "nested": 0,
+                          "recursive": False, "unsafe": False, "reflexive": False},
+              "dependencies": sorted([name, f"{name}.mk"])}
+    constructor = {"name": f"{name}.mk", "kind": "constructor", "module": "Init.Prelude",
+                   "levels": [], "private": False, "type": 2, "value": None,
+                   "nodes": [["const", alias, []], ["const", name, []],
+                             ["forall", "field", "explicit", 0, 1]],
+                   "details": {"fields": 1, "index": 0, "inductive": name,
+                               "parameters": 0, "unsafe": False},
+                   "dependencies": sorted([name, alias])}
+    return family, constructor
+
+
 class TranslationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -99,6 +139,26 @@ class TranslationTests(unittest.TestCase):
     def rejects(self, name, reason):
         with self.assertRaisesRegex(translate.Gap, reason):
             translate.Translator(self.value).compile(name)
+
+    def check_synthetic_source(self, source, accepted=True):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "aliases.kan"
+            path.write_text(source)
+            checks = translate.check_artifact(CHECKER, directory, path.name)
+            if not accepted:
+                self.assertEqual([check["exit_code"] for check in checks[:2]], [1, 1])
+                for label in ("check", "erased"):
+                    self.assertTrue((directory / f"aliases.kan.{label}.stderr").read_bytes())
+                return None
+            self.assertEqual([check["exit_code"] for check in checks], [0, 0, 0],
+                             (directory / "aliases.kan.check.stderr").read_text())
+            for label, _ in translate.CHECKS:
+                self.assertEqual((directory / f"aliases.kan.{label}.stderr").read_bytes(), b"")
+            outputs = {label: (directory / f"aliases.kan.{label}.stdout").read_text()
+                       for label, _ in translate.CHECKS}
+            self.assertEqual(outputs["axioms"], "")
+            return outputs
 
     def test_sample_covers_every_name_and_shares_family_artifact(self):
         rows, artifacts, provenance = self.pinned_inputs
@@ -496,13 +556,220 @@ class TranslationTests(unittest.TestCase):
                  ["lam", "same", "explicit", 2, 2],
                  ["lam", "same", "implicit", 1, 6]]
         for side, index in (("value", 7), ("type", 5)):
-            # One side names the sort and the other names a constant alias of
-            # it, so the syntactic quantity rule marks one binder only.
+            # Nat is a data family, not an alias of Type. These incompatible
+            # domains must still give different quantities.
             row = definition(f"alias{side}Binder", copy.deepcopy(nodes), 5, 7, ["Nat"])
             row["nodes"][index][3] = 0
             with self.subTest(side=side):
                 with self.assertRaisesRegex(translate.Gap, "binder quantity differs"):
                     self.synthetic(row).compile(row["name"])
+
+    def test_sort_alias_binders_resolve_both_telescopes(self):
+        for level in (["zero"], ["succ", ["zero"]], ["succ", ["succ", ["zero"]]]):
+            for side in ("type", "value", "both"):
+                with self.subTest(level=level, side=side):
+                    base = sort_alias("SortBase", level)
+                    alias = sort_alias("SortAlias", level, "SortBase")
+                    row = aliased_identity("aliasIdentity", "SortAlias", side, level)
+                    unit = self.synthetic(base, alias, row).compile(row["name"])
+                    self.assertEqual(unit["closure"], ["SortBase", "SortAlias", row["name"]])
+                    self.assertEqual(unit["body"].count("(0 b0 :"), 2)
+                    self.assertIn(f"(0 b0 : {translate.symbol('SortAlias')})", unit["body"])
+                    self.assertNotIn("(0 b1 :", unit["body"])
+
+    def test_sort_aliases_preserve_nested_scopes_and_data_quantities(self):
+        alias = sort_alias("SortAlias")
+        row = select_first("aliasedSelect")
+        row["nodes"][0] = ["const", "SortAlias", []]
+        row["dependencies"].append("SortAlias")
+        row["dependencies"].sort()
+        unit = self.synthetic(alias, row).compile(row["name"])
+        self.assertEqual(unit["body"].count("(0 b0 :"), 2)
+        self.assertEqual(unit["body"].count("(0 b1 :"), 2)
+        self.assertIn("(fun (b2 : b0) => (fun (b3 : b1) => b2))", unit["body"])
+        data = definition("NatAlias", [["sort", ["succ", ["zero"]]],
+                                      ["const", "Nat", []]], 0, 1, ["Nat"])
+        row = identity("dataAliasIdentity")
+        row["nodes"][0] = ["const", "NatAlias", []]
+        row["dependencies"] = sorted([row["name"], "NatAlias"])
+        body = self.synthetic(data, row).compile(row["name"])["body"]
+        self.assertNotIn("(0 b0 :", body)
+        self.assertIn(f"(fun (b0 : {translate.symbol('NatAlias')}) => b0)", body)
+        family, constructor = alias_family("AliasBox", "SortAlias",
+                                           ["succ", ["succ", ["zero"]]])
+        unit = self.synthetic(family, constructor).compile("AliasBox")
+        self.assertIn(f"| {translate.symbol('AliasBox.mk')} : "
+                      f"((0 b0 : {translate.symbol('SortAlias')}) -> "
+                      f"{translate.symbol('AliasBox')})", unit["body"])
+
+    def test_sort_alias_cycles_and_depth_are_bounded(self):
+        a, b = sort_alias("AliasA", target="AliasB"), sort_alias("AliasB", target="AliasA")
+        row = aliased_identity("cyclicAlias", "AliasA")
+        with self.assertRaisesRegex(translate.Gap, "recursive constant alias"):
+            self.synthetic(a, b, row).compile(row["name"])
+        rows = [sort_alias("Alias0")]
+        for index in range(1, translate.MAX_DEPTH):
+            rows.append(sort_alias(f"Alias{index}", target=f"Alias{index - 1}"))
+        expression = translate.Expressions(
+            {"nodes": [["const", rows[-2]["name"], []], ["const", rows[-1]["name"], []]]},
+            {row["name"]: row for row in rows})
+        self.assertTrue(expression.sort_domain(0))
+        self.assertIs(expression.sort_domain(1), False)
+        chain = aliased_identity("deepChainIdentity", rows[-1]["name"])
+        translator = self.synthetic(*rows, chain)
+        for alias in rows:
+            translator.compile(alias["name"])
+        body = translator.compile(chain["name"])["body"]
+        self.assertIn(f"(b0 : {translate.symbol(rows[-1]['name'])})", body)
+        self.assertNotIn("(0 b0 :", body)
+
+    def test_sort_aliases_do_not_bypass_unsupported_dependencies(self):
+        for label, change, reason in (
+                ("opaque", lambda r: r["details"].update(hints=["opaque"]), "opaque"),
+                ("unsafe", lambda r: r["details"].update(safety="unsafe"), "unsafe"),
+                ("polymorphic", lambda r: r.update(levels=["u"]), "prenex"),
+                ("mutual", lambda r: r["details"].update(mutual=["Alias", "other"]), "mutual")):
+            alias = sort_alias("Alias")
+            change(alias)
+            if label == "mutual":
+                alias["dependencies"].append("other")
+            row = aliased_identity("unsupportedAlias", "Alias")
+            with self.subTest(label=label):
+                resolver = translate.Expressions(
+                    {"nodes": [["const", "Alias", []]]}, {"Alias": alias})
+                self.assertIs(resolver.sort_domain(0), False)
+                with self.assertRaisesRegex(translate.Gap, reason):
+                    self.synthetic(alias, row).compile(row["name"])
+        deep = ["zero"]
+        for _ in range(translate.MAX_DEPTH):
+            deep = ["succ", deep]
+        alias = sort_alias("DeepAlias", deep)
+        row = aliased_identity("deepAlias", "DeepAlias")
+        with self.assertRaisesRegex(translate.Gap, "universe depth"):
+            self.synthetic(alias, row).compile(row["name"])
+
+    def test_sort_alias_resolution_does_not_reduce_applications_or_local_values(self):
+        alias = sort_alias("SortAlias")
+        rows = {alias["name"]: alias}
+        expression = translate.Expressions({"nodes": [
+            ["const", "SortAlias", []], ["app", 0, 0], ["bvar", 0],
+            ["let", "same", 0, 0, 2, False], ["const", "SortAlias", [["zero"]]]]}, rows)
+        self.assertTrue(expression.sort_domain(0))
+        for index in range(1, 5):
+            self.assertFalse(expression.sort_domain(index))
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_alias_data_binders_compute_and_erase(self):
+        for side in ("type", "value", "both"):
+            with self.subTest(side=side):
+                alias = sort_alias("SortAlias", target="SortBase")
+                generic = aliased_identity("aliasIdentity", "SortAlias", side)
+                select = select_first("aliasSelect")
+                select["nodes"][0] = ["const", "SortAlias", []]
+                select["dependencies"] = sorted([select["name"], "SortAlias"])
+                natural = definition("Natural", [["sort", ["succ", ["zero"]]],
+                                                ["const", "Nat", []]], 0, 1, ["Nat"])
+                data = identity("dataIdentity")
+                data["nodes"][0] = ["const", "Natural", []]
+                data["dependencies"] = sorted([data["name"], "Natural"])
+                partial = definition("aliasPartial", [
+                    ["const", "Nat", []], ["forall", "x", "explicit", 0, 0],
+                    ["const", "aliasIdentity", []], ["app", 2, 0]], 1, 3, ["Nat", "aliasIdentity"])
+                result = definition("aliasResult", [
+                    ["const", "Nat", []], ["nat", "2"], ["const", "dataIdentity", []],
+                    ["app", 2, 1], ["const", "aliasPartial", []], ["app", 4, 3],
+                    ["const", "aliasSelect", []], ["app", 6, 0], ["app", 7, 0],
+                    ["app", 8, 5], ["nat", "3"], ["app", 9, 10]],
+                    0, 11, ["Nat", "dataIdentity", "aliasPartial", "aliasSelect"])
+                translator = self.synthetic(sort_alias("SortBase"), alias, generic, select,
+                                            natural, data, partial, result)
+                source = translator.compile("aliasResult")["source"]
+                nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+                two = f"({succ} ({succ} {zero}))"
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| two : Witness {two}\n"
+                           f"def computed : Witness {translate.symbol('aliasResult')} := two\n")
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"fun {translate.symbol('aliasIdentity')} (union any) : union any := KVar 0\n",
+                              erased)
+                self.assertIn(f"fun {translate.symbol('aliasSelect')} (union any, union any) : union any := KVar 1\n",
+                              erased)
+                self.assertIn(f"fun {translate.symbol('dataIdentity')} (union mu<{nat}>) : union mu<{nat}> := KVar 0\n",
+                              erased)
+                for name in ("SortBase", "SortAlias", "Natural"):
+                    self.assertIn(f"erased {translate.symbol(name)}\n", erased)
+                self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                          f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_alias_propositions_preserve_proofs(self):
+        level = ["zero"]
+        alias = sort_alias("Propositions", level)
+        proof = aliased_identity("aliasProof", "Propositions", "value", level)
+        proof["kind"], proof["details"] = "theorem", {"mutual": [proof["name"]]}
+        applied = theorem("appliedAliasProof", [
+            ["const", "True", []], ["const", "True.intro", []], ["const", "aliasProof", []],
+            ["app", 2, 0], ["app", 3, 1]], 0, 4, ["True", "True.intro", "aliasProof"])
+        consumer = definition("aliasProofResult", [
+            ["const", "Nat", []], ["const", "True", []], ["const", "appliedAliasProof", []],
+            ["nat", "2"], ["lam", "p", "explicit", 1, 3], ["app", 4, 2]],
+            0, 5, ["Nat", "True", "appliedAliasProof"])
+        source = self.synthetic(alias, proof, applied, consumer).compile("aliasProofResult")["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def computed : Witness {translate.symbol('aliasProofResult')} := two\n")
+        erased = self.check_synthetic_source(source)["erased"]
+        for name in ("Propositions", "aliasProof", "appliedAliasProof"):
+            self.assertIn(f"erased {translate.symbol(name)}\n", erased)
+        self.assertNotIn("KLet", erased)
+        self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                  f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_alias_higher_universes_retain_checked_type_results(self):
+        level = ["succ", ["succ", ["zero"]]]
+        alias = sort_alias("HigherSort", level)
+        generic = aliased_identity("higherIdentity", "HigherSort", "type", level)
+        result = definition("higherResult", [
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []],
+            ["const", "higherIdentity", []], ["app", 2, 0], ["app", 3, 1]],
+            0, 4, ["Nat", "higherIdentity"])
+        source = self.synthetic(alias, generic, result).compile("higherResult")["source"]
+        outputs = self.check_synthetic_source(source)
+        self.assertIn(f"erased {translate.symbol('higherResult')}\n", outputs["erased"])
+        source += (f"def typeWitness : {translate.symbol('higherResult')} := "
+                   f"{translate.symbol('Nat.zero')}\n")
+        self.check_synthetic_source(source)
+        self.check_synthetic_source(source.replace(":= " + translate.symbol('Nat.zero'),
+                                                  ":= (Type 0)"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_aliases_check_unused_arguments_and_alias_definitions(self):
+        alias = sort_alias("SortAlias")
+        ignored = definition("aliasUnused", [
+            ["const", "SortAlias", []], ["const", "Nat", []], ["nat", "2"],
+            ["forall", "same", "implicit", 0, 1], ["lam", "same", "implicit", 0, 2]],
+            3, 4, ["SortAlias", "Nat"])
+        source = self.synthetic(alias, ignored).compile("aliasUnused")["source"]
+        nat, zero = translate.symbol("Nat"), translate.symbol("Nat.zero")
+        prefix = f"\ndef used : {nat} := {translate.symbol('aliasUnused')} "
+        self.check_synthetic_source(source + prefix + nat + "\n")
+        for argument in (zero, "(Type 0)", "(Type 1)"):
+            with self.subTest(argument=argument):
+                self.check_synthetic_source(source + prefix + argument + "\n", accepted=False)
+        # Alias bodies remain checked, even when the consumer ignores its input.
+        bad = source.replace(f"def {translate.symbol('SortAlias')} : (Type 1)",
+                             f"def {translate.symbol('SortAlias')} : (Type 0)")
+        self.assertNotEqual(source, bad)
+        self.check_synthetic_source(bad + prefix + nat + "\n", accepted=False)
+        family, constructor = alias_family("AliasBox", "SortAlias",
+                                           ["succ", ["succ", ["zero"]]])
+        family_source = self.synthetic(family, constructor).compile("AliasBox")["source"]
+        self.assertIn(f"(0 b0 : {translate.symbol('SortAlias')})", family_source)
+        erased = self.check_synthetic_source(family_source)["erased"]
+        self.assertIn(f"erased {translate.symbol('SortAlias')}\n", erased)
 
     def test_prop_sort_preserves_closed_levels(self):
         zero, one = ["zero"], ["succ", ["zero"]]
