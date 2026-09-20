@@ -1,0 +1,247 @@
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 4.727s
+
+OK
+EEFEEFEEFFFFFF..
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['zero'], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['zero'], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 784, in test_sort_application_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 295, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+FAIL: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['zero'], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 785, in test_sort_application_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 785, in test_sort_application_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_application_domains_resolve_both_telescopes (application_regressions.TranslationTests.test_sort_application_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 785, in test_sort_application_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_application_arguments_capture_caller_scope (application_regressions.TranslationTests.test_sort_application_arguments_capture_caller_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 818, in test_sort_application_arguments_capture_caller_scope
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=14)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=15)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=18)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.884s
+
+FAILED (failures=8, errors=6)
+.F...
+======================================================================
+FAIL: test_sort_application_arguments_capture_caller_scope (application_regressions.TranslationTests.test_sort_application_arguments_capture_caller_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 818, in test_sort_application_arguments_capture_caller_scope
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.615s
+
+FAILED (failures=1)
+..FFF..
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=14)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 802, in test_sort_application_spines_preserve_argument_order
+    self.assertTrue(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_sort_application_spines_preserve_argument_order (application_regressions.TranslationTests.test_sort_application_spines_preserve_argument_order) (index=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 805, in test_sort_application_spines_preserve_argument_order
+    self.assertFalse(expression.sort_domain(index))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.024s
+
+FAILED (failures=3)
+...FF
+======================================================================
+FAIL: test_render_cache_preserves_remaining_fuel (application_regressions.TranslationTests.test_render_cache_preserves_remaining_fuel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 900, in test_render_cache_preserves_remaining_fuel
+    with self.assertRaisesRegex(translate.Gap, "expression depth"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Gap not raised
+
+======================================================================
+FAIL: test_render_cache_preserves_fuel_across_shared_let_subtrees (application_regressions.TranslationTests.test_render_cache_preserves_fuel_across_shared_let_subtrees)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-apps/dev/m2-translate-test.py", line 909, in test_render_cache_preserves_fuel_across_shared_let_subtrees
+    with self.assertRaisesRegex(translate.Gap, "expression depth"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Gap not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.937s
+
+FAILED (failures=2)

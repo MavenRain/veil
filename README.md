@@ -197,6 +197,8 @@ Binders over transparent constant aliases of closed sorts use the same erased
 quantities while retaining the alias definitions for kernel checking.
 The same rule follows local lets inside a binder domain or alias body,
 preserving shadowed scopes and checking every retained let value.
+It also follows bounded function applications to closed sorts, preserving
+argument scopes and checking unused arguments before erasure.
 It credits no full-inventory parity successes.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive

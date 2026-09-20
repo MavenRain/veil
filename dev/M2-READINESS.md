@@ -99,5 +99,7 @@ ending in closed sorts. Mixed alias and literal domains keep consistent
 quantities, and data aliases retain their runtime parameters.
 The same bounded resolver follows local lets inside a domain or alias body,
 preserving each value's binding scope and retaining all values for checking.
+It also recognizes closed sorts computed by direct, let-bound and transparent
+named lambdas. Arguments retain their caller scope and kernel checks.
 These sample results credit zero full-inventory parity successes. Prenex
 universes, general Prop parity and general proof translation remain open.

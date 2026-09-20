@@ -143,10 +143,17 @@ lets, their declared types and even unused values remain in generated source
 for kernel checking. Only locals introduced during this inspection resolve;
 locals from an enclosing binder or let remain outside its scope.
 
-Alias resolution spends one step per inspected expression, including lets,
-variable lookups and the terminal sort, with a limit of 128. An unresolved
-domain at that limit stays a data binder. Cycles and invalid universe levels
-are explicit gaps. The resolver does not reduce applications or unfold
+Resolution also reduces applications when their head exposes a direct,
+let-bound or transparent named lambda. Pending arguments retain their caller's
+scope and alias ancestry, and inner applications supply arguments before outer
+ones. Unapplied lambdas, sorts with surplus arguments and unresolved outer
+locals do not count as closed sorts. Rendering retains the original arguments,
+lambda domains and lets for kernel checking, including unused arguments.
+
+Alias resolution spends one step per inspected expression, including
+applications, lambdas, lets, variable lookups and the terminal sort, with a
+limit of 128. An unresolved domain at that limit stays a data binder. Cycles
+and invalid universe levels are explicit gaps. The resolver does not unfold
 unsafe, opaque, polymorphic or mutually defined aliases. Those
 declarations retain the existing dependency checks and gaps. A remaining
 quantity mismatch between type and value is an explicit gap. This bounded
@@ -155,6 +162,9 @@ rule does not establish general type normalization or prenex polymorphism.
 The [local-let validation](validation/2026-09-19-m2-sort-lets/README.md) covers
 mixed domains, captured values, shadowing, proof erasure, higher sorts, data
 arguments, invalid unused values and the inspection boundary.
+The [application validation](validation/2026-09-19-m2-sort-apps/README.md) adds
+argument order and caller scope, named applications, data and proof erasure,
+invalid unused arguments and shared-expression depth checks.
 
 Veil refuses an erased binder that is read in a runtime position. The kernel
 tests `test/neg/n02-quantity.kan`, `test/neg/grouped-erased-read.kan` and
@@ -182,6 +192,8 @@ each level constructor spends one unit of that fuel: the largest translated
 level is 127, which renders as `(Type 126)`. The existing exporter
 additionally bounds the snapshot. These limits are prototype scope, not M2
 exclusions.
+Rendering caches by node, binder depth and remaining fuel. A render at greater
+fuel cannot satisfy a later visit with a tighter expression-depth bound.
 
 ## Evidence and verification
 
@@ -210,7 +222,7 @@ statuses. A self-consistent rewrite of both recorded command outcomes and
 their hashes is not authenticated by offline verification. Live verification
 re-runs the checks; retain a trusted record for provenance comparison.
 
-See the [alias validation record](validation/2026-09-18-m2-sort-aliases/README.md)
+See the [application validation record](validation/2026-09-19-m2-sort-apps/README.md)
 for the scoped regressions and checked compiler reuse, and the
 [type-let record](validation/2026-09-18-m2-type-lets/README.md) for the prior
 rebuild and language suites. The next

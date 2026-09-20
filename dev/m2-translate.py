@@ -83,13 +83,27 @@ class Expressions:
         self.bytes = 0
 
     def sort_domain(self, index):
-        """Recognize closed sorts through transparent aliases and local lets."""
+        """Recognize closed sorts through bounded alias, let and beta reduction."""
         nodes, bindings, seen = self.nodes, (), frozenset()
+        arguments = []
         for _ in range(MAX_DEPTH):
             node = nodes[index]
             if node[0] == "sort":
+                if arguments:
+                    return False
                 closed_level(node[1])
                 return True
+            if node[0] == "app":
+                # Pending arguments keep their caller's scope and alias ancestry.
+                # An inner application supplies its arguments before outer ones.
+                arguments.append((nodes, node[2], bindings, seen))
+                index = node[1]
+                continue
+            if node[0] == "lam":
+                if not arguments:
+                    return False
+                bindings, index = (arguments.pop(), *bindings), node[4]
+                continue
             if node[0] == "let":
                 # Values close over the scope and alias ancestry at their binding.
                 # Keep the original let in render so even unused values are checked.
@@ -165,7 +179,7 @@ class Expressions:
 
     def render(self, index, depth=0, fuel=MAX_DEPTH):
         admit(fuel > 0, "expression depth exceeds translator limit")
-        key = (index, depth)
+        key = (index, depth, fuel)
         if key in self.cache:
             return self.cache[key]
         admit(len(self.cache) < 4096, "expression expansion exceeds node limit")

@@ -1,5 +1,62 @@
 # M2 build log
 
+## Closed-sort application domains, 2026-09-19
+
+Base: `4cbaeeb192f7d8632c899c070789f82f423c34c5`.
+
+Binder quantity resolution now reduces bounded applications through direct,
+let-bound and transparent named lambdas. Arguments retain their caller scope
+and alias ancestry; inner application arguments precede outer ones. Both
+declaration telescopes use the same rule. Generated source retains lambda
+domains, arguments and lets for kernel checking, including unused arguments.
+Functions, surplus applications of sorts and unresolved outer locals remain
+ordinary domains. Data applications retain runtime parameters.
+
+The render cache now includes remaining fuel. This closes carried A-2 from
+the direct-application and local-let reviews: a previously rendered subtree
+cannot bypass a tighter depth limit through cache reuse. Two regressions
+cover an explicit repeated render and a shared subtree inside one let graph.
+
+All 94 translation tests pass with `--live`, including 32 kernel integrations.
+Fourteen new cases cover application order, captured and global scopes,
+closed sorts, proof erasure, ordinary data, invalid unused arguments,
+dependency restrictions, the 128-step inspection boundary and render fuel.
+The kernel rejects changed computation witnesses. Four isolated mutations
+are killed after a passing baseline: missing application reduction, discarded
+argument scope, reversed argument order and a cache that ignores fuel.
+
+Declaration regressions pass 30 tests and skip two optional Lean integrations.
+Fresh recording, live reproduction, HOUSE and TRUSTED-LINES pass. The checker
+and all 46 pinned build inputs match the prior type-let build record. This
+slice reuses that checker without a rebuild, fresh Lean export or full M1
+timing run. The incomplete parity gate retains its expected exit 1.
+
+The 14 sample sources and all checker streams remain byte-identical. Only
+the translator fingerprint in sample `results.json` changes. Coverage stays at five
+rechecked declarations and 39 explicit gaps in the 44-name snapshot, with
+zero credited translations in the 51,980-name inventory. Prenex universes,
+general Prop parity and the remaining M2 exit criteria stay open.
+
+Evidence: [closed-sort application validation](validation/2026-09-19-m2-sort-apps/README.md).
+
+### Review 2026-09-19 (M2 closed-sort apps)
+
+Three items were kept and all three are fixed.
+
+- B-1 medium, dev/m2-translate-test.py:935: a new live test resolves a
+  binder domain to a closed sort through a bounded application. The accepted
+  case keeps the erased binder in type positions; the misuse case returns
+  the erased binder's value at a runtime position, and the kernel refuses it.
+- B-2 low, dev/validation/2026-09-19-m2-sort-apps/controls.py:74: the
+  no_applications control now requires its named witness test among the
+  errors before it looks for the binder quantity message.
+- C-1 low, dev/M2-READINESS.md:103: the readiness note says named lambdas,
+  the one term this slice uses for the reducible application case.
+
+The suite now runs 95 tests, 33 of them live. The `translation-tests`
+capture predates this test and keeps its `Ran 94 tests` row. The record
+README holds the predate note. A re-capture is not part of this review.
+
 ## Closed-sort local-let domains, 2026-09-19
 
 Base: `b6104fe635debc76fc1491850d268ee1cb2ef937`.

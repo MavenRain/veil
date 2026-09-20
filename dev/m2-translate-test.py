@@ -96,6 +96,18 @@ def let_sort_identity(name="letSortIdentity", side="both", level=None):
         6, 8, [])
 
 
+def app_sort_identity(name="appSortIdentity", side="both", level=None):
+    level = ["succ", ["zero"]] if level is None else level
+    return definition(name, [
+        ["sort", level], ["sort", ["succ", level]], ["bvar", 0], ["bvar", 1],
+        ["lam", "same", "implicit", 1, 2], ["app", 4, 0],
+        ["forall", "same", "explicit", 2, 3],
+        ["forall", "same", "implicit", 5 if side in ("type", "both") else 0, 6],
+        ["lam", "same", "explicit", 2, 2],
+        ["lam", "same", "implicit", 5 if side in ("value", "both") else 0, 8]],
+        7, 9, [])
+
+
 def theorem(name, nodes, ty, body, dependencies):
     row = definition(name, nodes, ty, body, dependencies)
     row["kind"] = "theorem"
@@ -660,7 +672,7 @@ class TranslationTests(unittest.TestCase):
         with self.assertRaisesRegex(translate.Gap, "universe depth"):
             self.synthetic(alias, row).compile(row["name"])
 
-    def test_sort_alias_resolution_does_not_reduce_applications_or_free_locals(self):
+    def test_sort_alias_resolution_refuses_nonfunction_applications_and_free_locals(self):
         alias = sort_alias("SortAlias")
         rows = {alias["name"]: alias}
         expression = translate.Expressions({"nodes": [
@@ -763,6 +775,278 @@ class TranslationTests(unittest.TestCase):
             6, 7, ["Nat"])
         self.synthetic(row)
         self.rejects("letQuantityMismatch", "binder quantity differs")
+
+    def test_sort_application_domains_resolve_both_telescopes(self):
+        for level in (["zero"], ["succ", ["zero"]], ["succ", ["succ", ["zero"]]]):
+            for side in ("type", "value", "both"):
+                with self.subTest(level=level, side=side):
+                    row = app_sort_identity(side=side, level=level)
+                    body = self.synthetic(row).compile(row["name"])["body"]
+                    self.assertEqual(body.count("(0 b0 :"), 2)
+                    self.assertIn("(let b0 :", body)
+                    self.assertNotIn("(0 b1 :", body)
+
+    def test_sort_application_spines_preserve_argument_order(self):
+        nodes = [
+            ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+            ["const", "Nat", []], ["bvar", 0], ["bvar", 1],
+            ["lam", "same", "explicit", 1, 4], ["lam", "same", "explicit", 1, 5],
+            ["app", 6, 0], ["app", 7, 2],
+            ["lam", "same", "explicit", 1, 3], ["lam", "same", "explicit", 1, 9],
+            ["app", 10, 0], ["app", 11, 2],
+            ["app", 9, 9], ["app", 13, 0], ["app", 9, 0], ["app", 15, 2],
+            ["app", 9, 2], ["app", 9, 15]]
+        expression = translate.Expressions({"nodes": nodes})
+        for index in (8, 14, 15, 18):
+            with self.subTest(index=index):
+                self.assertTrue(expression.sort_domain(index))
+        for index in (7, 12, 13, 16, 17):
+            with self.subTest(index=index):
+                self.assertFalse(expression.sort_domain(index))
+
+    def test_sort_application_arguments_capture_caller_scope(self):
+        expression = translate.Expressions({"nodes": [
+            ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+            ["const", "Nat", []], ["bvar", 0], ["bvar", 1],
+            ["lam", "same", "implicit", 1, 3], ["app", 5, 3],
+            ["let", "same", 1, 0, 6, False],
+            ["app", 5, 4], ["lam", "same", "implicit", 0, 8], ["app", 9, 2],
+            ["let", "same", 1, 0, 10, False],
+            ["let", "same", 0, 2, 6, False],
+            ["let", "same", 1, 5, 3, False], ["app", 13, 0]]})
+        for index in (7, 11, 14):
+            self.assertTrue(expression.sort_domain(index))
+        for index in (6, 12, 13):
+            self.assertFalse(expression.sort_domain(index))
+
+    def test_sort_application_aliases_keep_argument_ancestry_and_global_scope(self):
+        function = identity("SortFunction")
+        function["nodes"][0] = ["sort", ["succ", ["succ", ["zero"]]]]
+        function["dependencies"] = [function["name"]]
+        nodes = [["const", function["name"], []], ["sort", ["succ", ["zero"]]],
+                 ["app", 0, 1], ["app", 0, 2]]
+        expression = translate.Expressions({"nodes": nodes}, {function["name"]: function})
+        self.assertTrue(expression.sort_domain(3))
+        self.synthetic(function).compile(function["name"])
+        # The caller cannot supply a missing variable from a global's body.
+        function["nodes"][1] = ["bvar", 1]
+        nodes.extend([["bvar", 0], ["let", "same", 1, 1, 3, False]])
+        self.assertFalse(expression.sort_domain(5))
+        function["nodes"][1] = ["const", function["name"], []]
+        function["nodes"].append(["app", 1, 0])
+        function["nodes"][3][4] = 4
+        with self.assertRaisesRegex(translate.Gap, "recursive constant alias"):
+            expression.sort_domain(3)
+
+    def test_sort_application_limits_count_every_transition(self):
+        expression = translate.Expressions(app_sort_identity())
+        with mock.patch.object(translate, "MAX_DEPTH", 4):
+            self.assertTrue(expression.sort_domain(5))
+        with mock.patch.object(translate, "MAX_DEPTH", 3):
+            self.assertFalse(expression.sort_domain(5))
+        nodes = [["sort", ["zero"]], ["sort", ["succ", ["zero"]]],
+                 ["bvar", 0], ["lam", "same", "explicit", 1, 2]]
+        index = 0
+        for _ in range(42):
+            nodes.append(["app", 3, index])
+            index = len(nodes) - 1
+        nodes.append(["let", "unused", 1, 0, index, False])
+        expression = translate.Expressions({"nodes": nodes})
+        self.assertTrue(expression.sort_domain(len(nodes) - 1))
+        nodes.append(["let", "unused", 1, 0, len(nodes) - 1, False])
+        self.assertFalse(expression.sort_domain(len(nodes) - 1))
+        deep = ["zero"]
+        for _ in range(translate.MAX_DEPTH):
+            deep = ["succ", deep]
+        for level, reason in ((["param", "u"], "prenex"), (deep, "universe depth")):
+            with self.assertRaisesRegex(translate.Gap, reason):
+                translate.Expressions(app_sort_identity(level=level)).sort_domain(5)
+
+    def test_sort_application_aliases_keep_dependency_refusals(self):
+        for label, change, reason in (
+                ("opaque", lambda r: r["details"].update(hints=["opaque"]), "opaque"),
+                ("unsafe", lambda r: r["details"].update(safety="unsafe"), "unsafe"),
+                ("levels", lambda r: r.update(levels=["u"]), "prenex"),
+                ("mutual", lambda r: r["details"].update(mutual=["SortFunction", "other"]), "mutual")):
+            function = identity("SortFunction")
+            function["nodes"][0] = ["sort", ["succ", ["succ", ["zero"]]]]
+            function["dependencies"] = [function["name"]]
+            change(function)
+            if label == "mutual":
+                function["dependencies"].append("other")
+            alias = definition("AppliedSort", [
+                ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+                ["const", function["name"], []], ["app", 2, 0]], 1, 3, [function["name"]])
+            row = aliased_identity("appliedIdentity", alias["name"])
+            with self.subTest(label=label):
+                expression = translate.Expressions(alias, {function["name"]: function})
+                self.assertFalse(expression.sort_domain(3))
+                with self.assertRaisesRegex(translate.Gap, reason):
+                    self.synthetic(function, alias, row).compile(row["name"])
+
+    def test_sort_application_type_and_value_quantities_must_agree(self):
+        row = app_sort_identity(side="type")
+        row["nodes"][9] = ["const", "Nat", []]
+        row["nodes"].append(["lam", "same", "implicit", 9, 8])
+        row["value"] = 10
+        row["dependencies"] = sorted([row["name"], "Nat"])
+        with self.assertRaisesRegex(translate.Gap, "binder quantit"):
+            self.synthetic(row).compile(row["name"])
+
+    def test_render_cache_preserves_remaining_fuel(self):
+        expression = translate.Expressions(app_sort_identity())
+        expected = expression.render(5, fuel=3)
+        self.assertEqual(expression.render(5, fuel=3), expected)
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            expression.render(5, fuel=2)
+
+    def test_render_cache_preserves_fuel_across_shared_let_subtrees(self):
+        # One enclosing expression visits the same let subtree at unequal fuel.
+        nodes = [["sort", ["zero"]], ["sort", ["succ", ["zero"]]],
+                 ["let", "unused", 1, 0, 0, False],
+                 ["let", "inner", 2, 0, 0, False], ["let", "outer", 2, 3, 0, False]]
+        self.assertIn("let b0", translate.Expressions({"nodes": nodes}).render(4, fuel=4))
+        with self.assertRaisesRegex(translate.Gap, "expression depth"):
+            translate.Expressions({"nodes": nodes}).render(4, fuel=3)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_binders_compute_and_erase(self):
+        for side in ("type", "value", "both"):
+            with self.subTest(side=side):
+                generic = app_sort_identity(side=side)
+                result = definition("appResult", [
+                    ["const", "Nat", []], ["nat", "2"],
+                    ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                    0, 4, ["Nat", generic["name"]])
+                source = self.synthetic(generic, result).compile(result["name"])["source"]
+                nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+                two = f"({succ} ({succ} {zero}))"
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| two : Witness {two}\n"
+                           f"def computed : Witness {translate.symbol(result['name'])} := two\n")
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"fun {translate.symbol(generic['name'])} (union any) : union any := KVar 0\n",
+                              erased)
+                self.assertNotIn("KLet", erased)
+                self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                          f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_erased_binder_rejected_at_runtime_position(self):
+        # The app/lam branches of sort_domain (dev/m2-translate.py rows 96-106)
+        # can mark a binder domain a closed sort through bounded application,
+        # not only through a direct alias or a local let. Prove the kernel
+        # still refuses that same zero-quantity binder when its value, not
+        # only its type, is required at a genuine runtime position, mirroring
+        # the erasedRead and erasedType regressions for the alias and let
+        # paths.
+        generic = app_sort_identity(side="both")
+        prefix = self.synthetic(generic).compile(generic["name"])["source"]
+        expression = translate.Expressions(generic)
+        self.assertTrue(expression.sort_domain(5))
+        domain = expression.render(5)
+        self.check_synthetic_source(
+            prefix +
+            f"def appErasedResolvedIsErased : (0 A : {domain}) -> (x : A) -> A := "
+            f"fun (0 A : {domain}) => fun (x : A) => x\n")
+        self.check_synthetic_source(
+            prefix +
+            f"def appErasedRuntimeMisuse : (0 A : {domain}) -> (0 x : A) -> A := "
+            f"fun (0 A : {domain}) => fun (0 x : A) => x\n", accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_binders_preserve_proofs_and_higher_sorts(self):
+        for level in (["zero"], ["succ", ["succ", ["zero"]]]):
+            with self.subTest(level=level):
+                generic = app_sort_identity(level=level)
+                if level == ["zero"]:
+                    generic["kind"], generic["details"] = "theorem", {"mutual": [generic["name"]]}
+                    result = theorem("appProof", [
+                        ["const", "True", []], ["const", "True.intro", []],
+                        ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                        0, 4, ["True", "True.intro", generic["name"]])
+                else:
+                    result = definition("appType", [
+                        ["sort", ["succ", ["zero"]]], ["const", "Nat", []],
+                        ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                        0, 4, ["Nat", generic["name"]])
+                source = self.synthetic(generic, result).compile(result["name"])["source"]
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"erased {translate.symbol(result['name'])}\n", erased)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_aliases_compute_and_preserve_data_arguments(self):
+        function = identity("SortFunction")
+        function["nodes"][0] = ["sort", ["succ", ["succ", ["zero"]]]]
+        function["dependencies"] = [function["name"]]
+        alias = definition("AppliedSort", [
+            ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+            ["const", function["name"], []], ["app", 2, 0], ["app", 2, 3]],
+            1, 4, [function["name"]])
+        data_function = identity("DataFunction")
+        data_function["nodes"][0] = ["sort", ["succ", ["zero"]]]
+        data_function["dependencies"] = [data_function["name"]]
+        data = definition("AppliedData", [
+            ["sort", ["succ", ["zero"]]], ["const", "Nat", []],
+            ["const", data_function["name"], []], ["app", 2, 1]],
+            0, 3, ["Nat", data_function["name"]])
+        generic = aliased_identity("appliedIdentity", alias["name"])
+        data_identity = identity("appliedDataIdentity")
+        data_identity["nodes"][0] = ["const", data["name"], []]
+        data_identity["dependencies"] = sorted([data_identity["name"], data["name"]])
+        result = definition("namedAppResult", [
+            ["const", "Nat", []], ["nat", "2"], ["const", generic["name"], []],
+            ["const", data_identity["name"], []], ["app", 3, 1], ["app", 2, 0], ["app", 5, 4]],
+            0, 6, ["Nat", generic["name"], data_identity["name"]])
+        source = self.synthetic(function, alias, data_function, data, generic, data_identity,
+                                result).compile(result["name"])["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def computed : Witness {translate.symbol(result['name'])} := two\n")
+        erased = self.check_synthetic_source(source)["erased"]
+        self.assertIn(f"fun {translate.symbol(data_identity['name'])} (union mu<{nat}>) : union mu<{nat}> := KVar 0\n",
+                      erased)
+        self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                  f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_lets_preserve_captured_scope(self):
+        alias = definition("ScopedAppSort", [
+            ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+            ["const", "Nat", []], ["bvar", 0], ["bvar", 1],
+            ["lam", "same", "implicit", 1, 3], ["app", 5, 4],
+            ["lam", "same", "implicit", 0, 6], ["app", 7, 2],
+            ["let", "same", 1, 0, 8, False]], 1, 9, ["Nat"])
+        generic = aliased_identity("scopedAppIdentity", alias["name"])
+        result = definition("scopedAppResult", [
+            ["const", "Nat", []], ["nat", "2"],
+            ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+            0, 4, ["Nat", generic["name"]])
+        source = self.synthetic(alias, generic, result).compile(result["name"])["source"]
+        nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+        two = f"({succ} ({succ} {zero}))"
+        source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                   f"| two : Witness {two}\n"
+                   f"def computed : Witness {translate.symbol(result['name'])} := two\n")
+        self.check_synthetic_source(source)
+        self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                  f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_application_domains_check_unused_arguments_and_domains(self):
+        for unused in (False, True):
+            for invalid in (None, "Nat", "Nat.zero"):
+                with self.subTest(unused=unused, invalid=invalid):
+                    row = app_sort_identity()
+                    if unused:
+                        row["nodes"][4][4] = 0
+                    if invalid:
+                        row["nodes"][1] = ["const", invalid, []]
+                        row["dependencies"] = sorted([row["name"], invalid])
+                    source = self.synthetic(row).compile(row["name"])["source"]
+                    self.check_synthetic_source(source, accepted=invalid is None)
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_sort_let_binders_compute_and_erase(self):
