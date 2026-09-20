@@ -1,0 +1,156 @@
+..
+----------------------------------------------------------------------
+Ran 2 tests in 1.184s
+
+OK
+EEFEEFEEFF
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['zero'], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['zero'], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+ERROR: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='value')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 679, in test_sort_let_domains_resolve_both_telescopes
+    body = self.synthetic(row).compile(row["name"])["body"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 281, in compile
+    admit(quantities_agree(expr, row["type"], row["value"]),
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          "binder quantity differs between type and value")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate.py", line 32, in admit
+    raise Gap(reason)
+translate.Gap: binder quantity differs between type and value
+
+======================================================================
+FAIL: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['zero'], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 680, in test_sort_let_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['zero']], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 680, in test_sort_let_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_let_domains_resolve_both_telescopes (let_regressions.TranslationTests.test_sort_let_domains_resolve_both_telescopes) (level=['succ', ['succ', ['zero']]], side='both')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 680, in test_sort_let_domains_resolve_both_telescopes
+    self.assertEqual(body.count("(0 b0 :"), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_sort_let_values_keep_their_scope_under_shadowing (let_regressions.TranslationTests.test_sort_let_values_keep_their_scope_under_shadowing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 692, in test_sort_let_values_keep_their_scope_under_shadowing
+    self.assertTrue(expression.sort_domain(6))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.277s
+
+FAILED (failures=4, errors=6)
+.F
+======================================================================
+FAIL: test_sort_let_values_keep_their_scope_under_shadowing (let_regressions.TranslationTests.test_sort_let_values_keep_their_scope_under_shadowing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/oobi/Documents/gpt3/veil-m2-sort-lets/dev/m2-translate-test.py", line 694, in test_sort_let_values_keep_their_scope_under_shadowing
+    self.assertTrue(expression.sort_domain(10))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.206s
+
+FAILED (failures=1)

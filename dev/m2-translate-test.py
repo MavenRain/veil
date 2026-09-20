@@ -81,7 +81,19 @@ def select_first(name="selectFirst"):
         ["lam", "same", "explicit", 1, 1],
         ["lam", "same", "explicit", 1, 7],
         ["lam", "same", "implicit", 0, 8],
-        ["lam", "same", "implicit", 0, 9]], 6, 10, [])
+         ["lam", "same", "implicit", 0, 9]], 6, 10, [])
+
+
+def let_sort_identity(name="letSortIdentity", side="both", level=None):
+    level = ["succ", ["zero"]] if level is None else level
+    return definition(name, [
+        ["sort", level], ["sort", ["succ", level]], ["bvar", 0], ["bvar", 1],
+        ["let", "same", 1, 0, 2, False],
+        ["forall", "same", "explicit", 2, 3],
+        ["forall", "same", "implicit", 4 if side in ("type", "both") else 0, 5],
+        ["lam", "same", "explicit", 2, 2],
+        ["lam", "same", "implicit", 4 if side in ("value", "both") else 0, 7]],
+        6, 8, [])
 
 
 def theorem(name, nodes, ty, body, dependencies):
@@ -648,15 +660,200 @@ class TranslationTests(unittest.TestCase):
         with self.assertRaisesRegex(translate.Gap, "universe depth"):
             self.synthetic(alias, row).compile(row["name"])
 
-    def test_sort_alias_resolution_does_not_reduce_applications_or_local_values(self):
+    def test_sort_alias_resolution_does_not_reduce_applications_or_free_locals(self):
         alias = sort_alias("SortAlias")
         rows = {alias["name"]: alias}
         expression = translate.Expressions({"nodes": [
             ["const", "SortAlias", []], ["app", 0, 0], ["bvar", 0],
             ["let", "same", 0, 0, 2, False], ["const", "SortAlias", [["zero"]]]]}, rows)
         self.assertTrue(expression.sort_domain(0))
-        for index in range(1, 5):
+        self.assertTrue(expression.sort_domain(3))
+        for index in (1, 2, 4):
             self.assertFalse(expression.sort_domain(index))
+
+    def test_sort_let_domains_resolve_both_telescopes(self):
+        for level in (["zero"], ["succ", ["zero"]], ["succ", ["succ", ["zero"]]]):
+            for side in ("type", "value", "both"):
+                with self.subTest(level=level, side=side):
+                    row = let_sort_identity(side=side, level=level)
+                    body = self.synthetic(row).compile(row["name"])["body"]
+                    self.assertEqual(body.count("(0 b0 :"), 2)
+                    self.assertIn("(let b0 :", body)
+                    self.assertNotIn("(0 b1 :", body)
+
+    def test_sort_let_values_keep_their_scope_under_shadowing(self):
+        expression = translate.Expressions({"nodes": [
+            ["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+            ["const", "Nat", []], ["bvar", 0], ["bvar", 1],
+            ["let", "same", 0, 2, 4, False], ["let", "same", 1, 0, 5, False],
+            ["let", "same", 0, 2, 3, False], ["let", "same", 1, 0, 7, False],
+            ["let", "same", 1, 3, 3, False], ["let", "same", 1, 0, 9, False],
+            ["let", "same", 1, 0, 4, False]]})
+        self.assertTrue(expression.sort_domain(6))
+        self.assertFalse(expression.sort_domain(8))
+        self.assertTrue(expression.sort_domain(10))
+        self.assertFalse(expression.sort_domain(11))
+        alias = sort_alias("LooseAlias")
+        alias["nodes"][1] = ["bvar", 0]
+        expression.rows[alias["name"]] = alias
+        expression.nodes.extend([["const", "LooseAlias", []],
+                                 ["let", "same", 1, 0, 12, False]])
+        self.assertFalse(expression.sort_domain(13))
+
+    def test_sort_let_inspection_budget_counts_lets_and_variable_lookups(self):
+        row = let_sort_identity()
+        expression = translate.Expressions(row)
+        with mock.patch.object(translate, "MAX_DEPTH", 3):
+            self.assertTrue(expression.sort_domain(4))
+        with mock.patch.object(translate, "MAX_DEPTH", 2):
+            self.assertFalse(expression.sort_domain(4))
+        nodes = [["sort", ["zero"]], ["sort", ["succ", ["zero"]]]]
+        index = 0
+        for _ in range(translate.MAX_DEPTH - 1):
+            nodes.append(["let", "unused", 1, 0, index, False])
+            index = len(nodes) - 1
+        expression = translate.Expressions({"nodes": nodes})
+        self.assertTrue(expression.sort_domain(index))
+        nodes.append(["let", "unused", 1, 0, index, False])
+        self.assertFalse(expression.sort_domain(len(nodes) - 1))
+
+    def test_sort_let_aliases_keep_safety_cycles_and_universe_limits(self):
+        row = let_sort_identity()
+        row["nodes"][0] = ["const", "Alias", []]
+        alias = sort_alias("Alias")
+        expression = translate.Expressions(row, {alias["name"]: alias})
+        self.assertTrue(expression.sort_domain(4))
+        for change in (lambda r: r["details"].update(safety="unsafe"),
+                       lambda r: r["details"].update(hints=["opaque"]),
+                       lambda r: r.update(levels=["u"]),
+                       lambda r: r["details"].update(mutual=["Alias", "other"]),
+                       lambda r: r.update(kind="axiom")):
+            invalid = copy.deepcopy(alias)
+            change(invalid)
+            expression.rows["Alias"] = invalid
+            self.assertFalse(expression.sort_domain(4))
+        alias["nodes"] = [["sort", ["succ", ["succ", ["zero"]]]],
+                          ["const", "Alias", []], ["bvar", 0],
+                          ["let", "same", 0, 1, 2, False]]
+        alias["value"] = 3
+        expression.rows["Alias"] = alias
+        with self.assertRaisesRegex(translate.Gap, "recursive constant alias"):
+            expression.sort_domain(4)
+        deep = ["zero"]
+        for _ in range(translate.MAX_DEPTH):
+            deep = ["succ", deep]
+        for level, reason in ((["param", "u"], "prenex polymorphism"), (deep, "universe depth")):
+            with self.assertRaisesRegex(translate.Gap, reason):
+                translate.Expressions(let_sort_identity(level=level)).sort_domain(4)
+
+    def test_sort_let_type_and_value_binders_must_resolve_together(self):
+        # A genuine erasure mismatch: the type telescope's binder domain is a
+        # local let closing over a sort (True through the let chain), and the
+        # paired value telescope's binder domain is a plain constant with no
+        # let at all (a data name, so False). No side of `side=` in
+        # let_sort_identity can produce this, because its excluded domain
+        # index still points at a literal sort. quantities_agree must still
+        # catch a mismatch that only a let on one side, and nothing at all
+        # on the other, can create.
+        level = ["succ", ["zero"]]
+        row = definition("letQuantityMismatch", [
+            ["sort", level], ["sort", ["succ", level]], ["bvar", 0],
+            ["let", "same", 1, 0, 2, False], ["const", "Nat", []], ["bvar", 0],
+            ["forall", "same", "explicit", 3, 5], ["lam", "same", "explicit", 4, 5]],
+            6, 7, ["Nat"])
+        self.synthetic(row)
+        self.rejects("letQuantityMismatch", "binder quantity differs")
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_let_binders_compute_and_erase(self):
+        for side in ("type", "value", "both"):
+            with self.subTest(side=side):
+                generic = let_sort_identity(side=side)
+                result = definition("letResult", [
+                    ["const", "Nat", []], ["nat", "2"],
+                    ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                    0, 4, ["Nat", generic["name"]])
+                source = self.synthetic(generic, result).compile("letResult")["source"]
+                nat, zero, succ = (translate.symbol(n) for n in ("Nat", "Nat.zero", "Nat.succ"))
+                two = f"({succ} ({succ} {zero}))"
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| two : Witness {two}\n"
+                           f"def computed : Witness {translate.symbol('letResult')} := two\n")
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"fun {translate.symbol(generic['name'])} (union any) : union any := KVar 0\n",
+                              erased)
+                self.assertNotIn("KLet", erased)
+                self.check_synthetic_source(source.replace(f"| two : Witness {two}",
+                                                          f"| two : Witness {zero}"), accepted=False)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_let_aliases_check_nested_scopes_and_data_arguments(self):
+        shadowed = [["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+                    ["const", "Nat", []], ["bvar", 1],
+                    ["let", "same", 0, 2, 3, False], ["let", "same", 1, 0, 4, False]]
+        captured = [["sort", ["succ", ["zero"]]], ["sort", ["succ", ["succ", ["zero"]]]],
+                    ["bvar", 0], ["let", "same", 1, 2, 2, False],
+                    ["let", "same", 1, 0, 3, False]]
+        for label, nodes, dependencies in (("shadowed", shadowed, ["Nat"]), ("captured", captured, [])):
+            with self.subTest(scope=label):
+                alias = definition("ScopedSort", nodes, 1, len(nodes) - 1, dependencies)
+                data_nodes = copy.deepcopy(shadowed)
+                data_nodes[3] = ["bvar", 0]
+                data = definition("ScopedData", data_nodes, 0, 5, ["Nat"])
+                generic = aliased_identity("scopedIdentity", "ScopedSort")
+                identity_row = identity("scopedDataIdentity")
+                identity_row["nodes"][0] = ["const", "ScopedData", []]
+                identity_row["dependencies"] = sorted([identity_row["name"], "ScopedData"])
+                result = definition("scopedResult", [
+                    ["const", "Nat", []], ["const", "Nat.zero", []],
+                    ["const", generic["name"], []], ["const", identity_row["name"], []],
+                    ["app", 3, 1], ["app", 2, 0], ["app", 5, 4]],
+                    0, 6, ["Nat", "Nat.zero", generic["name"], identity_row["name"]])
+                translator = self.synthetic(alias, data, generic, identity_row, result)
+                source = translator.compile(result["name"])["source"]
+                nat, zero = (translate.symbol(n) for n in ("Nat", "Nat.zero"))
+                source += (f"\nmu Witness : (0 n : {nat}) -> Type 0 with\n"
+                           f"| zero : Witness {zero}\n"
+                           f"def computed : Witness {translate.symbol(result['name'])} := zero\n")
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"fun {translate.symbol(identity_row['name'])} (union mu<{nat}>) : union mu<{nat}> := KVar 0\n",
+                              erased)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_let_binders_preserve_proofs_and_higher_sorts(self):
+        for level in (["zero"], ["succ", ["succ", ["zero"]]]):
+            with self.subTest(level=level):
+                generic = let_sort_identity(level=level)
+                if level == ["zero"]:
+                    generic["kind"], generic["details"] = "theorem", {"mutual": [generic["name"]]}
+                    result = theorem("letProof", [
+                        ["const", "True", []], ["const", "True.intro", []],
+                        ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                        0, 4, ["True", "True.intro", generic["name"]])
+                else:
+                    result = definition("letType", [
+                        ["sort", ["succ", ["zero"]]], ["const", "Nat", []],
+                        ["const", generic["name"], []], ["app", 2, 0], ["app", 3, 1]],
+                        0, 4, ["Nat", generic["name"]])
+                source = self.synthetic(generic, result).compile(result["name"])["source"]
+                erased = self.check_synthetic_source(source)["erased"]
+                self.assertIn(f"erased {translate.symbol(result['name'])}\n", erased)
+
+    @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
+    def test_sort_let_domains_check_unused_values_and_declared_types(self):
+        for value, level, accepted in (("Nat", ["succ", ["zero"]], True),
+                                       ("Nat.zero", ["succ", ["zero"]], False),
+                                       ("Nat", ["succ", ["succ", ["zero"]]], False)):
+            with self.subTest(value=value, level=level):
+                row = definition("unusedLetIdentity", [
+                    ["sort", level], ["const", value, []], ["bvar", 0], ["bvar", 1],
+                    ["let", "unused", 0, 1, 0, False],
+                    ["forall", "x", "explicit", 2, 3], ["forall", "A", "implicit", 4, 5],
+                    ["lam", "x", "explicit", 2, 2], ["lam", "A", "implicit", 4, 7]],
+                    6, 8, [value])
+                source = self.synthetic(row).compile(row["name"])["source"]
+                self.assertIn("(let b0 :", source)
+                self.check_synthetic_source(source, accepted=accepted)
 
     @unittest.skipUnless(LIVE, "requires --live and a built Veil checker")
     def test_sort_alias_data_binders_compute_and_erase(self):

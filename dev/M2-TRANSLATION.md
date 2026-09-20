@@ -136,13 +136,25 @@ definitions and domain references remain in the generated source, so the
 kernel checks their types and bodies. Aliases of data families keep ordinary
 runtime binders. Named applications use the checked function's quantity.
 
-Alias resolution spends one step per inspected expression, including the
-terminal sort, with a limit of 128. Cycles and excess depth are explicit gaps.
-The resolver does not reduce applications or lets, substitute local values,
-or unfold unsafe, opaque, polymorphic or mutually defined aliases. Those
+Resolution also follows local lets inside a binder domain or a constant alias
+body. Each value retains its binding scope, so a shadowed name cannot capture
+an earlier value. Global definitions start with a closed scope. The original
+lets, their declared types and even unused values remain in generated source
+for kernel checking. Only locals introduced during this inspection resolve;
+locals from an enclosing binder or let remain outside its scope.
+
+Alias resolution spends one step per inspected expression, including lets,
+variable lookups and the terminal sort, with a limit of 128. An unresolved
+domain at that limit stays a data binder. Cycles and invalid universe levels
+are explicit gaps. The resolver does not reduce applications or unfold
+unsafe, opaque, polymorphic or mutually defined aliases. Those
 declarations retain the existing dependency checks and gaps. A remaining
 quantity mismatch between type and value is an explicit gap. This bounded
 rule does not establish general type normalization or prenex polymorphism.
+
+The [local-let validation](validation/2026-09-19-m2-sort-lets/README.md) covers
+mixed domains, captured values, shadowing, proof erasure, higher sorts, data
+arguments, invalid unused values and the inspection boundary.
 
 Veil refuses an erased binder that is read in a runtime position. The kernel
 tests `test/neg/n02-quantity.kan`, `test/neg/grouped-erased-read.kan` and

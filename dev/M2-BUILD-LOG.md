@@ -1,5 +1,64 @@
 # M2 build log
 
+## Closed-sort local-let domains, 2026-09-19
+
+Base: `b6104fe635debc76fc1491850d268ee1cb2ef937`.
+
+The binder quantity resolver now follows local lets inside a domain or a
+transparent constant alias body. Values retain their binding scope and alias
+ancestry, so shadowing cannot capture earlier locals. Entering a global
+definition resets the local scope. Both declaration telescopes use the same
+rule, and generated source retains every let for kernel checking, including
+unused values. Data aliases keep their runtime arguments.
+
+All 79 translation tests pass with `--live`, including 27 integrations. Eight
+new cases cover mixed literal and let domains, captured values, shadowing,
+global scope, closed sorts, proof erasure, ordinary data, invalid unused
+values, declared types, alias safety, cycles and the 128-expression boundary.
+The kernel rejects changed computation witnesses. Two isolated controls
+require failures when local-let recognition or captured value scopes are
+removed from the passing baseline.
+
+Declaration regressions pass 30 tests and skip two optional Lean integrations.
+Fresh recording, live reproduction, HOUSE and TRUSTED-LINES pass. The checker
+binary and 46 unchanged pinned build inputs match the prior type-let record.
+Only the translator changes among its 47 pinned inputs. This increment
+reuses that checker without a rebuild, fresh Lean export or full M1 timing run.
+The incomplete parity gate retains its expected exit 1.
+
+The 14 sample sources and checker streams remain byte-identical. Refreshed
+provenance retains five rechecked names, 39 gaps and zero full-inventory parity
+credit. Each inspected let, variable lookup, constant and terminal sort
+consumes one of 128 steps; an unresolved domain stays a data binder. Locals
+outside the inspected domain, application reduction, prenex universes,
+general Prop parity and the remaining M2 exit criteria stay open.
+
+Evidence: [closed-sort local-let validation](validation/2026-09-19-m2-sort-lets/README.md).
+
+### Review 2026-09-19 (M2 closed-sort lets)
+
+Two items were kept and both are fixed.
+
+- A-1 low, dev/validation/2026-09-19-m2-sort-lets/controls.py:50: the
+  discard-scope mutant no longer breaks on a cosmetic reformat of the
+  captured-scope binding line. The site is matched and replaced through a
+  whitespace-tolerant pattern instead of one exact literal string.
+- B-1 medium, dev/m2-translate-test.py:749: a new offline test builds a
+  genuinely asymmetric telescope, one paired binder resolving to a sort
+  through a local let and the other resolving to a data constant with no
+  let at all, and asserts `compile` raises the binder quantity gap.
+
+The offline suite now runs 80 tests. The `translation-tests` capture
+predates this test and keeps its `Ran 79 tests` row. The record README
+holds the predate note. A re-capture is not part of this review.
+
+CARRY A-2 of the 2026-09-17 m2-beta review, dev/m2-translate.py:168: a
+local let now recurses into its own domain, value and body through this
+same `(index, depth)` render cache key, so two let chains that revisit
+one node index at unequal remaining fuel can still share one cached
+render, letting a real expression-depth refusal go unraised. The item
+waits for a user ruling.
+
 ## Closed-sort alias binders, 2026-09-18
 
 Base: `228da98abb60c77fbf7133e5b68f717d9e35bc2d`.

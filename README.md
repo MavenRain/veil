@@ -195,6 +195,8 @@ universe levels. Type-valued lets and direct type-lambda applications retain
 their checks and erase, including references to enclosing erased type parameters.
 Binders over transparent constant aliases of closed sorts use the same erased
 quantities while retaining the alias definitions for kernel checking.
+The same rule follows local lets inside a binder domain or alias body,
+preserving shadowed scopes and checking every retained let value.
 It credits no full-inventory parity successes.
 M1 exit is not ratified. The checker, elaborator,
 erasure, WasmGC emitter and execution driver support strictly positive

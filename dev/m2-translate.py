@@ -83,13 +83,24 @@ class Expressions:
         self.bytes = 0
 
     def sort_domain(self, index):
-        """Recognize closed sorts through transparent constant alias chains."""
-        node = self.nodes[index]
-        seen = set()
+        """Recognize closed sorts through transparent aliases and local lets."""
+        nodes, bindings, seen = self.nodes, (), frozenset()
         for _ in range(MAX_DEPTH):
+            node = nodes[index]
             if node[0] == "sort":
                 closed_level(node[1])
                 return True
+            if node[0] == "let":
+                # Values close over the scope and alias ancestry at their binding.
+                # Keep the original let in render so even unused values are checked.
+                value = (nodes, node[3], bindings, seen)
+                bindings, index = (value, *bindings), node[4]
+                continue
+            if node[0] == "bvar":
+                if node[1] >= len(bindings):
+                    return False
+                nodes, index, bindings, seen = bindings[node[1]]
+                continue
             if node[0] != "const" or node[2]:
                 return False
             name = node[1]
@@ -101,8 +112,9 @@ class Expressions:
                     or details["mutual"] not in ([], [name])):
                 return False
             admit(name not in seen, f"recursive constant alias: {name}")
-            seen.add(name)
-            node = row["nodes"][row["value"]]
+            seen = seen | {name}
+            # Global definitions have their own closed scope.
+            nodes, index, bindings = row["nodes"], row["value"], ()
         # No sort appeared inside the inspection bound. Keep the domain a data
         # binder, the rule for every chain that ends in an ordinary constant,
         # so a long chain of data aliases still translates.
